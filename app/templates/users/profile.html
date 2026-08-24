@@ -26,6 +26,8 @@
                             <span class="badge badge-primary text-xs">🏢 មន្ត្រីការិយាល័យ {{ current_user.station.code if current_user.station else '' }}</span>
                         {% elif current_user.role == 'village_chief' %}
                             <span class="badge badge-success text-xs">🏡 មេភូមិ {{ current_user.village.name_kh if current_user.village else '' }}</span>
+                        {% elif current_user.role == 'viewer' %}
+                            <span class="badge text-xs bg-purple-200 text-purple-950 font-bold">🔍 អ្នកពិនិត្យរបាយការណ៍ (Viewer)</span>
                         {% endif %}
                     </div>
                     <p class="hero-subtitle text-xs sm:text-sm text-blue-200 mt-1 font-medium">
@@ -68,7 +70,8 @@
                         <span class="font-bold text-slate-800">
                             {% if current_user.role == 'admin' %}👑 អ្នកគ្រប់គ្រងប្រព័ន្ធ (Admin)
                             {% elif current_user.role == 'officer' %}🏢 មន្ត្រីការិយាល័យបោះឆ្នោត
-                            {% else %}🏡 មេភូមិ
+                            {% elif current_user.role == 'village_chief' %}🏡 មេភូមិ
+                            {% elif current_user.role == 'viewer' %}🔍 អ្នកពិនិត្យរបាយការណ៍ (Viewer)
                             {% endif %}
                         </span>
                     </div>
@@ -151,7 +154,7 @@
 
                             <div class="form-group">
                                 <label class="form-label">តួនាទីក្នុងប្រព័ន្ធ</label>
-                                <input type="text" value="{% if current_user.role == 'admin' %}Admin (មេឃុំ/ស្មៀន){% elif current_user.role == 'officer' %}មន្ត្រីការិយាល័យ ({{ current_user.station.code if current_user.station else '' }}){% else %}មេភូមិ ({{ current_user.village.name_kh if current_user.village else '' }}){% endif %}" disabled class="form-control bg-slate-50 text-slate-500 cursor-not-allowed">
+                                <input type="text" value="{% if current_user.role == 'admin' %}Admin (មេឃុំ/ស្មៀន){% elif current_user.role == 'officer' %}មន្ត្រីការិយាល័យ ({{ current_user.station.code if current_user.station else '' }}){% elif current_user.role == 'village_chief' %}មេភូមិ ({{ current_user.village.name_kh if current_user.village else '' }}){% else %}អ្នកពិនិត្យរបាយការណ៍ (Viewer - Read Only){% endif %}" disabled class="form-control bg-slate-50 text-slate-500 cursor-not-allowed">
                             </div>
                         </div>
                     </div>

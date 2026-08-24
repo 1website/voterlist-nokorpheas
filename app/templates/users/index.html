@@ -54,6 +54,8 @@
                             <span class="badge badge-primary">🏢 មន្ត្រីការិយាល័យ</span>
                         {% elif u.role == 'village_chief' %}
                             <span class="badge badge-success">🏡 មេភូមិ</span>
+                        {% elif u.role == 'viewer' %}
+                            <span class="badge text-purple-900 bg-purple-100 border border-purple-300">🔍 អ្នកពិនិត្យ (Viewer)</span>
                         {% endif %}
                     </td>
                     <td>
@@ -61,6 +63,8 @@
                             <span class="font-bold text-slate-700">{{ u.station.code }}</span> - {{ u.station.name }}
                         {% elif u.role == 'village_chief' and u.village %}
                             <span class="font-bold text-slate-700">{{ u.village.name_kh }}</span>
+                        {% elif u.role == 'viewer' %}
+                            <span class="text-purple-700 font-semibold">ពិនិត្យរបាយការណ៍ទូទាំងឃុំ</span>
                         {% else %}
                             <span class="text-slate-400">គ្រប់គ្រងទូទាំងឃុំ</span>
                         {% endif %}
@@ -129,9 +133,10 @@
                 <div class="form-group">
                     <label class="form-label">តួនាទី (Role) *</label>
                     <select name="role" id="userRoleSelect" required onchange="handleRoleChange()" class="form-control">
-                        <option value="officer">មន្ត្រីប្រចាំការិយាល័យ (Station Officer)</option>
-                        <option value="village_chief">មេភូមិ / ជំនួយការ (Village Chief)</option>
-                        <option value="admin">Admin (មេឃុំ / ស្មៀនឃុំ)</option>
+                        <option value="officer">🏢 មន្ត្រីប្រចាំការិយាល័យ (Station Officer)</option>
+                        <option value="village_chief">🏡 មេភូមិ / ជំនួយការ (Village Chief)</option>
+                        <option value="viewer">🔍 អ្នកពិនិត្យរបាយការណ៍ / អ្នកសង្កេតការណ៍ (Viewer - Read Only)</option>
+                        <option value="admin">👑 Admin (មេឃុំ / ស្មៀនឃុំ)</option>
                     </select>
                 </div>
 

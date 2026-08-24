@@ -110,6 +110,8 @@
                         <span class="badge badge-primary text-[10px]">🏢 ការិយាល័យ {{ current_user.station.code if current_user.station else '' }}</span>
                     {% elif current_user.role == 'village_chief' %}
                         <span class="badge badge-success text-[10px]">🏡 ភូមិ {{ current_user.village.name_kh if current_user.village else '' }}</span>
+                    {% elif current_user.role == 'viewer' %}
+                        <span class="badge text-[10px] bg-purple-200 text-purple-950 font-bold">🔍 អ្នកពិនិត្យ (Viewer)</span>
                     {% endif %}
                     <span class="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> សកម្ម
@@ -127,11 +129,13 @@
                     <span>ផ្ទាំងគ្រប់គ្រងស្ថិតិ</span>
                 </a>
 
+                {% if current_user.role in ['admin', 'officer'] %}
                 <a href="/checkin" class="sidebar-nav-link {% if '/checkin' in request.url.path %}active{% endif %}">
                     <span class="text-lg">⚡</span>
                     <span class="flex-1">Check-in & ស្កេន QR</span>
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
                 </a>
+                {% endif %}
 
                 <a href="/voters" class="sidebar-nav-link {% if '/voters' in request.url.path and '/card' not in request.url.path %}active{% endif %}">
                     <span class="text-lg">👥</span>
@@ -236,11 +240,13 @@
 
                 <!-- Right Quick Action Shortcuts -->
                 <div class="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+                    {% if current_user.role in ['admin', 'officer'] %}
                     <a href="/checkin" class="btn btn-sm btn-accent shadow-sm font-bold whitespace-nowrap flex items-center gap-1 text-xs sm:text-sm px-2.5 sm:px-3.5 py-1.5 rounded-xl flex-shrink-0" title="Check-in វត្តមានអ្នកបោះឆ្នោត">
                         <span class="text-xs sm:text-sm">⚡</span>
                         <span>Check-in</span>
                         <span class="hidden sm:inline">វត្តមាន</span>
                     </a>
+                    {% endif %}
                     <a href="/voters" class="btn btn-sm btn-outline hidden sm:inline-flex font-semibold text-xs sm:text-sm py-1.5">
                         🔍 ស្វែងរកឈ្មោះ
                     </a>

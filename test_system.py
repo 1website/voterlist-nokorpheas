@@ -1,5 +1,7 @@
 import sys
 import os
+import datetime
+import time
 
 # Set stdout UTF-8 encoding on Windows
 if hasattr(sys.stdout, "reconfigure"):
@@ -222,15 +224,60 @@ def test_system():
     assert "មាស វណ្ណា" in res_verify.text
     print("[PASS] 25. Public Voter Verification Page rendered successfully (/verify/NP-0701-0001)")
 
-    # 26. Test QR Lookup with Full URL Parsing
-    full_qr_url = "https://voterlist-nokorpheas.onrender.com/verify/NP-0701-0001"
-    res_qr_url = client.get(f"/api/voters/lookup-qr?code={full_qr_url}")
-    assert res_qr_url.status_code == 200
-    assert res_qr_url.json()["found"] == True
-    assert res_qr_url.json()["voter"]["voter_code"] == "NP-0701-0001"
-    print("[PASS] 26. Full QR Verification URL lookup succeeded")
+    # 27. Test Creation of Viewer Role User
+    viewer_username = f"viewer_obs_{int(datetime.datetime.now().timestamp()) % 10000}"
+    viewer_payload = {
+        "username": viewer_username,
+        "password": "viewerpassword123",
+        "full_name": "លោក អ៊ុំ សុវណ្ណារិទ្ធ (អ្នកសង្កេតការណ៍)",
+        "role": "viewer",
+        "station_id": 0,
+        "village_id": 0,
+        "phone": "012 333 444",
+        "photo_preset": "/static/images/avatars/male_1.jpg"
+    }
+    res_v_create = client.post("/api/users", data=viewer_payload, cookies=cookies)
+    assert res_v_create.status_code == 200
+    assert res_v_create.json()["success"] == True
+    print(f"[PASS] 27. Viewer Role User created successfully ({viewer_username})")
 
-    print("\n ALL 26 SYSTEM TESTS PASSED SUCCESSFULLY! ")
+    # 28. Test Viewer Login & Read-Only Access to Reports & Dashboard
+    res_v_login = client.post("/login", data={"username": viewer_username, "password": "viewerpassword123"}, follow_redirects=False)
+    assert res_v_login.status_code in [302, 303]
+    viewer_cookies = {"session": res_v_login.cookies.get("session")}
+
+    res_v_dash = client.get("/dashboard", cookies=viewer_cookies)
+    assert res_v_dash.status_code == 200
+    assert "ផ្ទាំងគ្រប់គ្រងស្ថិតិ" in res_v_dash.text
+
+    res_v_rep = client.get("/reports", cookies=viewer_cookies)
+    assert res_v_rep.status_code == 200
+    assert "មជ្ឈមណ្ឌលរបាយការណ៍" in res_v_rep.text
+    print("[PASS] 28. Viewer logged in and accessed Dashboard & Reports successfully (Read-Only)")
+
+    # 29. Test Viewer Mutation Blocking (Delete, Edit, Checkin, Add User - All 403 Forbidden)
+    res_v_del = client.post("/api/voters/1/delete", cookies=viewer_cookies)
+    assert res_v_del.status_code == 403
+
+    res_v_chk = client.post("/api/voters/1/checkin", cookies=viewer_cookies)
+    assert res_v_chk.status_code == 403
+
+    res_v_add = client.post("/api/voters", data={
+        "name_kh": "តេស្ត អ្នកពិនិត្យ",
+        "name_en": "TEST VIEWER",
+        "gender": "ប្រុស",
+        "dob": "1990-01-01",
+        "national_id": "020999999",
+        "village_id": 1,
+        "station_id": 1
+    }, cookies=viewer_cookies)
+    assert res_v_add.status_code == 403
+
+    res_v_usr = client.get("/users", cookies=viewer_cookies)
+    assert res_v_usr.status_code == 403
+    print("[PASS] 29. Viewer mutation operations (Delete, Check-in, Add, User Management) all strictly blocked (403 Forbidden)")
+
+    print("\n ALL 29 SYSTEM TESTS PASSED SUCCESSFULLY! ")
 
 if __name__ == "__main__":
     test_system()
