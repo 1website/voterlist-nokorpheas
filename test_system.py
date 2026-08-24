@@ -1,5 +1,6 @@
 import sys
 import os
+import shutil
 import datetime
 import time
 
@@ -12,12 +13,12 @@ if hasattr(sys.stdout, "reconfigure"):
 
 from fastapi.testclient import TestClient
 from main import app
-from app.database import SessionLocal
+from app.database import SessionLocal, DB_PATH
 from app.models import Village, PollingStation, Voter, User
 
 client = TestClient(app)
 
-def test_system():
+def run_tests():
     print("=== Testing System Functionality ===")
     
     # 1. Test Login Page
@@ -323,6 +324,23 @@ def test_system():
     print(f"[PASS] 30. Strict login enforcement verified across all {len(protected_routes)} protected routes (All 100% redirect to /login)")
 
     print("\n ALL 30 SYSTEM TESTS PASSED SUCCESSFULLY! ")
+
+def test_system():
+    # Save safety backup of DB before tests
+    temp_backup = DB_PATH + ".test_backup"
+    if os.path.exists(DB_PATH):
+        shutil.copy2(DB_PATH, temp_backup)
+    
+    try:
+        run_tests()
+    finally:
+        # Always restore original DB so test artifacts never pollute DB
+        if os.path.exists(temp_backup):
+            shutil.copy2(temp_backup, DB_PATH)
+            try:
+                os.remove(temp_backup)
+            except Exception:
+                pass
 
 if __name__ == "__main__":
     test_system()
