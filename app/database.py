@@ -20,3 +20,19 @@ def get_db():
         yield db
     finally:
         db.close()
+
+def ensure_schema_migrations():
+    from sqlalchemy import text
+    try:
+        with engine.connect() as conn:
+            # Check if photo_url exists in users table
+            result = conn.execute(text("PRAGMA table_info(users)"))
+            columns = [row[1] for row in result.fetchall()]
+            if "photo_url" not in columns:
+                conn.execute(text("ALTER TABLE users ADD COLUMN photo_url VARCHAR(255)"))
+                conn.commit()
+    except Exception as e:
+        print(f"Migration note: {e}")
+
+# Run schema check
+ensure_schema_migrations()

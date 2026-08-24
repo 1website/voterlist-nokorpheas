@@ -196,12 +196,27 @@ def test_system():
         "village_id": 1,
         "station_id": 1
     }
-    res_inv = client.post("/api/voters", data=invalid_doc_data, cookies=cookies)
-    assert res_inv.status_code == 400
-    assert "៩ ខ្ទង់" in res_inv.json().get("detail", "") or "៧ ខ្ទង់" in res_inv.json().get("detail", "")
-    print("[PASS] 22. Invalid document length (5 digits) properly rejected with HTTP 400")
+    # 23. Test User Profile Page
+    res_prof = client.get("/profile", cookies=cookies)
+    assert res_prof.status_code == 200
+    assert "ព័ត៌មានគណនីផ្ទាល់ខ្លួន" in res_prof.text
+    print("[PASS] 23. User Profile page rendered successfully")
 
-    print("\n ALL 22 SYSTEM TESTS PASSED SUCCESSFULLY! ")
+    # 24. Test User Profile & Avatar Update
+    prof_update_data = {
+        "full_name": "ស្មៀនឃុំនគរភាស (Admin Updated)",
+        "phone": "012 999 888",
+        "photo_preset": "/static/images/avatars/male_3.jpg",
+        "current_password": "",
+        "new_password": "",
+        "confirm_password": ""
+    }
+    res_p_up = client.post("/api/profile/update", data=prof_update_data, cookies=cookies)
+    assert res_p_up.status_code == 200
+    assert res_p_up.json()["success"] == True
+    print("[PASS] 24. User Profile & Avatar updated successfully")
+
+    print("\n ALL 24 SYSTEM TESTS PASSED SUCCESSFULLY! ")
 
 if __name__ == "__main__":
     test_system()

@@ -112,12 +112,23 @@ class User(Base):
     station_id = Column(Integer, ForeignKey("polling_stations.id"), nullable=True) # for station officers
     village_id = Column(Integer, ForeignKey("villages.id"), nullable=True)         # for village chiefs
     phone = Column(String(50), nullable=True)
+    photo_url = Column(String(255), nullable=True)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
     # Relationships
     station = relationship("PollingStation", back_populates="users")
     village = relationship("Village", back_populates="users")
+
+    @property
+    def avatar_display(self):
+        if self.photo_url and self.photo_url.strip():
+            return self.photo_url
+        if self.role == "admin":
+            return "/static/images/avatars/male_1.jpg"
+        elif self.role == "officer":
+            return "/static/images/avatars/male_2.jpg"
+        return "/static/images/avatars/male_3.jpg"
 
 
 class AuditLog(Base):

@@ -1,0 +1,333 @@
+{% extends "base.html" %}
+
+{% block title %}ព័ត៌មានគណនីផ្ទាល់ខ្លួន (User Profile) - រដ្ឋបាលឃុំនគរភាស{% endblock %}
+
+{% block content %}
+<div class="space-y-6 max-w-6xl mx-auto">
+
+    <!-- ========================================================================= -->
+    <!-- HERO HEADER BANNER -->
+    <!-- ========================================================================= -->
+    <div class="hero-banner p-6 sm:p-8 rounded-3xl relative overflow-hidden shadow-xl border border-blue-900/40">
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+            <div class="flex items-center gap-4">
+                <div class="relative">
+                    <img id="headerAvatarPreview" src="{{ current_user.avatar_display }}" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-amber-400 shadow-xl bg-white/10 flex-shrink-0">
+                    <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-slate-900 flex items-center justify-center text-[10px]" title="កំពុងប្រើប្រាស់"></span>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <h1 class="hero-title text-xl sm:text-2xl font-bold text-white font-kh-heading m-0">
+                            {{ current_user.full_name }}
+                        </h1>
+                        {% if current_user.role == 'admin' %}
+                            <span class="badge badge-warning text-xs">👑 មេឃុំ / Admin</span>
+                        {% elif current_user.role == 'officer' %}
+                            <span class="badge badge-primary text-xs">🏢 មន្ត្រីការិយាល័យ {{ current_user.station.code if current_user.station else '' }}</span>
+                        {% elif current_user.role == 'village_chief' %}
+                            <span class="badge badge-success text-xs">🏡 មេភូមិ {{ current_user.village.name_kh if current_user.village else '' }}</span>
+                        {% endif %}
+                    </div>
+                    <p class="hero-subtitle text-xs sm:text-sm text-blue-200 mt-1 font-medium">
+                        ឈ្មោះគណនី៖ <span class="font-mono text-amber-300 font-bold">@{{ current_user.username }}</span> • គ្រប់គ្រងរូបថត Profile និងព័ត៌មានផ្ទាល់ខ្លួន
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 self-start md:self-auto">
+                <a href="/dashboard" class="btn btn-sm btn-outline text-white border-white/30 hover:bg-white/15">
+                    ← ត្រឡប់ទៅ Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- PROFILE EDIT FORM & DETAILS -->
+    <!-- ========================================================================= -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Left Column: Photo Management & Quick Info -->
+        <div class="lg:col-span-1 space-y-6">
+            <div class="card p-6 bg-white rounded-3xl border border-slate-200 shadow-sm text-center">
+                <div class="relative inline-block mx-auto mb-4">
+                    <img id="mainAvatarPreview" src="{{ current_user.avatar_display }}" class="w-32 h-32 rounded-3xl object-cover border-4 border-blue-500/20 shadow-lg bg-slate-100 mx-auto">
+                    <label for="profilePhotoFileInput" class="absolute bottom-1 right-1 w-9 h-9 rounded-xl bg-blue-700 hover:bg-blue-800 text-white flex items-center justify-center cursor-pointer shadow-md transition transform hover:scale-105 border-2 border-white" title="ប្តូររូបថតពីកុំព្យូទ័រ">
+                        <span>📷</span>
+                    </label>
+                </div>
+
+                <h3 class="font-bold text-slate-800 text-base font-kh-heading" id="cardFullNameDisplay">
+                    {{ current_user.full_name }}
+                </h3>
+                <div class="text-xs text-slate-500 font-mono mt-0.5">@{{ current_user.username }}</div>
+
+                <div class="mt-4 pt-4 border-t border-slate-100 text-left space-y-2.5 text-xs">
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500">តួនាទី៖</span>
+                        <span class="font-bold text-slate-800">
+                            {% if current_user.role == 'admin' %}👑 អ្នកគ្រប់គ្រងប្រព័ន្ធ (Admin)
+                            {% elif current_user.role == 'officer' %}🏢 មន្ត្រីការិយាល័យបោះឆ្នោត
+                            {% else %}🏡 មេភូមិ
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    {% if current_user.station %}
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500">ការិយាល័យ៖</span>
+                        <span class="font-bold text-blue-700">{{ current_user.station.code }} - {{ current_user.station.name }}</span>
+                    </div>
+                    {% endif %}
+
+                    {% if current_user.village %}
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500">ភូមិទទួលខុសត្រូវ៖</span>
+                        <span class="font-bold text-emerald-700">{{ current_user.village.name_kh }} ({{ current_user.village.code }})</span>
+                    </div>
+                    {% endif %}
+
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500">ស្ថានភាព៖</span>
+                        <span class="badge badge-success text-[10px]">● សកម្ម (Active)</span>
+                    </div>
+                </div>
+
+                <!-- Preset Avatars Collection -->
+                <div class="mt-5 pt-4 border-t border-slate-100 text-left">
+                    <label class="text-xs font-bold text-slate-700 block mb-2 font-kh-heading">
+                        ជ្រើសរើសរូបថតគំរូ (Preset Avatars)៖
+                    </label>
+                    <div class="flex items-center gap-2 overflow-x-auto pb-1.5" id="presetAvatarsScroll">
+                        {% for avatar in preset_avatars %}
+                        <img src="{{ avatar }}" 
+                             onclick="selectProfilePresetAvatar('{{ avatar }}', this)" 
+                             class="w-11 h-11 rounded-2xl object-cover border-2 border-transparent hover:border-blue-500 cursor-pointer transition flex-shrink-0 preset-avatar-item {% if current_user.photo_url == avatar %}border-blue-600 ring-2 ring-blue-200{% endif %}"
+                             title="ជ្រើសរូបនេះ">
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Profile Edit Form -->
+        <div class="lg:col-span-2 space-y-6">
+            <div class="card p-6 sm:p-8 bg-white rounded-3xl border border-slate-200 shadow-sm">
+                <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-800 font-kh-heading">កែប្រែព័ត៌មានគណនី</h2>
+                        <p class="text-xs text-slate-500">ធ្វើបច្ចុប្បន្នភាពឈ្មោះ លេខទូរស័ព្ទ រូបថត និងពាក្យសម្ងាត់</p>
+                    </div>
+                    <span class="text-2xl">⚙️</span>
+                </div>
+
+                <form id="userProfileForm" onsubmit="submitUserProfileForm(event)" enctype="multipart/form-data" class="space-y-6">
+                    <input type="hidden" name="photo_preset" id="photoPresetInput" value="{{ current_user.photo_url or '' }}">
+                    <input type="file" name="photo" id="profilePhotoFileInput" accept="image/*" class="hidden" onchange="previewProfilePhotoFile(this)">
+
+                    <!-- Section 1: Basic Information -->
+                    <div>
+                        <h3 class="text-xs font-bold text-blue-900 uppercase tracking-wider mb-3 font-kh-heading flex items-center gap-1.5">
+                            <span>👤</span> ព័ត៌មានទូទៅ
+                        </h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="form-group">
+                                <label class="form-label">ឈ្មោះគណនី (Username)</label>
+                                <div class="relative">
+                                    <input type="text" value="{{ current_user.username }}" disabled class="form-control bg-slate-50 font-mono text-slate-500 cursor-not-allowed">
+                                    <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 text-xs">🔒 មិនអាចប្តូរបាន</span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">គោត្តនាម-នាម (ខ្មែរ) *</label>
+                                <input type="text" name="full_name" id="fullNameInput" required value="{{ current_user.full_name }}" class="form-control font-medium">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">លេខទូរស័ព្ទទំនាក់ទំនង</label>
+                                <input type="text" name="phone" id="phoneInput" value="{{ current_user.phone or '' }}" placeholder="ឧ. 012 345 678" class="form-control font-mono">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">តួនាទីក្នុងប្រព័ន្ធ</label>
+                                <input type="text" value="{% if current_user.role == 'admin' %}Admin (មេឃុំ/ស្មៀន){% elif current_user.role == 'officer' %}មន្ត្រីការិយាល័យ ({{ current_user.station.code if current_user.station else '' }}){% else %}មេភូមិ ({{ current_user.village.name_kh if current_user.village else '' }}){% endif %}" disabled class="form-control bg-slate-50 text-slate-500 cursor-not-allowed">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 2: Change Password (Optional) -->
+                    <div class="pt-6 border-t border-slate-100">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-xs font-bold text-blue-900 uppercase tracking-wider font-kh-heading flex items-center gap-1.5">
+                                <span>🔑</span> ផ្លាស់ប្តូរពាក្យសម្ងាត់ (បំពេញប្រសិនបើចង់ប្តូរ)
+                            </h3>
+                            <span class="text-[11px] text-slate-400">ទុកទំនេរ ប្រសិនបើមិនចង់ផ្លាស់ប្តូរ</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div class="form-group">
+                                <label class="form-label">ពាក្យសម្ងាត់ចាស់</label>
+                                <input type="password" name="current_password" id="currentPasswordInput" placeholder="ពាក្យសម្ងាត់បច្ចុប្បន្ន..." class="form-control">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">ពាក្យសម្ងាត់ថ្មី</label>
+                                <input type="password" name="new_password" id="newPasswordInput" placeholder="ពាក្យសម្ងាត់ថ្មី (យ៉ាងតិច ៤ ខ្ទង់)..." class="form-control">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">បញ្ជាក់ពាក្យសម្ងាត់ថ្មី</label>
+                                <input type="password" name="confirm_password" id="confirmPasswordInput" placeholder="វាយពាក្យសម្ងាត់ថ្មីម្តងទៀត..." class="form-control">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Buttons -->
+                    <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+                        <a href="/dashboard" class="btn btn-outline py-2.5 px-5 text-sm font-semibold">
+                            បោះបង់
+                        </a>
+                        <button type="submit" id="saveProfileBtn" class="btn btn-primary py-2.5 px-6 text-sm font-bold shadow-md flex items-center gap-2">
+                            <span>💾</span>
+                            <span>រក្សាទុកការផ្លាស់ប្តូរ</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Section 3: Recent Activity Logs -->
+            <div class="card p-6 bg-white rounded-3xl border border-slate-200 shadow-sm">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+                    <h3 class="text-sm font-bold text-slate-800 font-kh-heading flex items-center gap-2">
+                        <span>📋</span> សកម្មភាពចុងក្រោយរបស់អ្នក (Recent Activities)
+                    </h3>
+                    <span class="text-xs text-slate-400">{{ user_logs|length }} កំណត់ត្រា</span>
+                </div>
+
+                {% if user_logs %}
+                <div class="space-y-2.5">
+                    {% for log in user_logs %}
+                    <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-start justify-between gap-3 text-xs">
+                        <div class="flex items-start gap-2.5 min-w-0">
+                            <span class="text-base leading-none">
+                                {% if log.action == 'CHECKIN' %}⚡
+                                {% elif 'VOTER' in log.action %}👥
+                                {% elif 'BACKUP' in log.action %}💾
+                                {% elif 'LOGIN' in log.action %}🔐
+                                {% elif 'PROFILE' in log.action %}👤
+                                {% else %}📝{% endif %}
+                            </span>
+                            <div class="min-w-0">
+                                <div class="font-bold text-slate-800">{{ log.description }}</div>
+                                <div class="text-[11px] text-slate-400 font-mono mt-0.5">{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') if log.created_at else '' }}</div>
+                            </div>
+                        </div>
+                        <span class="badge badge-{% if log.action_type == 'success' %}success{% elif log.action_type == 'danger' %}danger{% elif log.action_type == 'warning' %}warning{% else %}primary{% endif %} text-[10px] flex-shrink-0">
+                            {{ log.action }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-6 text-slate-400 text-xs">
+                    មិនទាន់មានកំណត់ត្រាសកម្មភាពនៅឡើយទេ
+                </div>
+                {% endif %}
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function selectProfilePresetAvatar(avatarUrl, imgElement) {
+        document.getElementById('photoPresetInput').value = avatarUrl;
+        
+        // Clear file input
+        const fileInput = document.getElementById('profilePhotoFileInput');
+        if (fileInput) fileInput.value = '';
+
+        // Update previews
+        document.getElementById('mainAvatarPreview').src = avatarUrl;
+        document.getElementById('headerAvatarPreview').src = avatarUrl;
+
+        // Highlight selected
+        document.querySelectorAll('.preset-avatar-item').forEach(el => {
+            el.classList.remove('border-blue-600', 'ring-2', 'ring-blue-200');
+        });
+        if (imgElement) {
+            imgElement.classList.add('border-blue-600', 'ring-2', 'ring-blue-200');
+        }
+    }
+
+    function previewProfilePhotoFile(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('mainAvatarPreview').src = e.target.result;
+                document.getElementById('headerAvatarPreview').src = e.target.result;
+                
+                // Clear preset selection highlight
+                document.getElementById('photoPresetInput').value = '';
+                document.querySelectorAll('.preset-avatar-item').forEach(el => {
+                    el.classList.remove('border-blue-600', 'ring-2', 'ring-blue-200');
+                });
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    async function submitUserProfileForm(event) {
+        event.preventDefault();
+        const form = document.getElementById('userProfileForm');
+        const submitBtn = document.getElementById('saveProfileBtn');
+        const formData = new FormData(form);
+
+        // Validation
+        const newPwd = formData.get('new_password');
+        const confirmPwd = formData.get('confirm_password');
+        if (newPwd && newPwd !== confirmPwd) {
+            showToast('ការបញ្ជាក់ពាក្យសម្ងាត់ថ្មីមិនត្រូវគ្នាទេ!', 'error');
+            return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span>⏳</span> កំពុងរក្សាទុក...';
+
+        try {
+            const res = await fetch('/api/profile/update', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+
+            if (res.ok && data.success) {
+                showToast(data.message, 'success');
+                // Update display elements
+                document.getElementById('cardFullNameDisplay').innerText = data.full_name;
+                
+                // Clear password inputs
+                document.getElementById('currentPasswordInput').value = '';
+                document.getElementById('newPasswordInput').value = '';
+                document.getElementById('confirmPasswordInput').value = '';
+
+                setTimeout(() => {
+                    window.location.reload();
+                }, 800);
+            } else {
+                showToast(data.detail || data.message || 'កំហុសក្នុងការកែប្រែ', 'error');
+            }
+        } catch (err) {
+            showToast('កំហុសក្នុងការតភ្ជាប់ប្រព័ន្ធ', 'error');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<span>💾</span> <span>រក្សាទុកការផ្លាស់ប្តូរ</span>';
+        }
+    }
+</script>
+{% endblock %}
