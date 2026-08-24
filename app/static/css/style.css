@@ -229,6 +229,25 @@ body {
   width: 100% !important;
 }
 
+.app-footer {
+  width: 100% !important;
+  min-width: 100% !important;
+  background: #ffffff !important;
+  border-top: 1px solid var(--border-color) !important;
+  padding: 14px 24px !important;
+  margin-top: auto !important;
+  box-sizing: border-box !important;
+}
+
+.app-footer-container {
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  flex-wrap: wrap !important;
+}
+
 /* Mobile Sidebar Overlay */
 @media (max-width: 1023px) {
   .app-layout {
