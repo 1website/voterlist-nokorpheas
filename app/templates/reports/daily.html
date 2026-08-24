@@ -16,8 +16,14 @@
             <h2 class="text-2xl font-bold text-slate-800 font-kh-heading flex items-center gap-2">
                 <span>📅</span> របាយការណ៍អ្នកចុះឈ្មោះប្រចាំថ្ងៃ
             </h2>
-            <p class="text-xs sm:text-sm text-slate-500">
-                រដ្ឋបាលឃុំនគរភាស • ទិន្នន័យចុះឈ្មោះថ្ងៃទី <span class="font-bold text-blue-700 font-mono text-sm">{{ selected_date }}</span> (សរុប <span class="font-bold text-blue-800">{{ total_day }}</span> នាក់)
+            <p class="text-xs sm:text-sm text-slate-500 flex items-center gap-1.5 flex-wrap">
+                រដ្ឋបាលឃុំនគរភាស • ទិន្នន័យចុះឈ្មោះថ្ងៃទី <span class="font-bold text-blue-700 font-mono text-sm">{{ selected_date }}</span>
+                {% if selected_date == today_str %}
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> ថ្ងៃនេះ (Today)
+                </span>
+                {% endif %}
+                (សរុប <span class="font-bold text-blue-800">{{ total_day }}</span> នាក់)
             </p>
         </div>
 
@@ -47,6 +53,9 @@
             <a href="/reports/daily?date={{ r.reg_date }}" 
                class="px-3.5 py-2 rounded-xl border transition flex items-center gap-2 flex-shrink-0 font-medium {% if selected_date == r.reg_date|string %}bg-blue-900 text-white border-blue-900 shadow-md font-bold{% else %}bg-white hover:bg-slate-100 text-slate-700 border-slate-200{% endif %}">
                 <span class="font-mono">{{ r.reg_date }}</span>
+                {% if r.is_today %}
+                <span class="text-[10px] px-1.5 py-0.5 rounded font-bold {% if selected_date == r.reg_date|string %}bg-emerald-500 text-white{% else %}bg-emerald-100 text-emerald-800{% endif %}">ថ្ងៃនេះ</span>
+                {% endif %}
                 <span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold {% if selected_date == r.reg_date|string %}bg-amber-400 text-blue-950{% else %}bg-slate-100 text-slate-600{% endif %}">
                     {{ r.total }} នាក់
                 </span>
@@ -61,7 +70,12 @@
             
             <!-- Date Picker -->
             <div>
-                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">កាលបរិច្ឆេទ (Date) *</label>
+                <div class="flex items-center justify-between mb-1">
+                    <label class="block text-[11px] font-bold text-slate-500 uppercase">កាលបរិច្ឆេទ (Date) *</label>
+                    {% if selected_date != today_str %}
+                    <a href="/reports/daily?date={{ today_str }}" class="text-[10px] text-blue-600 hover:text-blue-800 font-bold">ទៅថ្ងៃនេះ</a>
+                    {% endif %}
+                </div>
                 <input type="date" name="date" value="{{ selected_date }}" required class="form-control text-sm py-2 font-mono" onchange="this.form.submit()">
             </div>
 

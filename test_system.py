@@ -138,6 +138,28 @@ def test_system():
     assert "១៨ ឆ្នាំ" in res.json().get("detail", "")
     print("[PASS] 16. Under-18 voter registration properly rejected with HTTP 400")
 
+    # 16b. Test Today Registration appears in Daily Report
+    from app.timezone_utils import get_cambodia_today_str
+    today_str = get_cambodia_today_str()
+    unique_nid = f"0{int(datetime.datetime.now().timestamp()) % 100000000:08d}"
+    today_voter_data = {
+        "name_kh": "ស៊ឹម តេស្តថ្ងៃនេះ",
+        "name_en": "SIM TODAY TEST",
+        "gender": "ស្រី",
+        "dob": "1998-08-25",
+        "national_id": unique_nid,
+        "village_id": 1,
+        "station_id": 1
+    }
+    res_reg = client.post("/api/voters", data=today_voter_data, cookies=cookies)
+    assert res_reg.status_code == 200, res_reg.text
+    
+    # Check that daily report for today returns this voter
+    res_daily_today = client.get(f"/reports/daily?date={today_str}", cookies=cookies)
+    assert res_daily_today.status_code == 200
+    assert "ស៊ឹម តេស្តថ្ងៃនេះ" in res_daily_today.text
+    print(f"[PASS] 16b. Registered voter today ({today_str}) correctly appears in Daily Report for {today_str}")
+
     # 17. Test Audit Logs Page
     res = client.get("/audit-logs", cookies=cookies)
     assert res.status_code == 200

@@ -13,6 +13,7 @@ from openpyxl.utils import get_column_letter
 from app.database import get_db
 from app.models import Village, PollingStation, Voter, User
 from app.auth import get_current_user_optional
+from app.timezone_utils import get_cambodia_now, get_cambodia_today, get_cambodia_today_str
 
 router = APIRouter()
 
@@ -38,7 +39,7 @@ def reports_hub(request: Request, db: Session = Depends(get_db)):
     female_voted = len([v for v in voters if v.gender == "ស្រី" and v.has_voted])
 
     # Age group calculation
-    current_year = datetime.datetime.now().year
+    current_year = get_cambodia_now().year
     age_groups = {"18-30": 0, "31-45": 0, "46-60": 0, "60+": 0}
     for v in voters:
         try:
@@ -79,7 +80,7 @@ def reports_hub(request: Request, db: Session = Depends(get_db)):
         for row in daily_trends_raw if row.reg_date
     ]
 
-    today_str = datetime.date.today().strftime("%Y-%m-%d")
+    today_str = get_cambodia_today_str()
 
     return templates.TemplateResponse(request=request, name="reports/index.html", context={
         "current_user": current_user,
@@ -110,10 +111,18 @@ def daily_registration_report(
     if not current_user:
         return RedirectResponse(url="/login", status_code=302)
 
-    # If date is not provided, pick latest registration date from DB or today
+    today_str = get_cambodia_today_str()
+
+    # If date is not provided, pick today if it has records, else latest registration date from DB or today
     if not date or not date.strip():
-        latest_row = db.query(func.date(Voter.created_at)).order_by(Voter.created_at.desc()).first()
-        date = str(latest_row[0]) if latest_row and latest_row[0] else datetime.date.today().strftime("%Y-%m-%d")
+        today_count = db.query(Voter).filter(func.date(Voter.created_at) == today_str).count()
+        if today_count > 0:
+            date = today_str
+        else:
+            latest_row = db.query(func.date(Voter.created_at)).order_by(Voter.created_at.desc()).first()
+            date = str(latest_row[0]) if latest_row and latest_row[0] else today_str
+    else:
+        date = date.strip()
 
     query = db.query(Voter).filter(func.date(Voter.created_at) == date)
 
@@ -149,7 +158,7 @@ def daily_registration_report(
     female_day = len([v for v in voters if v.gender == "ស្រី"])
 
     # Recent 10 dates for quick switching
-    recent_dates = (
+    recent_dates_raw = (
         db.query(
             func.date(Voter.created_at).label("reg_date"),
             func.count(Voter.id).label("total")
@@ -160,12 +169,34 @@ def daily_registration_report(
         .all()
     )
 
+    recent_dates = []
+    found_today = False
+    for r in recent_dates_raw:
+        if r.reg_date:
+            r_str = str(r.reg_date)
+            is_today = (r_str == today_str)
+            if is_today:
+                found_today = True
+            recent_dates.append({
+                "reg_date": r_str,
+                "total": r.total,
+                "is_today": is_today
+            })
+
+    if not found_today:
+        recent_dates.insert(0, {
+            "reg_date": today_str,
+            "total": 0,
+            "is_today": True
+        })
+
     villages = db.query(Village).order_by(Village.code).all()
     stations = db.query(PollingStation).order_by(PollingStation.code).all()
 
     return templates.TemplateResponse(request=request, name="reports/daily.html", context={
         "current_user": current_user,
         "selected_date": date,
+        "today_str": today_str,
         "voters": voters,
         "total_day": total_day,
         "male_day": male_day,
@@ -232,7 +263,7 @@ def export_daily_registrations_excel(
     ws["A2"].alignment = Alignment(horizontal="center", vertical="center")
 
     ws.merge_cells("A3:K3")
-    now_str = datetime.datetime.now().strftime("%d-%m-%Y %H:%M")
+    now_str = get_cambodia_now().strftime("%d-%m-%Y %H:%M")
     ws["A3"] = f"កាលបរិច្ឆេទចេញរបាយការណ៍៖ {now_str} | សរុបចុះឈ្មោះក្នុងថ្ងៃនេះ៖ {len(voters)} នាក់"
     ws["A3"].font = Font(name="Khmer OS Siemreap", size=9, italic=True, color="666666")
     ws["A3"].alignment = Alignment(horizontal="center", vertical="center")
@@ -287,7 +318,7 @@ def export_daily_registrations_excel(
     wb.save(output)
     output.seek(0)
 
-    filename = f"Daily_Registrations_{date}_{datetime.datetime.now().strftime('%H%M%S')}.xlsx"
+    filename = f"Daily_Registrations_{date}_{get_cambodia_now().strftime('%H%M%S')}.xlsx"
     return StreamingResponse(
         output,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -328,7 +359,7 @@ def print_daily_registrations(
         "voters": voters,
         "village": village,
         "station": station,
-        "now": datetime.datetime.now()
+        "now": get_cambodia_now()
     })
 
 @router.get("/reports/export/excel")
@@ -391,7 +422,7 @@ def export_voter_list_excel(
     ws["A2"].alignment = Alignment(horizontal="center", vertical="center")
 
     ws.merge_cells("A3:J3")
-    now_str = datetime.datetime.now().strftime("%d-%m-%Y %H:%M")
+    now_str = get_cambodia_now().strftime("%d-%m-%Y %H:%M")
     ws["A3"] = f"កាលបរិច្ឆេទចេញរបាយការណ៍៖ {now_str} | ចំនួនសរុប៖ {len(voters)} នាក់"
     ws["A3"].font = Font(name="Khmer OS Siemreap", size=9, italic=True, color="666666")
     ws["A3"].alignment = Alignment(horizontal="center", vertical="center")
@@ -458,7 +489,7 @@ def export_voter_list_excel(
     wb.save(output)
     output.seek(0)
 
-    filename = f"Voter_List_Nokor_Pheas_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    filename = f"Voter_List_Nokor_Pheas_{get_cambodia_now().strftime('%Y%m%d_%H%M%S')}.xlsx"
     return StreamingResponse(
         output,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -501,7 +532,7 @@ def official_printable_list(
         "village": village,
         "stations": stations,
         "villages": villages,
-        "now": datetime.datetime.now()
+        "now": get_cambodia_now()
     })
 
 @router.get("/reports/batch-cards", response_class=HTMLResponse)

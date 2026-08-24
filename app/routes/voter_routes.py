@@ -14,6 +14,7 @@ from app.models import User, Village, PollingStation, Voter
 from app.auth import get_current_user_optional, get_current_user, require_admin, require_admin_or_officer
 from app.schemas import VoterCreateSchema, VoterUpdateSchema
 from app.audit import log_activity
+from app.timezone_utils import get_cambodia_now, get_cambodia_today
 
 router = APIRouter()
 
@@ -221,7 +222,7 @@ def validate_voter_age_backend(dob_str: str) -> None:
         else:
             birth = datetime.date.fromisoformat(clean_dob)
 
-        today = datetime.date.today()
+        today = get_cambodia_today()
         age = today.year - birth.year - ((today.month, today.day) < (birth.month, birth.day))
         if age < 18:
             raise HTTPException(
@@ -281,6 +282,7 @@ def create_voter(
         # Default avatar based on gender
         photo_url = "/static/images/avatars/female_1.jpg" if gender.strip() == "ស្រី" else "/static/images/avatars/male_1.jpg"
 
+    now_ict = get_cambodia_now()
     new_voter = Voter(
         voter_code=voter_code,
         list_no=next_list_no,
@@ -295,7 +297,9 @@ def create_voter(
         status="active",
         photo_url=photo_url,
         has_voted=False,
-        notes=notes.strip()
+        notes=notes.strip(),
+        created_at=now_ict,
+        updated_at=now_ict
     )
     db.add(new_voter)
     db.commit()
@@ -496,6 +500,7 @@ def update_voter(
     voter.status = status.strip()
     voter.address = address.strip()
     voter.notes = notes.strip()
+    voter.updated_at = get_cambodia_now()
 
     db.commit()
     log_activity(
@@ -559,7 +564,7 @@ def toggle_checkin(voter_id: int, request: Request, db: Session = Depends(get_db
     # Toggle status
     voter.has_voted = not voter.has_voted
     if voter.has_voted:
-        voter.voted_at = datetime.datetime.now()
+        voter.voted_at = get_cambodia_now()
         voter.voted_by_user_id = current_user.id
         msg = f"បាន Check-in វត្តមានបោះឆ្នោតសម្រាប់ '{voter.name_kh}' រួចរាល់"
         action_name = "CHECKIN"

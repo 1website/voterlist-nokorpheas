@@ -31,6 +31,19 @@ def ensure_schema_migrations():
             if "photo_url" not in columns:
                 conn.execute(text("ALTER TABLE users ADD COLUMN photo_url VARCHAR(255)"))
                 conn.commit()
+
+            # Migration: Shift any voters/logs registered during early morning hours in UTC to local Cambodia time (UTC+7)
+            # Records created between 2026-08-24 17:00:00 UTC and 2026-08-24 23:59:59 UTC correspond to 2026-08-25 Cambodia time (00:00 to 06:59)
+            conn.execute(text(
+                "UPDATE voters SET created_at = datetime(created_at, '+7 hours'), "
+                "updated_at = datetime(COALESCE(updated_at, created_at), '+7 hours') "
+                "WHERE created_at >= '2026-08-24 17:00:00' AND created_at <= '2026-08-24 23:59:59'"
+            ))
+            conn.execute(text(
+                "UPDATE audit_logs SET created_at = datetime(created_at, '+7 hours') "
+                "WHERE created_at >= '2026-08-24 17:00:00' AND created_at <= '2026-08-24 23:59:59'"
+            ))
+            conn.commit()
     except Exception as e:
         print(f"Migration note: {e}")
 

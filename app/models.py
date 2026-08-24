@@ -2,6 +2,7 @@ import datetime
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from app.database import Base
+from app.timezone_utils import get_cambodia_now
 
 class Village(Base):
     __tablename__ = "villages"
@@ -13,7 +14,7 @@ class Village(Base):
     chief_name = Column(String(100), nullable=True)                  # e.g. លោក ឈុន វុទ្ធី
     chief_phone = Column(String(50), nullable=True)                  # e.g. 012 345 678
     total_households = Column(Integer, default=0)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=get_cambodia_now)
 
     # Relationships
     stations = relationship("PollingStation", back_populates="village")
@@ -40,7 +41,7 @@ class PollingStation(Base):
     village_id = Column(Integer, ForeignKey("villages.id"), nullable=True)
     officer_name = Column(String(100), nullable=True)                  # Head of polling station
     officer_phone = Column(String(50), nullable=True)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=get_cambodia_now)
 
     # Relationships
     village = relationship("Village", back_populates="stations")
@@ -83,8 +84,8 @@ class Voter(Base):
     voted_at = Column(DateTime, nullable=True)
     voted_by_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     notes = Column(Text, nullable=True)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=get_cambodia_now)
+    updated_at = Column(DateTime, default=get_cambodia_now, onupdate=get_cambodia_now)
 
     # Relationships
     village = relationship("Village", back_populates="voters")
@@ -114,7 +115,7 @@ class User(Base):
     phone = Column(String(50), nullable=True)
     photo_url = Column(String(255), nullable=True)
     is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=get_cambodia_now)
 
     # Relationships
     station = relationship("PollingStation", back_populates="users")
@@ -145,7 +146,7 @@ class AuditLog(Base):
     target_id = Column(String(50), nullable=True)
     description = Column(Text, nullable=False)
     ip_address = Column(String(50), nullable=True)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=get_cambodia_now)
 
     # Relationship
     user = relationship("User", foreign_keys=[user_id])

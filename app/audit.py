@@ -1,5 +1,6 @@
 import datetime
 from app.models import AuditLog
+from app.timezone_utils import get_cambodia_now
 
 def log_activity(
     db,
@@ -39,7 +40,7 @@ def log_activity(
             target_id=str(target_id) if target_id is not None else None,
             description=description,
             ip_address=ip,
-            created_at=datetime.datetime.utcnow()
+            created_at=get_cambodia_now()
         )
         db.add(log)
         db.commit()

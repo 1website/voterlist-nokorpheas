@@ -15,6 +15,7 @@ from app.database import get_db, DB_PATH, BASE_DIR
 from app.models import User, Village, PollingStation, Voter, AuditLog
 from app.auth import get_current_user_optional, require_admin, require_admin_or_officer
 from app.audit import log_activity
+from app.timezone_utils import get_cambodia_now, get_cambodia_today, get_cambodia_today_str
 
 router = APIRouter()
 
@@ -78,7 +79,7 @@ def audit_logs_page(
     logs = query.order_by(AuditLog.created_at.desc()).offset((page - 1) * limit).limit(limit).all()
 
     # Summary Statistics
-    today_str = datetime.date.today().isoformat()
+    today_str = get_cambodia_today_str()
     total_today = db.query(AuditLog).filter(func.date(AuditLog.created_at) == today_str).count()
     total_creates = db.query(AuditLog).filter(AuditLog.action == "CREATE_VOTER").count()
     total_edits = db.query(AuditLog).filter(AuditLog.action.in_(["UPDATE_VOTER", "DELETE_VOTER"])).count()
@@ -165,7 +166,7 @@ def export_audit_logs_excel(
     ws["A1"].alignment = center_align
 
     ws.merge_cells("A2:G2")
-    ws["A2"] = f"របាយការណ៍កំណត់ត្រាសកម្មភាពមន្ត្រី និងប្រព័ន្ធ (Audit Logs) • ឃុំនគរភាស • កាលបរិច្ឆេទ {datetime.date.today().strftime('%d/%m/%Y')}"
+    ws["A2"] = f"របាយការណ៍កំណត់ត្រាសកម្មភាពមន្ត្រី និងប្រព័ន្ធ (Audit Logs) • ឃុំនគរភាស • កាលបរិច្ឆេទ {get_cambodia_today().strftime('%d/%m/%Y')}"
     ws["A2"].font = title_font
     ws["A2"].alignment = center_align
 
@@ -212,7 +213,7 @@ def export_audit_logs_excel(
     wb.save(buffer)
     buffer.seek(0)
 
-    filename = f"audit_logs_{datetime.date.today().strftime('%Y%m%d')}.xlsx"
+    filename = f"audit_logs_{get_cambodia_today().strftime('%Y%m%d')}.xlsx"
     return Response(
         content=buffer.getvalue(),
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -290,7 +291,7 @@ def download_sqlite_backup(request: Request, db: Session = Depends(get_db)):
     if not os.path.exists(DB_PATH):
         raise HTTPException(status_code=404, detail="រកមិនឃើញ Database file ឡើយ")
 
-    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    timestamp = get_cambodia_now().strftime("%Y%m%d_%H%M%S")
     download_filename = f"voter_list_backup_{timestamp}.db"
 
     log_activity(db, current_user, "BACKUP_DOWNLOAD", f"បានទាញយកឯកសារ SQLite Backup៖ {download_filename}", "system", action_type="info", request=request)
@@ -330,7 +331,7 @@ def download_json_backup(request: Request, db: Session = Depends(get_db)):
     backup_payload = {
         "metadata": {
             "app_name": "ប្រព័ន្ធគ្រប់គ្រងអ្នកចុះឈ្មោះបោះឆ្នោត រដ្ឋបាលឃុំនគរភាស",
-            "exported_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "exported_at": get_cambodia_now().strftime("%Y-%m-%d %H:%M:%S"),
             "exported_by": current_user.username,
             "total_voters": len(voters),
             "total_villages": len(villages),
@@ -341,7 +342,7 @@ def download_json_backup(request: Request, db: Session = Depends(get_db)):
         "voters": voters
     }
 
-    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    timestamp = get_cambodia_now().strftime("%Y%m%d_%H%M%S")
     download_filename = f"voter_data_backup_{timestamp}.json"
     json_bytes = json.dumps(backup_payload, ensure_ascii=False, indent=2).encode('utf-8')
 
@@ -362,7 +363,7 @@ def create_local_snapshot(request: Request, db: Session = Depends(get_db)):
     if not os.path.exists(DB_PATH):
         raise HTTPException(status_code=404, detail="រកមិនឃើញ Database file ឡើយ")
 
-    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    timestamp = get_cambodia_now().strftime("%Y%m%d_%H%M%S")
     snapshot_name = f"snapshot_{timestamp}.db"
     dest_path = os.path.join(BACKUPS_DIR, snapshot_name)
 
@@ -390,7 +391,7 @@ async def restore_database(
         raise HTTPException(status_code=403, detail="មានតែ Admin ប៉ុណ្ណោះដែលអាចស្តារទិន្នន័យ (Restore) បាន")
 
     # Step 1: Create a safety pre-restore backup first!
-    safety_timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    safety_timestamp = get_cambodia_now().strftime("%Y%m%d_%H%M%S")
     safety_file = os.path.join(BACKUPS_DIR, f"pre_restore_safety_{safety_timestamp}.db")
     if os.path.exists(DB_PATH):
         shutil.copy2(DB_PATH, safety_file)
