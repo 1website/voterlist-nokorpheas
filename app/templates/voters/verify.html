@@ -1,0 +1,241 @@
+{% extends "base.html" if current_user else "base_public.html" if base_public_exists else "base.html" %}
+
+{% block title %}
+{% if voter %}ផ្ទៀងផ្ទាត់អ្នកបោះឆ្នោត - {{ voter.name_kh }} ({{ voter.voter_code }}){% else %}ផ្ទៀងផ្ទាត់អ្នកបោះឆ្នោត{% endif %} - រដ្ឋបាលឃុំនគរភាស
+{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6">
+
+    <!-- Top Action Bar (No Print) -->
+    <div class="flex items-center justify-between no-print gap-2 flex-wrap">
+        <a href="{% if current_user %}/checkin{% else %}/login{% endif %}" class="btn btn-outline text-sm py-2 px-4">
+            ← ត្រឡប់ក្រោយ
+        </a>
+        <div class="flex items-center gap-2">
+            {% if voter %}
+            <button type="button" onclick="copyVerificationLink()" class="btn btn-sm btn-outline text-blue-900 border-blue-300 hover:bg-blue-50 font-bold">
+                🔗 ចម្លង Link ផ្ទៀងផ្ទាត់
+            </button>
+            <a href="/voters/{{ voter.id }}/card" target="_blank" class="btn btn-sm btn-outline text-slate-700 font-bold">
+                🖨️ បោះពុម្ពប័ណ្ណ
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if voter %}
+    <!-- ========================================================================= -->
+    <!-- OFFICIAL VOTER VERIFICATION CERTIFICATE CARD -->
+    <!-- ========================================================================= -->
+    <div class="bg-white rounded-3xl p-6 sm:p-8 border-2 border-blue-900 shadow-2xl relative overflow-hidden">
+        
+        <!-- Watermark / Decorative Seal -->
+        <div class="absolute -right-10 -bottom-10 opacity-5 text-9xl select-none pointer-events-none font-serif">
+            🇰🇭
+        </div>
+
+        <!-- Official Header -->
+        <div class="text-center border-b-2 border-amber-400 pb-5 mb-6">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-950 text-xs font-bold mb-2">
+                <span>🇰🇭</span> ព្រះរាជាណាចក្រកម្ពុជា ជាតិ សាសនា ព្រះមហាក្សត្រ
+            </div>
+            <h1 class="text-xl sm:text-3xl font-normal text-blue-950 kh-moul mt-1">
+                ផ្ទាំងផ្ទៀងផ្ទាត់ព័ត៌មានអ្នកបោះឆ្នោតផ្លូវការ
+            </h1>
+            <p class="text-xs sm:text-sm font-bold text-amber-700 mt-1">
+                រដ្ឋបាលឃុំនគរភាស ស្រុកអង្គរជុំ ខេត្តសៀមរាប
+            </p>
+        </div>
+
+        <!-- Real-Time Voting Status Banner -->
+        <div class="mb-6 p-4 rounded-2xl border-2 {% if voter.has_voted %}bg-emerald-50 border-emerald-400 text-emerald-950{% else %}bg-amber-50 border-amber-400 text-amber-950{% endif %} flex flex-col sm:flex-row items-center justify-between gap-3 shadow-sm">
+            <div class="flex items-center gap-3 text-center sm:text-left">
+                <span class="text-3xl flex-shrink-0">
+                    {% if voter.has_voted %}✅{% else %}⏳{% endif %}
+                </span>
+                <div>
+                    <div class="text-base font-bold font-kh-heading">
+                        {% if voter.has_voted %}
+                            🎉 បានបោះឆ្នោតរួចរាល់ (VOTED)
+                        {% else %}
+                            ⏳ មិនទាន់បោះឆ្នោតនៅឡើយ (PENDING)
+                        {% endif %}
+                    </div>
+                    <div class="text-xs {% if voter.has_voted %}text-emerald-700{% else %}text-amber-700{% endif %} font-medium mt-0.5">
+                        {% if voter.has_voted %}
+                            កាលបរិច្ឆេទ Check-in៖ <strong class="font-mono">{{ voter.voted_at.strftime('%Y-%m-%d %H:%M:%S') if voter.voted_at else '---' }}</strong>
+                        {% else %}
+                            អ្នកបោះឆ្នោតមានឈ្មោះត្រឹមត្រូវក្នុងបញ្ជីផ្លូវការ និងមានសិទ្ធិបោះឆ្នោត
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {% if current_user and current_user.role in ['admin', 'officer'] %}
+            <button onclick="toggleVerifyCheckin({{ voter.id }}, this)" 
+                    class="btn {% if voter.has_voted %}btn-outline text-red-600 hover:bg-red-50{% else %}btn-accent shadow-md text-sm px-5 py-2.5 font-bold{% endif %} flex-shrink-0 whitespace-nowrap">
+                {% if voter.has_voted %}
+                    ✕ លុប Check-in
+                {% else %}
+                    ⚡ Check-in វត្តមានភ្លាមៗ
+                {% endif %}
+            </button>
+            {% endif %}
+        </div>
+
+        <!-- Main Voter Profile Info (Grid) -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+            
+            <!-- Left: Voter Official Portrait (4 Cols) -->
+            <div class="md:col-span-4 flex flex-col items-center justify-center p-4 bg-slate-50 rounded-2xl border border-slate-200 text-center">
+                <div class="relative">
+                    <img src="{{ voter.photo_display }}" 
+                         alt="{{ voter.name_kh }}" 
+                         class="w-36 h-44 rounded-2xl object-cover border-2 border-blue-900 shadow-lg bg-white">
+                    <span class="absolute bottom-1 right-1 bg-blue-900 text-white text-[10px] font-bold px-2 py-0.5 rounded-lg shadow">
+                        រូបថតផ្លូវការ
+                    </span>
+                </div>
+                <div class="mt-3 font-mono font-bold text-xs text-blue-900 bg-blue-100/80 px-3 py-1 rounded-full border border-blue-200">
+                    {{ voter.voter_code }}
+                </div>
+            </div>
+
+            <!-- Right: Detailed Information (8 Cols) -->
+            <div class="md:col-span-8 space-y-3">
+                <div class="flex items-center justify-between border-b pb-2">
+                    <div>
+                        <span class="text-xs text-slate-500 font-semibold">គោត្តនាម និងនាម (ខ្មែរ-ឡាតាំង)៖</span>
+                        <h2 class="text-2xl font-black text-slate-900 font-kh-heading leading-tight">{{ voter.name_kh }}</h2>
+                        <p class="text-xs uppercase font-bold text-slate-500 tracking-wider font-mono">{{ voter.name_en }}</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[11px] text-slate-400 font-bold uppercase">លេខរៀងបញ្ជី</span>
+                        <div class="text-3xl font-black text-amber-600 font-mono">#{{ voter.list_no }}</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 text-xs">
+                    <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                        <span class="text-slate-500 font-semibold block mb-0.5">ភេទ៖</span>
+                        <strong class="text-slate-900 text-sm font-kh-bold">{{ voter.gender }}</strong>
+                    </div>
+                    <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                        <span class="text-slate-500 font-semibold block mb-0.5">ថ្ងៃខែឆ្នាំកំណើត៖</span>
+                        <strong class="text-slate-900 text-sm font-mono">{{ voter.dob }}</strong>
+                    </div>
+                </div>
+
+                <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+                    <span class="text-slate-500 font-semibold block mb-0.5">
+                        លេខអត្តសញ្ញាណប័ណ្ណ / ឯកសារបញ្ជាក់៖
+                    </span>
+                    <div class="flex items-center justify-between">
+                        <strong class="font-mono text-base font-black text-blue-900 tracking-wider">{{ voter.national_id }}</strong>
+                        <span class="text-[11px] px-2 py-0.5 rounded-full {% if voter.national_id|length == 9 %}bg-blue-100 text-blue-900 font-bold{% else %}bg-emerald-100 text-emerald-900 font-bold{% endif %}">
+                            {% if voter.national_id|length == 9 %}🪪 អត្តសញ្ញាណប័ណ្ណ (៩ ខ្ទង់){% else %}📄 ឯកសារបញ្ជាក់ (៧ ខ្ទង់){% endif %}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Geography & Polling Station -->
+                <div class="p-3 bg-blue-50/60 rounded-2xl border border-blue-200/80 text-xs space-y-1.5">
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-600 font-semibold">ភូមិ (ទីលំនៅ)៖</span>
+                        <strong class="text-slate-900">{{ voter.village.name_kh if voter.village else '---' }} ({{ voter.village.code if voter.village else '' }})</strong>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-600 font-semibold">ការិយាល័យបោះឆ្នោត៖</span>
+                        <strong class="text-blue-900">{{ voter.station.code if voter.station else '' }} - {{ voter.station.name if voter.station else '' }}</strong>
+                    </div>
+                    <div class="pt-1 border-t border-blue-200/60 text-slate-600 flex items-start gap-1.5">
+                        <span>📍</span>
+                        <span>ទីតាំង៖ <strong class="text-slate-800">{{ voter.station.location if voter.station else '---' }}</strong></span>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Verification Link Box -->
+        <div class="mt-6 p-4 rounded-2xl bg-slate-900 text-white flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md">
+            <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                <span class="text-xl flex-shrink-0">🔗</span>
+                <div class="min-w-0 flex-1">
+                    <div class="text-[11px] text-amber-300 font-bold uppercase tracking-wider">Link ផ្ទៀងផ្ទាត់ផ្លូវការ (Verification Link)៖</div>
+                    <div id="verifyUrlText" class="text-xs text-slate-200 font-mono truncate select-all">
+                        {{ request.url }}
+                    </div>
+                </div>
+            </div>
+            <button type="button" onclick="copyVerificationLink()" class="btn btn-sm btn-accent whitespace-nowrap font-bold flex-shrink-0">
+                📋 ចម្លង Link
+            </button>
+        </div>
+
+        <!-- Card Footer -->
+        <div class="mt-6 pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-2">
+            <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                <span>ទិន្នន័យមានសុពលភាពផ្លូវការ ក្នុងបញ្ជីបោះឆ្នោតជាតិឆ្នាំ២០២៦</span>
+            </div>
+            <div>ចេញដោយ៖ <strong>រដ្ឋបាលឃុំនគរភាស</strong></div>
+        </div>
+
+    </div>
+
+    {% else %}
+    <!-- Voter Not Found Card -->
+    <div class="card p-8 bg-white rounded-3xl border border-red-200 text-center shadow-lg space-y-4">
+        <div class="text-5xl">⚠️</div>
+        <h2 class="text-xl font-bold text-red-900 font-kh-heading">រកមិនឃើញទិន្នន័យអ្នកបោះឆ្នោតឡើយ</h2>
+        <p class="text-sm text-slate-600 max-w-md mx-auto">
+            មិនមានអ្នកបោះឆ្នោតដែលមានលេខកូដ ឬលេខអត្តសញ្ញាណប័ណ្ណ <strong class="text-red-700 font-mono">'{{ search_code }}'</strong> នៅក្នុងប្រព័ន្ធឃុំនគរភាសឡើយ។
+        </p>
+        <div class="pt-4 flex items-center justify-center gap-3">
+            <a href="/checkin" class="btn btn-primary text-sm">
+                🔍 ស្វែងរកឡើងវិញ
+            </a>
+            <a href="/voters" class="btn btn-outline text-sm">
+                👥 មើលបញ្ជីឈ្មោះទាំងអស់
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function copyVerificationLink() {
+        const url = window.location.href;
+        navigator.clipboard.writeText(url).then(() => {
+            showToast('បានចម្លង Link ផ្ទៀងផ្ទាត់ជោគជ័យ! 📋', 'success');
+        }).catch(() => {
+            showToast('សូមចម្លង Link ដោយដៃ', 'info');
+        });
+    }
+
+    async function toggleVerifyCheckin(voterId, btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span>⏳</span> កំពុងដំណើរការ...';
+        try {
+            const res = await fetch(`/api/voters/${voterId}/checkin`, { method: 'POST' });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                showToast(data.message, 'success');
+                setTimeout(() => window.location.reload(), 600);
+            } else {
+                showToast(data.detail || 'កំហុសក្នុងការ Check-in', 'error');
+                btn.disabled = false;
+            }
+        } catch (e) {
+            showToast('កំហុសប្រព័ន្ធ', 'error');
+            btn.disabled = false;
+        }
+    }
+</script>
+{% endblock %}

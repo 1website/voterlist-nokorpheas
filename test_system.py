@@ -214,9 +214,23 @@ def test_system():
     res_p_up = client.post("/api/profile/update", data=prof_update_data, cookies=cookies)
     assert res_p_up.status_code == 200
     assert res_p_up.json()["success"] == True
-    print("[PASS] 24. User Profile & Avatar updated successfully")
+    # 25. Test Public Voter Verification Page (/verify/{voter_code})
+    res_verify = client.get("/verify/NP-0701-0001")
+    assert res_verify.status_code == 200
+    assert "ផ្ទាំងផ្ទៀងផ្ទាត់ព័ត៌មានអ្នកបោះឆ្នោតផ្លូវការ" in res_verify.text
+    assert "NP-0701-0001" in res_verify.text
+    assert "មាស វណ្ណា" in res_verify.text
+    print("[PASS] 25. Public Voter Verification Page rendered successfully (/verify/NP-0701-0001)")
 
-    print("\n ALL 24 SYSTEM TESTS PASSED SUCCESSFULLY! ")
+    # 26. Test QR Lookup with Full URL Parsing
+    full_qr_url = "https://voterlist-nokorpheas.onrender.com/verify/NP-0701-0001"
+    res_qr_url = client.get(f"/api/voters/lookup-qr?code={full_qr_url}")
+    assert res_qr_url.status_code == 200
+    assert res_qr_url.json()["found"] == True
+    assert res_qr_url.json()["voter"]["voter_code"] == "NP-0701-0001"
+    print("[PASS] 26. Full QR Verification URL lookup succeeded")
+
+    print("\n ALL 26 SYSTEM TESTS PASSED SUCCESSFULLY! ")
 
 if __name__ == "__main__":
     test_system()

@@ -73,52 +73,73 @@ function displayVoterResult(voter, autoCheckin = false) {
     resultCard.style.display = 'block';
 
     const statusBadge = voter.has_voted
-        ? `<span class="badge badge-success">✓ បានបោះឆ្នោតរួច (${voter.voted_at || ''})</span>`
-        : `<span class="badge badge-warning">⏳ មិនទាន់បោះឆ្នោត</span>`;
+        ? `<span class="badge badge-success text-xs font-bold">✓ បានបោះឆ្នោតរួច (${voter.voted_at || ''})</span>`
+        : `<span class="badge badge-warning text-xs font-bold">⏳ មិនទាន់បោះឆ្នោត (មានសិទ្ធិបោះឆ្នោត)</span>`;
+
+    const docTypeLabel = (voter.national_id && voter.national_id.length === 7)
+        ? `<span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 font-bold">📄 ឯ.អ (៧ ខ្ទង់)</span>`
+        : `<span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-900 font-bold">🪪 អត្តសញ្ញាណប័ណ្ណ (៩ ខ្ទង់)</span>`;
 
     resultCard.innerHTML = `
-        <div class="p-6 bg-white rounded-2xl border-2 border-blue-600 shadow-xl animate-fade-in">
-            <div class="flex items-center justify-between border-b pb-4 mb-4">
-                <div class="flex items-center gap-4">
-                    <img src="${voter.photo_url || '/static/images/avatars/male_1.jpg'}" alt="${voter.name_kh}" class="w-16 h-16 rounded-2xl object-cover border-2 border-blue-500 shadow-md bg-white">
-                    <div>
-                        <span class="text-xs uppercase font-bold text-blue-700 bg-blue-100 px-2.5 py-1 rounded-full">
-                            លេខកូដ: ${voter.voter_code}
-                        </span>
-                        <h3 class="text-2xl font-bold text-slate-800 mt-1 font-kh-bold">${voter.name_kh}</h3>
-                        <p class="text-sm font-semibold text-slate-500 tracking-wider">${voter.name_en}</p>
+        <div class="p-6 bg-white rounded-3xl border-2 border-blue-600 shadow-2xl animate-fade-in relative overflow-hidden">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b pb-4 mb-4 gap-3">
+                <div class="flex items-center gap-3.5">
+                    <img src="${voter.photo_url || '/static/images/avatars/male_1.jpg'}" alt="${voter.name_kh}" class="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl object-cover border-2 border-blue-500 shadow-md bg-white flex-shrink-0">
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <span class="text-xs uppercase font-mono font-bold text-blue-700 bg-blue-100 px-2.5 py-0.5 rounded-full border border-blue-200">
+                                ${voter.voter_code}
+                            </span>
+                            ${docTypeLabel}
+                        </div>
+                        <h3 class="text-xl sm:text-2xl font-bold text-slate-800 mt-1 font-kh-heading">${voter.name_kh}</h3>
+                        <p class="text-xs uppercase font-semibold text-slate-500 tracking-wider font-mono">${voter.name_en}</p>
                     </div>
                 </div>
-                <div class="text-right">
-                    <div class="text-3xl font-black text-blue-900">#${voter.list_no}</div>
-                    <div class="text-xs text-slate-500 font-semibold">លេខរៀងក្នុងបញ្ជី</div>
+                <div class="text-left sm:text-right">
+                    <span class="text-[11px] text-slate-400 font-bold uppercase">លេខរៀងក្នុងបញ្ជី</span>
+                    <div class="text-2xl sm:text-3xl font-black text-amber-600 font-mono">#${voter.list_no}</div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-4 text-sm mb-5">
-                <div>
-                    <span class="text-slate-500">អត្តសញ្ញាណប័ណ្ណ៖</span>
-                    <p class="font-bold text-slate-800 text-base">${voter.national_id}</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs mb-4">
+                <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                    <span class="text-slate-500 font-medium block">លេខអត្តសញ្ញាណប័ណ្ណ / ឯកសារបញ្ជាក់៖</span>
+                    <strong class="font-mono text-sm text-slate-900 font-bold">${voter.national_id}</strong>
                 </div>
-                <div>
-                    <span class="text-slate-500">ភេទ / ថ្ងៃខែឆ្នាំកំណើត៖</span>
-                    <p class="font-bold text-slate-800">${voter.gender} (${voter.dob})</p>
+                <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                    <span class="text-slate-500 font-medium block">ភេទ / ថ្ងៃខែឆ្នាំកំណើត៖</span>
+                    <strong class="text-sm text-slate-900 font-bold">${voter.gender} (${voter.dob})</strong>
                 </div>
-                <div>
-                    <span class="text-slate-500">ភូមិ៖</span>
-                    <p class="font-bold text-slate-800">${voter.village_name}</p>
+                <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                    <span class="text-slate-500 font-medium block">ភូមិ (ទីលំនៅ)៖</span>
+                    <strong class="text-sm text-slate-900 font-bold">${voter.village_name}</strong>
                 </div>
-                <div>
-                    <span class="text-slate-500">ការិយាល័យបោះឆ្នោត៖</span>
-                    <p class="font-bold text-blue-700">${voter.station_code} - ${voter.station_name}</p>
-                    <p class="text-xs text-slate-500">${voter.station_location}</p>
+                <div class="p-2.5 rounded-xl bg-blue-50/70 border border-blue-200">
+                    <span class="text-slate-500 font-medium block">ការិយាល័យបោះឆ្នោត៖</span>
+                    <strong class="text-sm text-blue-900 font-bold">${voter.station_code} - ${voter.station_name}</strong>
+                    <div class="text-[11px] text-slate-500 mt-0.5">📍 ${voter.station_location}</div>
                 </div>
             </div>
 
-            <div class="flex items-center justify-between pt-4 border-t">
+            <!-- Verification Link Banner -->
+            <div class="p-3 bg-slate-900 text-white rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-2 mb-4 text-xs shadow-inner">
+                <div class="flex items-center gap-2 min-w-0 flex-1">
+                    <span class="text-base">🔗</span>
+                    <div class="min-w-0 flex-1 truncate">
+                        <span class="text-amber-300 font-bold text-[10px] uppercase block">Link ផ្ទៀងផ្ទាត់ផ្លូវការ៖</span>
+                        <span class="font-mono text-slate-200 text-[11px] truncate block">${window.location.origin}/verify/${voter.voter_code}</span>
+                    </div>
+                </div>
+                <a href="/verify/${voter.voter_code}" target="_blank" class="btn btn-sm btn-accent text-xs font-bold whitespace-nowrap flex-shrink-0">
+                    ↗ បើក Link ផ្ទៀងផ្ទាត់
+                </a>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-center justify-between pt-3 border-t border-slate-100 gap-3">
                 <div id="voter-status-${voter.id}">${statusBadge}</div>
-                <div class="flex gap-2">
-                    <button onclick="toggleCheckin(${voter.id}, this)" class="btn ${voter.has_voted ? 'btn-outline text-red-600' : 'btn-success px-6 py-2 text-base'}">
+                <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                    <button onclick="toggleCheckin(${voter.id}, this)" class="btn ${voter.has_voted ? 'btn-outline text-red-600' : 'btn-success px-5 py-2 font-bold text-sm'}">
                         ${voter.has_voted ? '✕ លុប Check-in' : '✓ បញ្ជាក់ការបោះឆ្នោត (Check-in)'}
                     </button>
                     <a href="/voters/${voter.id}/card" target="_blank" class="btn btn-outline btn-sm">

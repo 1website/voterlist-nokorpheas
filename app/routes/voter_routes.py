@@ -314,9 +314,34 @@ def create_voter(
         "photo_url": new_voter.photo_display
     })
 
+@router.get("/verify/{voter_code}", response_class=HTMLResponse)
+def verify_voter_public_page(voter_code: str, request: Request, db: Session = Depends(get_db)):
+    current_user = get_current_user_optional(request, db)
+    clean_code = voter_code.strip()
+    
+    # Try finding by voter_code, national_id, or numeric id
+    voter = db.query(Voter).filter(
+        or_(
+            Voter.voter_code == clean_code,
+            Voter.national_id == clean_code
+        )
+    ).first()
+    
+    if not voter and clean_code.isdigit():
+        voter = db.query(Voter).filter(Voter.id == int(clean_code)).first()
+
+    return templates.TemplateResponse(request=request, name="voters/verify.html", context={
+        "current_user": current_user,
+        "voter": voter,
+        "search_code": clean_code
+    })
+
 @router.get("/api/voters/lookup-qr")
 def lookup_qr_code(code: str = Query(...), db: Session = Depends(get_db)):
     clean_code = code.strip()
+    if "/" in clean_code:
+        clean_code = clean_code.rstrip("/").split("/")[-1]
+
     voter = (
         db.query(Voter)
         .filter(
@@ -327,6 +352,9 @@ def lookup_qr_code(code: str = Query(...), db: Session = Depends(get_db)):
         )
         .first()
     )
+    if not voter and clean_code.isdigit():
+        voter = db.query(Voter).filter(Voter.id == int(clean_code)).first()
+
     if not voter:
         return JSONResponse({"found": False, "message": "រកមិនឃើញទិន្នន័យអ្នកបោះឆ្នោតតាមកូដនេះឡើយ"}, status_code=404)
 

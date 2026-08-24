@@ -95,7 +95,7 @@
 
                     <!-- Right: QR Code -->
                     <div class="flex flex-col items-center justify-center p-1 bg-slate-50 rounded-lg border border-slate-200 w-20 flex-shrink-0">
-                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data={{ v.voter_code }}" 
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data={{ request.base_url }}verify/{{ v.voter_code }}" 
                              alt="QR {{ v.voter_code }}" 
                              class="w-16 h-16 bg-white p-0.5 rounded">
                         <span class="font-mono text-[7px] font-bold text-slate-600 mt-0.5">{{ v.voter_code }}</span>

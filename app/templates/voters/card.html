@@ -103,11 +103,14 @@
 
             <!-- Right: High Resolution QR Code (3 Cols) -->
             <div class="md:col-span-3 flex flex-col items-center justify-center p-3 bg-slate-50 rounded-2xl border border-slate-200 text-center">
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={{ voter.voter_code }}" 
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={{ request.base_url }}verify/{{ voter.voter_code }}" 
                      alt="QR Code {{ voter.voter_code }}" 
                      class="w-32 h-32 rounded-xl border border-slate-300 shadow-sm bg-white p-1">
-                <span class="font-mono text-[10px] font-bold text-slate-600 mt-1.5">{{ voter.voter_code }}</span>
-                <span class="text-[9px] text-slate-400">ស្កេនផ្ទៀងផ្ទាត់ពេលបោះឆ្នោត</span>
+                <span class="font-mono text-[10px] font-bold text-slate-700 mt-1.5">{{ voter.voter_code }}</span>
+                <a href="/verify/{{ voter.voter_code }}" target="_blank" class="text-[9px] text-blue-700 font-mono font-bold hover:underline block mt-0.5" title="ចុចដើម្បីបើកមើល Link ផ្ទៀងផ្ទាត់">
+                    🔗 ផ្ទៀងផ្ទាត់ Online
+                </a>
+                <span class="text-[8px] text-slate-400">ស្កេនផ្ទៀងផ្ទាត់ពេលបោះឆ្នោត</span>
             </div>
 
         </div>
