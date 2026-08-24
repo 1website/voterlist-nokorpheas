@@ -39,16 +39,16 @@
     <!-- ========================================================================= -->
     <div id="khmerDateBanner" class="khmer-date-banner no-print">
         <div class="khmer-date-content">
-            <div class="flex items-center gap-2.5">
-                <span class="text-xl flex-shrink-0">🇰🇭</span>
-                <div class="flex flex-col sm:flex-row sm:items-center sm:gap-2 min-w-0">
-                    <span class="font-bold text-amber-300 font-kh-heading text-xs whitespace-nowrap">កាលបរិច្ឆេទថ្ងៃនេះ៖</span>
-                    <span id="khmerDateText" class="text-white font-kh-bold text-xs sm:text-sm tracking-wide truncate">
+            <div class="flex items-center gap-2 sm:gap-2.5 min-w-0 flex-1">
+                <span class="text-lg sm:text-xl flex-shrink-0">🇰🇭</span>
+                <div class="flex flex-col sm:flex-row sm:items-center sm:gap-1.5 min-w-0 leading-tight">
+                    <span class="font-bold text-amber-300 font-kh-heading text-[11px] sm:text-xs flex-shrink-0">កាលបរិច្ឆេទថ្ងៃនេះ៖</span>
+                    <span id="khmerDateText" class="text-white font-kh-bold text-xs sm:text-sm tracking-wide leading-snug">
                         <!-- Loaded by JS -->
                     </span>
                 </div>
             </div>
-            <button type="button" onclick="dismissKhmerDateBanner()" class="text-white/70 hover:text-white hover:bg-white/15 p-1 rounded-lg transition ml-2 flex-shrink-0" title="បិទ">
+            <button type="button" onclick="dismissKhmerDateBanner()" class="text-white/70 hover:text-white hover:bg-white/15 p-1.5 rounded-xl transition flex-shrink-0 text-sm leading-none ml-1" title="បិទ">
                 ✕
             </button>
         </div>
@@ -337,7 +337,7 @@
             const period = hours >= 12 ? 'រសៀល' : 'ព្រឹក';
             const displayHours = toKhmerNum(hours % 12 || 12);
 
-            const fullText = `${dayName} ទី${dateNum} ខែ${monthName} ឆ្នាំ${yearNum} • វេលាម៉ោង ${displayHours}:${minutes} នាទី${period}`;
+            const fullText = `${dayName} ទី${dateNum} ខែ${monthName} ឆ្នាំ${yearNum} • ម៉ោង ${displayHours}:${minutes} ${period}`;
             const miniText = `${dayName} ទី${dateNum} ${monthName} ${yearNum}`;
 
             return { fullText, miniText };
