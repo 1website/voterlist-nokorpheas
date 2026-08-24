@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>បោះពុម្ពប័ណ្ណព័ត៌មានអ្នកបោះឆ្នោតជាបាច់ - រដ្ឋបាលឃុំនគរភាស</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/print.css">
+    <style>
+        body {
+            background-color: #f1f5f9;
+            font-family: 'Kantumruy Pro', 'Battambang', sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .page-container {
+            max-width: 210mm; /* A4 Portrait */
+            margin: 0 auto;
+        }
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        .card-box {
+            background: white;
+            border: 2px solid #0f2b5c;
+            border-radius: 12px;
+            padding: 14px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            page-break-inside: avoid;
+        }
+        @media print {
+            body { padding: 0; background: white; }
+            .no-print { display: none !important; }
+            .card-box { box-shadow: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Print Control Bar -->
+    <div class="page-container mb-4 flex items-center justify-between no-print">
+        <a href="/reports" class="btn btn-outline text-sm">
+            ← ត្រឡប់ក្រោយ
+        </a>
+        <div class="flex items-center gap-3">
+            <span class="text-xs text-slate-500">A4 Portrait (៤ ប័ណ្ណក្នុង ១ ទំព័រ)</span>
+            <button onclick="window.print()" class="btn btn-primary text-sm shadow-md">
+                🖨️ បោះពុម្ពប័ណ្ណទាំងអស់ (Print Batch)
+            </button>
+        </div>
+    </div>
+
+    <!-- Cards Grid -->
+    <div class="page-container">
+        <div class="cards-grid">
+            {% for v in voters %}
+            <div class="card-box">
+                <div class="text-center border-b border-amber-400 pb-2 mb-2">
+                    <p class="text-[9px] font-bold text-slate-600 uppercase">ព្រះរាជាណាចក្រកម្ពុជា ជាតិ សាសនា ព្រះមហាក្សត្រ</p>
+                    <h4 class="text-xs font-normal text-blue-950 kh-moul">ប័ណ្ណព័ត៌មានអ្នកបោះឆ្នោត</h4>
+                    <p class="text-[9px] text-amber-800 font-semibold">រដ្ឋបាលឃុំនគរភាស • ស្រុកអង្គរជុំ ខេត្តសៀមរាប</p>
+                </div>
+
+                <div class="flex items-center gap-2.5">
+                    <!-- Left: Photo -->
+                    <div class="flex-shrink-0 text-center">
+                        <img src="{{ v.photo_display }}" 
+                             alt="{{ v.name_kh }}" 
+                             class="w-16 h-20 rounded-lg object-cover border border-blue-900 shadow-sm bg-white">
+                        <span class="text-[7px] text-blue-900 font-bold block mt-0.5">រូបថត</span>
+                    </div>
+
+                    <!-- Middle: Details -->
+                    <div class="space-y-0.5 text-[10px] flex-1 min-w-0">
+                        <div class="flex items-center justify-between">
+                            <span class="font-mono font-bold text-blue-900 bg-blue-50 px-1 rounded text-[8px]">{{ v.voter_code }}</span>
+                            <span class="font-bold text-amber-600 text-[9px]">#{{ v.list_no }}</span>
+                        </div>
+                        <div>
+                            <strong class="text-slate-900 font-bold text-xs truncate block">{{ v.name_kh }}</strong>
+                            <span class="text-[7.5px] text-slate-400 uppercase font-semibold block truncate">{{ v.name_en }}</span>
+                        </div>
+                        <div class="text-[9px]">
+                            <span class="text-slate-500">{{ v.gender }} • {{ v.dob }}</span>
+                        </div>
+                        <div class="text-[9px]">
+                            <span class="font-mono text-slate-800 font-semibold">{{ v.national_id }}</span>
+                        </div>
+                        <div class="bg-slate-50 p-1 rounded border border-slate-200 text-[8.5px]">
+                            <span class="text-blue-900 font-bold block truncate">{{ v.station.code if v.station else '' }} - {{ v.village.name_kh if v.village else '' }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Right: QR Code -->
+                    <div class="flex flex-col items-center justify-center p-1 bg-slate-50 rounded-lg border border-slate-200 w-20 flex-shrink-0">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data={{ v.voter_code }}" 
+                             alt="QR {{ v.voter_code }}" 
+                             class="w-16 h-16 bg-white p-0.5 rounded">
+                        <span class="font-mono text-[7px] font-bold text-slate-600 mt-0.5">{{ v.voter_code }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</body>
+</html>

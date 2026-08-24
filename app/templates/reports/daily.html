@@ -1,0 +1,327 @@
+{% extends "base.html" %}
+
+{% block title %}របាយការណ៍ចុះឈ្មោះប្រចាំថ្ងៃ ({{ selected_date }}) - រដ្ឋបាលឃុំនគរភាស{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Top Header & Actions -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2 text-xs text-slate-500 mb-1">
+                <a href="/reports" class="hover:text-blue-700">📑 របាយការណ៍</a>
+                <span>›</span>
+                <span class="text-blue-700 font-bold">ចុះឈ្មោះប្រចាំថ្ងៃ</span>
+            </div>
+            <h2 class="text-2xl font-bold text-slate-800 font-kh-heading flex items-center gap-2">
+                <span>📅</span> របាយការណ៍អ្នកចុះឈ្មោះប្រចាំថ្ងៃ
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-500">
+                រដ្ឋបាលឃុំនគរភាស • ទិន្នន័យចុះឈ្មោះថ្ងៃទី <span class="font-bold text-blue-700 font-mono text-sm">{{ selected_date }}</span> (សរុប <span class="font-bold text-blue-800">{{ total_day }}</span> នាក់)
+            </p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+            <a href="/reports/daily/print?date={{ selected_date }}&village_id={{ village_id }}&station_id={{ station_id }}" target="_blank" class="btn btn-primary text-xs shadow-md">
+                🖨️ បោះពុម្ពរបាយការណ៍ (Print)
+            </a>
+            <a href="/reports/daily/export/excel?date={{ selected_date }}&village_id={{ village_id }}&station_id={{ station_id }}" class="btn btn-success text-xs shadow-md">
+                📥 Export Excel (.xlsx)
+            </a>
+            <a href="/reports" class="btn btn-outline text-xs">
+                ← ត្រឡប់ក្រោយ
+            </a>
+        </div>
+    </div>
+
+    <!-- Quick Date Navigation Pills (Last 10 Days) -->
+    <div class="glass-card p-4">
+        <div class="text-xs font-bold text-slate-700 mb-2 flex items-center justify-between">
+            <span class="flex items-center gap-1.5">
+                <span>🗓️</span> ជ្រើសរើសកាលបរិច្ឆេទរហ័ស (Quick Date Tabs)៖
+            </span>
+            <span class="text-[11px] text-slate-400 font-normal">ចុចលើថ្ងៃដើម្បីមើលទិន្នន័យ</span>
+        </div>
+        <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+            {% for r in recent_dates %}
+            <a href="/reports/daily?date={{ r.reg_date }}" 
+               class="px-3.5 py-2 rounded-xl border transition flex items-center gap-2 flex-shrink-0 font-medium {% if selected_date == r.reg_date|string %}bg-blue-900 text-white border-blue-900 shadow-md font-bold{% else %}bg-white hover:bg-slate-100 text-slate-700 border-slate-200{% endif %}">
+                <span class="font-mono">{{ r.reg_date }}</span>
+                <span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold {% if selected_date == r.reg_date|string %}bg-amber-400 text-blue-950{% else %}bg-slate-100 text-slate-600{% endif %}">
+                    {{ r.total }} នាក់
+                </span>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Filter & Search Toolbar -->
+    <div class="glass-card p-5">
+        <form method="GET" action="/reports/daily" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            
+            <!-- Date Picker -->
+            <div>
+                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">កាលបរិច្ឆេទ (Date) *</label>
+                <input type="date" name="date" value="{{ selected_date }}" required class="form-control text-sm py-2 font-mono" onchange="this.form.submit()">
+            </div>
+
+            <!-- Village Filter -->
+            <div>
+                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ភូមិ (១០ ភូមិ)</label>
+                <select name="village_id" id="dailyVillageSelect" class="form-control text-sm py-2" onchange="filterDailyStations()" {% if current_user.role == 'village_chief' %}disabled{% endif %}>
+                    <option value="">-- គ្រប់ភូមិទាំងអស់ --</option>
+                    {% for v in villages %}
+                    <option value="{{ v.id }}" {% if village_id == v.id|string %}selected{% endif %}>{{ v.name_kh }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Polling Station Filter -->
+            <div>
+                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ការិយាល័យ</label>
+                <select name="station_id" id="dailyStationSelect" class="form-control text-sm py-2" {% if current_user.role == 'officer' %}disabled{% endif %}>
+                    <option value="">-- គ្រប់ការិយាល័យ --</option>
+                    {% for s in stations %}
+                    <option value="{{ s.id }}" data-village-id="{{ s.village_id }}" {% if station_id == s.id|string %}selected{% endif %}>{{ s.code }} - {{ s.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Gender Filter -->
+            <div>
+                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ភេទ</label>
+                <select name="gender" class="form-control text-sm py-2">
+                    <option value="">-- ទាំងពីរ --</option>
+                    <option value="ស្រី" {% if gender == 'ស្រី' %}selected{% endif %}>ស្រី (Female)</option>
+                    <option value="ប្រុស" {% if gender == 'ប្រុស' %}selected{% endif %}>ប្រុស (Male)</option>
+                </select>
+            </div>
+
+            <!-- Search Query & Submit -->
+            <div class="flex items-end gap-2">
+                <div class="flex-1">
+                    <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ស្វែងរក</label>
+                    <input type="text" name="q" value="{{ q }}" placeholder="ឈ្មោះ ឬលេខ ID..." class="form-control text-sm py-2">
+                </div>
+                <button type="submit" class="btn btn-primary py-2 px-3 text-sm" title="ស្វែងរក">
+                    🔍
+                </button>
+            </div>
+
+        </form>
+    </div>
+
+    <!-- Daily Summary KPI Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        <div class="stat-card">
+            <div class="stat-icon bg-blue-100 text-blue-900">
+                📝
+            </div>
+            <div>
+                <span class="text-xs text-slate-500 font-bold uppercase">ចុះឈ្មោះសរុបថ្ងៃនេះ</span>
+                <div class="text-2xl font-black text-blue-950">{{ total_day }} <span class="text-xs font-normal text-slate-500">នាក់</span></div>
+                <span class="text-[10px] text-blue-600 font-semibold">{{ selected_date }}</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon bg-pink-100 text-pink-700">
+                👩
+            </div>
+            <div>
+                <span class="text-xs text-slate-500 font-bold uppercase">ស្រ្តី (Female)</span>
+                <div class="text-2xl font-black text-pink-700">{{ female_day }} <span class="text-xs font-normal text-slate-500">នាក់</span></div>
+                <span class="text-[10px] text-slate-500 font-semibold">{% if total_day > 0 %}{{ (female_day / total_day * 100)|round(1) }}{% else %}0{% endif %}% នៃសរុប</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon bg-indigo-100 text-indigo-700">
+                👨
+            </div>
+            <div>
+                <span class="text-xs text-slate-500 font-bold uppercase">បុរស (Male)</span>
+                <div class="text-2xl font-black text-indigo-800">{{ male_day }} <span class="text-xs font-normal text-slate-500">នាក់</span></div>
+                <span class="text-[10px] text-slate-500 font-semibold">{% if total_day > 0 %}{{ (male_day / total_day * 100)|round(1) }}{% else %}0{% endif %}% នៃសរុប</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon bg-emerald-100 text-emerald-800">
+                🏡
+            </div>
+            <div>
+                <span class="text-xs text-slate-500 font-bold uppercase">ភូមិ / ការិយាល័យ</span>
+                <div class="text-xl font-bold text-slate-800">ឃុំនគរភាស</div>
+                <span class="text-[10px] text-emerald-600 font-semibold">១០ ភូមិ • ១៤ ការិយាល័យ</span>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Voters Registered Table -->
+    <div class="data-table-container">
+        <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <h3 class="font-bold text-slate-800 text-base font-kh-heading flex items-center gap-2">
+                <span>📋</span> បញ្ជីអ្នកបានចុះឈ្មោះក្នុងថ្ងៃទី {{ selected_date }}
+            </h3>
+            <span class="text-xs font-bold text-blue-900 bg-blue-100 px-3 py-1 rounded-full">
+                រកឃើញសរុប {{ voters|length }} នាក់
+            </span>
+        </div>
+
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ល.រ</th>
+                    <th>ម៉ោងចុះឈ្មោះ</th>
+                    <th>កូដអ្នកបោះឆ្នោត</th>
+                    <th class="col-national-id">លេខអត្តសញ្ញាណប័ណ្ណ</th>
+                    <th>រូបថត & ឈ្មោះ</th>
+                    <th>ភេទ / ថ្ងៃកំណើត</th>
+                    <th>ភូមិទីលំនៅ</th>
+                    <th>ការិយាល័យបោះឆ្នោត</th>
+                    <th>ស្ថានភាព</th>
+                    <th class="text-right">សកម្មភាព</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if voters %}
+                    {% for v in voters %}
+                    <tr>
+                        <td class="font-bold text-center text-slate-500">{{ loop.index }}</td>
+                        <td class="font-mono text-xs font-bold text-blue-800">
+                            {{ v.created_at.strftime('%H:%M:%S') if v.created_at else '' }}
+                        </td>
+                        <td class="font-mono text-xs font-bold text-blue-900">{{ v.voter_code }}</td>
+                        <td class="col-national-id font-mono text-xs font-semibold text-slate-700">{{ v.national_id }}</td>
+                        <td>
+                            <div class="flex items-center gap-3">
+                                <img src="{{ v.photo_display }}" 
+                                     alt="{{ v.name_kh }}" 
+                                     class="w-10 h-10 rounded-full object-cover border-2 border-blue-200 shadow-sm bg-slate-100 cursor-pointer"
+                                     onclick="previewLargePhoto('{{ v.photo_display }}', '{{ v.name_kh }}', '{{ v.voter_code }}')"
+                                     title="ចុចដើម្បីមើលរូប">
+                                <div>
+                                    <div class="font-bold text-slate-900">{{ v.name_kh }}</div>
+                                    <div class="text-xs text-slate-400 uppercase tracking-wider font-semibold">{{ v.name_en }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="font-semibold text-slate-700">{{ v.gender }}</span>
+                            <span class="text-xs text-slate-400 block">{{ v.dob }}</span>
+                        </td>
+                        <td>
+                            <span class="text-slate-700 font-medium">{{ v.village.name_kh if v.village else '' }}</span>
+                        </td>
+                        <td>
+                            <span class="font-bold text-blue-800">{{ v.station.code if v.station else '' }}</span>
+                            <span class="text-[11px] text-slate-400 block truncate max-w-[130px]">{{ v.station.name if v.station else '' }}</span>
+                        </td>
+                        <td>
+                            {% if v.status == 'active' %}
+                                <span class="badge badge-success">សកម្ម</span>
+                            {% elif v.status == 'moved' %}
+                                <span class="badge badge-warning">ផ្លាស់ចេញ</span>
+                            {% elif v.status == 'deceased' %}
+                                <span class="badge badge-danger">មរណភាព</span>
+                            {% else %}
+                                <span class="badge badge-secondary">{{ v.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-right">
+                            <div class="inline-flex items-center gap-1.5">
+                                <a href="/voters/{{ v.id }}/card" target="_blank" class="btn btn-sm btn-outline" title="ប័ណ្ណព័ត៌មាន">
+                                    🪪 ប័ណ្ណ
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="10" class="text-center py-12 text-slate-400 text-sm">
+                            <div class="text-3xl mb-2">📭</div>
+                            ពុំមានទិន្នន័យអ្នកចុះឈ្មោះបោះឆ្នោតក្នុងថ្ងៃទី <strong class="text-slate-700 font-mono">{{ selected_date }}</strong> ស្របតាមលក្ខខណ្ឌស្វែងរកនេះឡើយ។
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<!-- Modal: Large Photo Preview -->
+<div id="largePhotoModal" class="modal-overlay">
+    <div class="modal-card max-w-sm text-center">
+        <div class="modal-header">
+            <h3 class="font-bold text-base font-kh-heading">រូបថតអ្នកបោះឆ្នោត</h3>
+            <button type="button" onclick="closeModal('largePhotoModal')" class="text-white/80 hover:text-white text-xl p-1 leading-none">✕</button>
+        </div>
+        <div class="modal-body p-6 space-y-3">
+            <div class="flex justify-center">
+                <img id="largePhotoImg" src="" alt="Voter Portrait" class="w-56 h-56 rounded-3xl object-cover border-4 border-blue-900 shadow-2xl bg-white">
+            </div>
+            <div>
+                <h4 id="largePhotoName" class="font-bold text-slate-900 text-lg font-kh-heading mt-2"></h4>
+                <p id="largePhotoCode" class="font-mono text-xs font-bold text-blue-800 bg-blue-50 py-1 px-3 rounded-full inline-block mt-1"></p>
+            </div>
+        </div>
+        <div class="modal-footer justify-center">
+            <button type="button" onclick="closeModal('largePhotoModal')" class="btn btn-primary text-sm py-2 px-6">បិទ</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const dailyStationsData = [
+        {% for s in stations %}
+        { 
+            id: {{ s.id }}, 
+            code: "{{ s.code }}", 
+            name: "{{ s.name }}", 
+            village_id: {{ s.village_id if s.village_id else 'null' }} 
+        },
+        {% endfor %}
+    ];
+
+    function filterDailyStations() {
+        const vSel = document.getElementById('dailyVillageSelect');
+        const sSel = document.getElementById('dailyStationSelect');
+        if (!vSel || !sSel) return;
+        const vId = vSel.value ? parseInt(vSel.value) : null;
+        const currentVal = sSel.value;
+        
+        sSel.innerHTML = '<option value="">-- គ្រប់ការិយាល័យ --</option>';
+        const list = vId ? dailyStationsData.filter(s => s.village_id === vId) : dailyStationsData;
+        list.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.id;
+            opt.textContent = `${s.code} - ${s.name}`;
+            if (currentVal && parseInt(currentVal) === s.id) {
+                opt.selected = true;
+            }
+            sSel.appendChild(opt);
+        });
+    }
+
+    function previewLargePhoto(photoUrl, nameKh, voterCode) {
+        document.getElementById('largePhotoImg').src = photoUrl;
+        document.getElementById('largePhotoName').textContent = nameKh;
+        document.getElementById('largePhotoCode').textContent = voterCode;
+        openModal('largePhotoModal');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const vSel = document.getElementById('dailyVillageSelect');
+        if (vSel && vSel.value) {
+            filterDailyStations();
+        }
+    });
+</script>
+{% endblock %}

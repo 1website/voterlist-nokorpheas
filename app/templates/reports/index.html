@@ -1,0 +1,247 @@
+{% extends "base.html" %}
+
+{% block title %}របាយការណ៍ & ទាញយកទិន្នន័យ - រដ្ឋបាលឃុំនគរភាស{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Top Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <h2 class="text-2xl font-bold text-slate-800 font-kh-bold flex items-center gap-2">
+                <span>📑</span> មជ្ឈមណ្ឌលរបាយការណ៍ & នាំចេញទិន្នន័យ (Reports & Export)
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-500">
+                ទាញយកឯកសារ Excel, បោះពុម្ពបញ្ជីឈ្មោះផ្លូវការ និងរបាយការណ៍ស្ថិតិប្រជាសាស្ត្រ
+            </p>
+        </div>
+    </div>
+
+    <!-- Export & Printing Actions Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 w-full">
+        
+        <!-- 1. Daily Registration Report (NEW) -->
+        <div class="glass-card p-5 border-t-4 border-t-indigo-600 flex flex-col justify-between shadow-md hover:shadow-lg transition min-w-0">
+            <div>
+                <div class="w-11 h-11 rounded-2xl bg-indigo-100 text-indigo-900 flex items-center justify-center text-2xl font-black mb-3">
+                    📅
+                </div>
+                <h3 class="text-base font-bold text-slate-900 font-kh-heading">របាយការណ៍ចុះឈ្មោះប្រចាំថ្ងៃ</h3>
+                <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">
+                    ស្វែងរក និងតាមដានអ្នកចុះឈ្មោះតាមថ្ងៃជាក់លាក់ ជាមួយការ Print និង Export។
+                </p>
+            </div>
+            <div class="mt-4 pt-3 border-t space-y-1.5">
+                <a href="/reports/daily" class="btn btn-primary w-full text-xs font-bold shadow-sm">
+                    🔍 ស្វែងរកតាមថ្ងៃ (Daily)
+                </a>
+            </div>
+        </div>
+
+        <!-- 2. Excel Export -->
+        <div class="glass-card p-5 border-t-4 border-t-emerald-600 flex flex-col justify-between shadow-md hover:shadow-lg transition min-w-0">
+            <div>
+                <div class="w-11 h-11 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-2xl font-black mb-3">
+                    📊
+                </div>
+                <h3 class="text-base font-bold text-slate-900 font-kh-heading">នាំចេញជាឯកសារ Excel</h3>
+                <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">
+                    ទាញយកទិន្នន័យអ្នកបោះឆ្នោតពេញលេញ មានទម្រង់ស្អាត សម្រាប់ចែកជូនមេភូមិ ឬផ្ទៀងផ្ទាត់។
+                </p>
+            </div>
+            <div class="mt-4 pt-3 border-t space-y-1.5">
+                <a href="/reports/export/excel" class="btn btn-success w-full text-xs font-bold shadow-sm">
+                    📥 ទាញយកឃុំទាំងមូល (.xlsx)
+                </a>
+            </div>
+        </div>
+
+        <!-- 3. Official Printable Voter Register -->
+        <div class="glass-card p-5 border-t-4 border-t-blue-800 flex flex-col justify-between shadow-md hover:shadow-lg transition min-w-0">
+            <div>
+                <div class="w-11 h-11 rounded-2xl bg-blue-100 text-blue-900 flex items-center justify-center text-2xl font-black mb-3">
+                    🖨️
+                </div>
+                <h3 class="text-base font-bold text-slate-900 font-kh-heading">បញ្ជីបោះឆ្នោតផ្លូវការ</h3>
+                <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">
+                    ទម្រង់ស្តង់ដារផ្លូវការសម្រាប់បោះពុម្ពបិទផ្សាយតាមការិយាល័យ និងចុះហត្ថលេខា។
+                </p>
+            </div>
+            <div class="mt-4 pt-3 border-t space-y-1.5">
+                <a href="/reports/official-list" target="_blank" class="btn btn-primary w-full text-xs font-bold shadow-sm">
+                    📄 បើកផ្ទាំងបោះពុម្ពបញ្ជីផ្លូវការ
+                </a>
+            </div>
+        </div>
+
+        <!-- 4. Batch Voter Cards -->
+        <div class="glass-card p-5 border-t-4 border-t-amber-500 flex flex-col justify-between shadow-md hover:shadow-lg transition min-w-0">
+            <div>
+                <div class="w-11 h-11 rounded-2xl bg-amber-100 text-amber-900 flex items-center justify-center text-2xl font-black mb-3">
+                    🪪
+                </div>
+                <h3 class="text-base font-bold text-slate-900 font-kh-heading">បោះពុម្ពប័ណ្ណជាបាច់</h3>
+                <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">
+                    បោះពុម្ពប័ណ្ណព័ត៌មានអ្នកបោះឆ្នោតដែលមាន QR Code (៤ ប័ណ្ណក្នុង ១ សន្លឹក A4)។
+                </p>
+            </div>
+            <div class="mt-4 pt-3 border-t space-y-1.5">
+                <a href="/reports/batch-cards" target="_blank" class="btn btn-accent w-full text-xs font-bold shadow-sm">
+                    🖨️ បើកប័ណ្ណជាបាច់ (Batch)
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Daily Registration Breakdown Section -->
+    <div class="glass-card p-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 mb-4 border-b gap-2">
+            <div>
+                <h3 class="font-bold text-slate-800 text-base font-kh-heading flex items-center gap-2">
+                    <span>🗓️</span> ស្ថិតិអ្នកចុះឈ្មោះបោះឆ្នោតប្រចាំថ្ងៃ (Daily Registration Log)
+                </h3>
+                <p class="text-xs text-slate-500 mt-0.5">
+                    តាមដានចំនួនពលរដ្ឋមកចុះឈ្មោះក្នុងថ្ងៃនីមួយៗ និងទាញយករបាយការណ៍ដាច់ដោយឡែកតាមថ្ងៃ
+                </p>
+            </div>
+            <a href="/reports/daily" class="btn btn-sm btn-primary">
+                🔍 បើករបាយការណ៍លម្អិតតាមថ្ងៃ →
+            </a>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="data-table text-xs">
+                <thead>
+                    <tr>
+                        <th>កាលបរិច្ឆេទ (Date)</th>
+                        <th>ចំនួនចុះឈ្មោះសរុប</th>
+                        <th>ស្រ្តី (Female)</th>
+                        <th>បុរស (Male)</th>
+                        <th>ភាគរយស្រ្តី</th>
+                        <th class="text-right">សកម្មភាព</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in daily_trends %}
+                    <tr>
+                        <td class="font-bold font-mono text-blue-900 flex items-center gap-2">
+                            <span>📅</span>
+                            <span>{{ d.date }}</span>
+                            {% if d.date == today_str %}
+                            <span class="badge badge-success text-[10px]">ថ្ងៃនេះ</span>
+                            {% endif %}
+                        </td>
+                        <td class="font-bold text-base text-slate-900">{{ d.total }} <span class="text-[11px] font-normal text-slate-500">នាក់</span></td>
+                        <td class="font-semibold text-pink-700">{{ d.female }} នាក់</td>
+                        <td class="font-semibold text-indigo-700">{{ d.male }} នាក់</td>
+                        <td>
+                            <div class="flex items-center gap-2">
+                                <div class="w-16 h-2 bg-slate-200 rounded-full overflow-hidden">
+                                    <div class="h-full bg-pink-500 rounded-full" style="width: {% if d.total > 0 %}{{ (d.female / d.total * 100)|round }}{% else %}0{% endif %}%;"></div>
+                                </div>
+                                <span class="text-[11px] font-bold text-slate-600">{% if d.total > 0 %}{{ (d.female / d.total * 100)|round(1) }}{% else %}0{% endif %}%</span>
+                            </div>
+                        </td>
+                        <td class="text-right">
+                            <div class="inline-flex items-center gap-1.5">
+                                <a href="/reports/daily?date={{ d.date }}" class="btn btn-sm btn-outline text-blue-800 font-bold" title="មើលបញ្ជី">
+                                    🔍 មើលឈ្មោះ
+                                </a>
+                                <a href="/reports/daily/export/excel?date={{ d.date }}" class="btn btn-sm btn-outline text-emerald-700 font-bold" title="ទាញយក Excel">
+                                    📥 Excel
+                                </a>
+                                <a href="/reports/daily/print?date={{ d.date }}" target="_blank" class="btn btn-sm btn-outline text-slate-700" title="បោះពុម្ព">
+                                    🖨️
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+        <!-- Demographics Breakdown -->
+        <div class="glass-card p-6">
+            <h3 class="font-bold text-slate-800 text-base mb-4 flex items-center gap-2 border-b pb-3">
+                <span>👥</span> ស្ថិតិប្រជាសាស្ត្រអ្នកចុះឈ្មោះបោះឆ្នោត
+            </h3>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center mb-6">
+                <div class="p-3 bg-blue-50 rounded-xl border border-blue-200">
+                    <span class="text-[10px] text-slate-500 font-bold uppercase">អាយុ ១៨-៣០ ឆ្នាំ</span>
+                    <h4 class="text-xl font-black text-blue-900 mt-1">{{ age_groups['18-30'] }}</h4>
+                    <span class="text-[10px] text-slate-400">យុវជន</span>
+                </div>
+                <div class="p-3 bg-indigo-50 rounded-xl border border-indigo-200">
+                    <span class="text-[10px] text-slate-500 font-bold uppercase">អាយុ ៣១-៤៥ ឆ្នាំ</span>
+                    <h4 class="text-xl font-black text-indigo-900 mt-1">{{ age_groups['31-45'] }}</h4>
+                    <span class="text-[10px] text-slate-400">វ័យកណ្តាល</span>
+                </div>
+                <div class="p-3 bg-amber-50 rounded-xl border border-amber-200">
+                    <span class="text-[10px] text-slate-500 font-bold uppercase">អាយុ ៤៦-៦០ ឆ្នាំ</span>
+                    <h4 class="text-xl font-black text-amber-900 mt-1">{{ age_groups['46-60'] }}</h4>
+                    <span class="text-[10px] text-slate-400">វ័យចំណាស់</span>
+                </div>
+                <div class="p-3 bg-purple-50 rounded-xl border border-purple-200">
+                    <span class="text-[10px] text-slate-500 font-bold uppercase">អាយុ ៦០+ ឆ្នាំ</span>
+                    <h4 class="text-xl font-black text-purple-900 mt-1">{{ age_groups['60+'] }}</h4>
+                    <span class="text-[10px] text-slate-400">មនុស្សចាស់</span>
+                </div>
+            </div>
+
+            <div class="space-y-3 text-sm">
+                <div>
+                    <div class="flex justify-between text-xs font-semibold mb-1">
+                        <span class="text-slate-600">ភេទស្រី (Female):</span>
+                        <span class="text-slate-900 font-bold">{{ female_count }} នាក់ ({% if total_active > 0 %}{{ (female_count / total_active * 100)|round(1) }}{% else %}0{% endif %}%)</span>
+                    </div>
+                    <div class="turnout-bar-bg">
+                        <div class="h-full bg-pink-500 rounded-full" style="width: {% if total_active > 0 %}{{ (female_count / total_active * 100)|round(1) }}{% else %}0{% endif %}%;"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between text-xs font-semibold mb-1">
+                        <span class="text-slate-600">ភេទប្រុស (Male):</span>
+                        <span class="text-slate-900 font-bold">{{ male_count }} នាក់ ({% if total_active > 0 %}{{ (male_count / total_active * 100)|round(1) }}{% else %}0{% endif %}%)</span>
+                    </div>
+                    <div class="turnout-bar-bg">
+                        <div class="h-full bg-blue-600 rounded-full" style="width: {% if total_active > 0 %}{{ (male_count / total_active * 100)|round(1) }}{% else %}0{% endif %}%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Per-Station Quick Export Selector -->
+        <div class="glass-card p-6">
+            <h3 class="font-bold text-slate-800 text-base mb-4 flex items-center gap-2 border-b pb-3">
+                <span>🏢</span> នាំចេញរបាយការណ៍បំបែកតាមការិយាល័យ
+            </h3>
+
+            <div class="space-y-2 max-h-[300px] overflow-y-auto pr-1 text-xs">
+                {% for s in stations %}
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between hover:bg-slate-100 transition">
+                    <div>
+                        <div class="font-bold text-blue-950">{{ s.code }} - {{ s.name }}</div>
+                        <div class="text-slate-500">{{ s.registered_count }} នាក់ចុះឈ្មោះ • បោះរួច {{ s.voted_count }}</div>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <a href="/reports/export/excel?station_id={{ s.id }}" class="btn btn-sm btn-outline text-emerald-700 font-bold">
+                            📥 Excel
+                        </a>
+                        <a href="/reports/official-list?station_id={{ s.id }}" target="_blank" class="btn btn-sm btn-outline text-blue-700 font-bold">
+                            🖨️ បោះពុម្ព
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

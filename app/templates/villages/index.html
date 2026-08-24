@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+
+{% block title %}គ្រប់គ្រងភូមិ (១០ ភូមិ) - រដ្ឋបាលឃុំនគរភាស{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Top Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <h2 class="text-2xl font-bold text-slate-800 font-kh-bold flex items-center gap-2">
+                <span>🏡</span> ភូមិសាស្ត្រឃុំនគរភាស (១០ ភូមិ)
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-500">
+                រដ្ឋបាលឃុំនគរភាស • ស្រុកអង្គរជុំ ខេត្តសៀមរាប
+            </p>
+        </div>
+
+        {% if current_user.role == 'admin' %}
+        <div>
+            <button onclick="openAddVillageModal()" class="btn btn-primary text-sm shadow-md">
+                <span>➕</span> បង្កើតភូមិថ្មី
+            </button>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Villages Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {% for v in villages %}
+        <div class="glass-card p-6 flex flex-col justify-between border-t-4 border-t-emerald-700">
+            <div>
+                <div class="flex items-start justify-between">
+                    <div>
+                        <span class="font-mono text-xs font-black bg-emerald-100 text-emerald-900 px-2.5 py-1 rounded-lg">
+                            កូដ៖ {{ v.code }}
+                        </span>
+                        <h3 class="text-xl font-bold text-slate-900 mt-2 font-kh-bold">{{ v.name_kh }}</h3>
+                        <p class="text-xs uppercase font-bold text-slate-400 tracking-wider">{{ v.name_en }} Village</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="badge badge-success text-xs">
+                            {{ v.total_households }} ខ្នងផ្ទះ
+                        </span>
+                    </div>
+                </div>
+
+                <div class="mt-4 space-y-2 text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <p class="flex items-center gap-1.5">
+                        <span class="text-slate-400">👤</span>
+                        <span>មេភូមិ៖ <strong class="text-slate-800">{{ v.chief_name or 'មិនទាន់កំណត់' }}</strong></span>
+                    </p>
+                    <p class="flex items-center gap-1.5">
+                        <span class="text-slate-400">📞</span>
+                        <span>ទូរស័ព្ទ៖ <strong class="text-slate-800 font-mono">{{ v.chief_phone or '---' }}</strong></span>
+                    </p>
+                    <p class="flex items-center gap-1.5">
+                        <span class="text-slate-400">🏢</span>
+                        <span>ការិយាល័យបម្រើ៖ <strong class="text-blue-800">{{ v.stations|length }} ការិយាល័យ</strong></span>
+                    </p>
+                </div>
+
+                <!-- Voter Stats for this village -->
+                <div class="mt-4 grid grid-cols-2 gap-2 text-center text-xs">
+                    <div class="p-2.5 bg-blue-50/60 rounded-xl border border-blue-100">
+                        <span class="text-slate-500 block text-[10px]">អ្នកចុះឈ្មោះ</span>
+                        <span class="text-base font-black text-blue-900">{{ v.total_voters }} នាក់</span>
+                    </div>
+                    <div class="p-2.5 bg-emerald-50/60 rounded-xl border border-emerald-100">
+                        <span class="text-slate-500 block text-[10px]">បោះឆ្នោតរួច</span>
+                        <span class="text-base font-black text-emerald-700">{{ v.total_voted }} នាក់</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions Footer -->
+            <div class="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
+                <a href="/voters?village_id={{ v.id }}" class="text-xs text-blue-700 hover:underline font-bold">
+                    👥 បញ្ជីឈ្មោះអ្នកបោះឆ្នោត ({{ v.total_voters }}) →
+                </a>
+
+                {% if current_user.role == 'admin' %}
+                <div class="flex gap-1">
+                    <button onclick="openEditVillageModal({{ v.id }}, '{{ v.code }}', '{{ v.name_kh }}', '{{ v.name_en }}', '{{ v.chief_name or '' }}', '{{ v.chief_phone or '' }}', {{ v.total_households }})" class="btn btn-sm btn-outline text-blue-600">
+                        ✏️
+                    </button>
+                    <button onclick="deleteVillage({{ v.id }}, '{{ v.name_kh }}')" class="btn btn-sm btn-outline text-red-600">
+                        🗑️
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+<!-- Modal: Add / Edit Village -->
+<div id="villageModal" class="modal-overlay">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3 id="villageModalTitle" class="font-bold text-base sm:text-lg font-kh-bold flex items-center gap-2">
+                <span>🏡</span> ភូមិ (ឃុំនគរភាស)
+            </h3>
+            <button type="button" onclick="closeModal('villageModal')" class="text-white/80 hover:text-white text-xl p-1 leading-none">✕</button>
+        </div>
+        <form id="villageForm" onsubmit="submitVillage(event)">
+            <input type="hidden" name="id" id="vgFormId" value="0">
+            <div class="modal-body space-y-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="form-group">
+                        <label class="form-label">លេខកូដភូមិ *</label>
+                        <input type="text" name="code" id="vgCode" required placeholder="ឧ. V01" class="form-control font-mono uppercase">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">ចំនួនខ្នងផ្ទះ</label>
+                        <input type="number" name="total_households" id="vgHouseholds" value="200" class="form-control">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="form-group">
+                        <label class="form-label">ឈ្មោះភូមិជាភាសាខ្មែរ *</label>
+                        <input type="text" name="name_kh" id="vgNameKh" required placeholder="ឧ. ភូមិរមៀត" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">ឈ្មោះជាអក្សរឡាតាំង *</label>
+                        <input type="text" name="name_en" id="vgNameEn" required placeholder="ឧ. Romiet" class="form-control">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="form-group">
+                        <label class="form-label">ឈ្មោះមេភូមិ</label>
+                        <input type="text" name="chief_name" id="vgChiefName" placeholder="ឧ. លោក ស៊ឹម ចាន់ថា" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">លេខទូរស័ព្ទមេភូមិ</label>
+                        <input type="text" name="chief_phone" id="vgChiefPhone" placeholder="012 884 101" class="form-control">
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" onclick="closeModal('villageModal')" class="btn btn-outline text-sm py-2 px-4">បោះបង់</button>
+                <button type="submit" class="btn btn-primary text-sm py-2 px-5 shadow-md">💾 រក្សាទុក</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function openAddVillageModal() {
+        document.getElementById('villageForm').reset();
+        document.getElementById('vgFormId').value = "0";
+        document.getElementById('villageModalTitle').innerText = "➕ បង្កើតភូមិថ្មី";
+        openModal('villageModal');
+    }
+
+    function openEditVillageModal(id, code, nameKh, nameEn, chief, phone, households) {
+        document.getElementById('vgFormId').value = id;
+        document.getElementById('vgCode').value = code;
+        document.getElementById('vgNameKh').value = nameKh;
+        document.getElementById('vgNameEn').value = nameEn;
+        document.getElementById('vgChiefName').value = chief;
+        document.getElementById('vgChiefPhone').value = phone;
+        document.getElementById('vgHouseholds').value = households;
+        document.getElementById('villageModalTitle').innerText = "✏️ កែប្រែព័ត៌មានភូមិ";
+        openModal('villageModal');
+    }
+
+    async function submitVillage(e) {
+        e.preventDefault();
+        const form = document.getElementById('villageForm');
+        const formData = new FormData(form);
+
+        try {
+            const res = await fetch('/api/villages', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                showToast(data.message, 'success');
+                closeModal('villageModal');
+                setTimeout(() => window.location.reload(), 600);
+            } else {
+                showToast(data.detail || data.message || 'កំហុស', 'error');
+            }
+        } catch (err) {
+            showToast('កំហុសប្រព័ន្ធ', 'error');
+        }
+    }
+
+    async function deleteVillage(villageId, name) {
+        if (!confirm(`តើអ្នកពិតជាចង់លុប '${name}' មែនទេ?`)) return;
+
+        try {
+            const res = await fetch(`/api/villages/${villageId}/delete`, { method: 'POST' });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                showToast(data.message, 'success');
+                setTimeout(() => window.location.reload(), 600);
+            } else {
+                showToast(data.detail || 'មិនអាចលុបបានទេ', 'error');
+            }
+        } catch (e) {
+            showToast('កំហុសប្រព័ន្ធ', 'error');
+        }
+    }
+</script>
+{% endblock %}

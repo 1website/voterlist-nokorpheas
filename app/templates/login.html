@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ចូលប្រើប្រព័ន្ធ - រដ្ឋបាលឃុំនគរភាស</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 min-h-screen flex items-center justify-center p-4">
+
+    <div class="max-w-md w-full">
+        <!-- Logo & Title -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-amber-400/20 border-2 border-amber-400/50 shadow-2xl mb-4 text-4xl">
+                🇰🇭
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-bold text-white font-kh-heading tracking-normal drop-shadow-md">រដ្ឋបាលឃុំនគរភាស</h1>
+            <p class="text-amber-300 font-bold text-base mt-1.5">ប្រព័ន្ធគ្រប់គ្រងអ្នកចុះឈ្មោះបោះឆ្នោត</p>
+            <p class="text-xs text-blue-200/90 mt-1">ស្រុកអង្គរជុំ ខេត្តសៀមរាប • (១០ ភូមិ • ១៤ ការិយាល័យ)</p>
+        </div>
+
+        <!-- Login Card -->
+        <div class="bg-white/95 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/20">
+            {% if error %}
+            <div class="mb-5 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-start gap-3">
+                <span class="text-lg">⚠️</span>
+                <div>{{ error }}</div>
+            </div>
+            {% endif %}
+
+            <form action="/login" method="POST" class="space-y-5">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">ឈ្មោះគណនី (Username)</label>
+                    <input type="text" name="username" id="usernameInput" required 
+                           value="{{ username or 'admin' }}"
+                           placeholder="បញ្ចូលឈ្មោះគណនី"
+                           class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none text-slate-800 text-sm font-medium transition">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">ពាក្យសម្ងាត់ (Password)</label>
+                    <input type="password" name="password" id="passwordInput" required 
+                           value="admin123"
+                           placeholder="បញ្ចូលពាក្យសម្ងាត់"
+                           class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none text-slate-800 text-sm font-medium transition">
+                </div>
+
+                <button type="submit" class="w-full py-3.5 px-4 bg-gradient-to-r from-blue-900 to-indigo-900 hover:from-blue-950 hover:to-indigo-950 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition transform active:scale-[0.98] text-sm flex items-center justify-center gap-2">
+                    <span>🔐</span>
+                    <span>ចូលប្រើប្រព័ន្ធ (Sign In)</span>
+                </button>
+            </form>
+
+            <!-- Quick Demo Login Selection -->
+            <div class="mt-8 pt-6 border-t border-slate-200">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider text-center mb-3">
+                    ចុចចូលប្រើភ្លាមៗតាមតួនាទី (Demo 1-Click)
+                </p>
+                <div class="grid grid-cols-1 gap-2">
+                    <button onclick="fillLogin('admin', 'admin123')" class="flex items-center justify-between p-2.5 rounded-xl border border-amber-200 bg-amber-50/70 hover:bg-amber-100/70 text-amber-900 transition text-left text-xs font-semibold">
+                        <div class="flex items-center gap-2">
+                            <span>👑</span>
+                            <div>
+                                <div>Admin (មេឃុំ/ស្មៀន)</div>
+                                <div class="text-[10px] text-amber-700/80 font-normal">user: admin | pass: admin123</div>
+                            </div>
+                        </div>
+                        <span class="text-xs">ចូលប្រើ →</span>
+                    </button>
+
+                    <button onclick="fillLogin('officer_0701', 'officer123')" class="flex items-center justify-between p-2.5 rounded-xl border border-blue-200 bg-blue-50/70 hover:bg-blue-100/70 text-blue-900 transition text-left text-xs font-semibold">
+                        <div class="flex items-center gap-2">
+                            <span>🏢</span>
+                            <div>
+                                <div>មន្ត្រីការិយាល័យ ០៧០១</div>
+                                <div class="text-[10px] text-blue-700/80 font-normal">user: officer_0701 | pass: officer123</div>
+                            </div>
+                        </div>
+                        <span class="text-xs">ចូលប្រើ →</span>
+                    </button>
+
+                    <button onclick="fillLogin('chief_v01', 'chief123')" class="flex items-center justify-between p-2.5 rounded-xl border border-emerald-200 bg-emerald-50/70 hover:bg-emerald-100/70 text-emerald-900 transition text-left text-xs font-semibold">
+                        <div class="flex items-center gap-2">
+                            <span>🏡</span>
+                            <div>
+                                <div>មេភូមិរមៀត (V01)</div>
+                                <div class="text-[10px] text-emerald-700/80 font-normal">user: chief_v01 | pass: chief123</div>
+                            </div>
+                        </div>
+                        <span class="text-xs">ចូលប្រើ →</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-6 text-xs text-slate-400">
+            © 2026 រដ្ឋបាលឃុំនគរភាស • ប្រព័ន្ធបោះឆ្នោតជាតិ
+        </div>
+    </div>
+
+    <script>
+        function fillLogin(u, p) {
+            document.getElementById('usernameInput').value = u;
+            document.getElementById('passwordInput').value = p;
+            document.querySelector('form').submit();
+        }
+    </script>
+</body>
+</html>

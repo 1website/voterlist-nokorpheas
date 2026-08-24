@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}ប័ណ្ណព័ត៌មានអ្នកបោះឆ្នោត - {{ voter.name_kh }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto space-y-6">
+
+    <!-- Actions Toolbar (No Print) -->
+    <div class="flex items-center justify-between no-print">
+        <a href="/voters" class="btn btn-outline text-sm">
+            ← ត្រឡប់ទៅបញ្ជីវិញ
+        </a>
+        <div class="flex gap-2">
+            <button onclick="window.print()" class="btn btn-primary text-sm shadow-md">
+                🖨️ បោះពុម្ពប័ណ្ណព័ត៌មាន (Print Card)
+            </button>
+        </div>
+    </div>
+
+    <!-- Official Voter Information Card (Printable) -->
+    <div class="bg-white rounded-3xl p-8 border-2 border-blue-900 shadow-2xl relative overflow-hidden voter-card-item">
+        <!-- Watermark / Decorative background -->
+        <div class="absolute -right-8 -bottom-8 opacity-5 text-9xl select-none pointer-events-none">
+            🇰🇭
+        </div>
+
+        <!-- Official Header -->
+        <div class="text-center border-b-2 border-amber-400 pb-4 mb-6">
+            <h3 class="text-xs uppercase tracking-widest text-slate-600 font-bold">ព្រះរាជាណាចក្រកម្ពុជា ជាតិ សាសនា ព្រះមហាក្សត្រ</h3>
+            <h1 class="text-xl sm:text-2xl font-normal text-blue-950 kh-moul mt-1">ប័ណ្ណព័ត៌មានអ្នកបោះឆ្នោត</h1>
+            <p class="text-xs font-bold text-amber-700 mt-1">រដ្ឋបាលឃុំនគរភាស • ស្រុកអង្គរជុំ ខេត្តសៀមរាប</p>
+        </div>
+
+        <!-- Card Content: 3 Columns (Photo + Voter Details + QR Code) -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+            
+            <!-- Left: Voter Official Portrait (3 Cols) -->
+            <div class="md:col-span-3 flex flex-col items-center justify-center p-3 bg-slate-50 rounded-2xl border border-slate-200 text-center">
+                <div class="relative">
+                    <img src="{{ voter.photo_display }}" 
+                         alt="{{ voter.name_kh }}" 
+                         class="w-32 h-36 rounded-xl object-cover border-2 border-blue-900 shadow-md bg-white">
+                    <span class="absolute bottom-1 right-1 bg-blue-900 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
+                        រូបថតផ្លូវការ
+                    </span>
+                </div>
+                <span class="text-[10px] text-slate-500 font-semibold mt-2">រដ្ឋបាលឃុំនគរភាស</span>
+            </div>
+
+            <!-- Middle: Voter Details (6 Cols) -->
+            <div class="md:col-span-6 space-y-2.5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <span class="text-[11px] text-slate-500 font-bold uppercase">លេខកូដអ្នកបោះឆ្នោត៖</span>
+                        <div class="font-mono text-sm font-black text-blue-900 bg-blue-50 px-2 py-0.5 rounded-lg inline-block border border-blue-200">
+                            {{ voter.voter_code }}
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[11px] text-slate-500 font-bold uppercase">លេខរៀង៖</span>
+                        <div class="text-xl font-black text-amber-600">
+                            #{{ voter.list_no }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-t pt-1.5">
+                    <span class="text-[11px] text-slate-500 font-semibold">គោត្តនាម និងនាម៖</span>
+                    <h2 class="text-xl font-black text-slate-900 font-kh-bold leading-tight">{{ voter.name_kh }}</h2>
+                    <p class="text-xs uppercase font-bold text-slate-500 tracking-wider">{{ voter.name_en }}</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                        <span class="text-slate-500">ភេទ៖</span>
+                        <p class="font-bold text-slate-800">{{ voter.gender }}</p>
+                    </div>
+                    <div>
+                        <span class="text-slate-500">ថ្ងៃខែឆ្នាំកំណើត៖</span>
+                        <p class="font-bold text-slate-800">{{ voter.dob }}</p>
+                    </div>
+                </div>
+
+                <div class="text-xs">
+                    <span class="text-slate-500">លេខអត្តសញ្ញាណប័ណ្ណ៖</span>
+                    <p class="font-mono font-bold text-slate-900 text-xs tracking-wide">{{ voter.national_id }}</p>
+                </div>
+
+                <div class="text-[11px] bg-slate-50 p-2.5 rounded-xl border border-slate-200 space-y-0.5">
+                    <div>
+                        <span class="text-slate-500 font-semibold">ភូមិ៖</span>
+                        <span class="font-bold text-slate-800">{{ voter.village.name_kh if voter.village else '' }} ({{ voter.address or '' }})</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 font-semibold">ការិយាល័យ៖</span>
+                        <span class="font-bold text-blue-800">{{ voter.station.code if voter.station else '' }} - {{ voter.station.name if voter.station else '' }}</span>
+                    </div>
+                    <div class="text-[10px] text-slate-500">
+                        📍 ទីតាំង៖ {{ voter.station.location if voter.station else '' }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: High Resolution QR Code (3 Cols) -->
+            <div class="md:col-span-3 flex flex-col items-center justify-center p-3 bg-slate-50 rounded-2xl border border-slate-200 text-center">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={{ voter.voter_code }}" 
+                     alt="QR Code {{ voter.voter_code }}" 
+                     class="w-32 h-32 rounded-xl border border-slate-300 shadow-sm bg-white p-1">
+                <span class="font-mono text-[10px] font-bold text-slate-600 mt-1.5">{{ voter.voter_code }}</span>
+                <span class="text-[9px] text-slate-400">ស្កេនផ្ទៀងផ្ទាត់ពេលបោះឆ្នោត</span>
+            </div>
+
+        </div>
+
+        <!-- Card Footer -->
+        <div class="mt-6 pt-4 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-500">
+            <div>
+                ស្ថានភាព៖ 
+                {% if voter.status == 'active' %}
+                    <span class="font-bold text-emerald-600">សកម្ម (មានសិទ្ធិបោះឆ្នោត)</span>
+                {% else %}
+                    <span class="font-bold text-red-600">{{ voter.status }}</span>
+                {% endif %}
+            </div>
+            <div>
+                ចេញដោយ៖ រដ្ឋបាលឃុំនគរភាស
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

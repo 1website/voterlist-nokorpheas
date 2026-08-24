@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+
+{% block title %}ផ្ទាំងគ្រប់គ្រងស្ថិតិ - រដ្ឋបាលឃុំនគរភាស{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Hero Banner / Election Status Header -->
+    <div class="glass-card p-6 md:p-8 bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white rounded-3xl relative overflow-hidden shadow-xl border border-white/10">
+        <div class="absolute -right-10 -bottom-10 opacity-10 text-9xl select-none pointer-events-none">
+            🗳️
+        </div>
+        
+        <div class="relative z-10 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
+            <!-- Left Info Block -->
+            <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center gap-2 mb-2.5">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-400 text-blue-950 shadow-sm">
+                        <span class="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
+                        ផ្សាយផ្ទាល់ Real-Time
+                    </span>
+                    <span class="text-xs font-medium text-blue-200/90 bg-white/10 px-3 py-1 rounded-full backdrop-blur-sm border border-white/10">
+                        🗓️ ថ្ងៃបោះឆ្នោតជាតិ ឆ្នាំ២០២៦
+                    </span>
+                </div>
+
+                <h2 class="text-xl sm:text-2xl lg:text-3xl font-bold font-kh-bold text-white tracking-normal leading-snug">
+                    {% if current_user.role == 'officer' and target_station %}
+                        {{ target_station.name }} ({{ target_station.code }})
+                        <span class="text-xs sm:text-sm font-normal text-blue-200 block mt-1">📍 ទីតាំង៖ {{ target_station.location }}</span>
+                    {% elif current_user.role == 'village_chief' and target_village %}
+                        {{ target_village.name_kh }} ({{ target_village.name_en }})
+                        <span class="text-xs sm:text-sm font-normal text-blue-200 block mt-1">🏡 មេភូមិ៖ {{ target_village.chief_name }} ({{ target_village.chief_phone }})</span>
+                    {% else %}
+                        ទិដ្ឋភាពរួម រដ្ឋបាលឃុំនគរភាស <span class="text-amber-300 text-lg sm:text-xl font-normal">(១០ ភូមិ • ១៤ ការិយាល័យ)</span>
+                    {% endif %}
+                </h2>
+            </div>
+
+            <!-- Right Quick Action Buttons (Uniform Row with Crisp Alignment) -->
+            <div class="flex flex-wrap sm:flex-nowrap items-center gap-2.5 flex-shrink-0">
+                <a href="/checkin" class="btn btn-accent text-xs sm:text-sm font-bold shadow-md h-10 px-4 flex items-center justify-center gap-2 whitespace-nowrap">
+                    ⚡ ស្កេន QR & Check-in
+                </a>
+                <a href="/voters" class="btn bg-white/15 hover:bg-white/25 text-white border border-white/20 text-xs sm:text-sm font-semibold backdrop-blur-sm h-10 px-4 flex items-center justify-center gap-1.5 whitespace-nowrap transition">
+                    🔍 ស្វែងរកឈ្មោះ
+                </a>
+                <a href="/reports/export/excel" class="btn bg-white/15 hover:bg-white/25 text-emerald-300 border border-emerald-400/30 text-xs sm:text-sm font-semibold backdrop-blur-sm h-10 px-4 flex items-center justify-center gap-1.5 whitespace-nowrap transition">
+                    📥 ទាញយក Excel
+                </a>
+            </div>
+        </div>
+
+        <!-- Real-time Turnout Meter -->
+        <div class="mt-6 pt-5 border-t border-white/15">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between text-xs sm:text-sm mb-2.5 gap-2">
+                <div class="flex items-center gap-2 font-bold text-white">
+                    <span>ភាគរយអ្នកបានបោះឆ្នោត (Total Turnout):</span>
+                    <span id="dashboardTurnoutPct" class="px-2.5 py-0.5 rounded-lg bg-amber-400/20 border border-amber-400/40 text-amber-300 text-base font-black">
+                        {{ turnout_pct }}%
+                    </span>
+                </div>
+                <div class="text-blue-200 text-xs flex items-center gap-2">
+                    <span>បានបោះ៖ <strong id="dashboardTotalVoted" class="text-emerald-300 font-bold text-sm">{{ total_voted }}</strong> នាក់</span>
+                    <span class="text-white/40">•</span>
+                    <span>សរុប៖ <strong class="text-white font-bold text-sm">{{ total_active_voters }}</strong> នាក់</span>
+                </div>
+            </div>
+            
+            <div class="w-full h-3.5 bg-blue-950/80 rounded-full overflow-hidden border border-white/20 p-0.5">
+                <div id="dashboardProgressBar" class="h-full bg-gradient-to-r from-amber-400 via-emerald-400 to-green-500 rounded-full transition-all duration-700 shadow-sm" style="width: {{ turnout_pct }}%;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4 Primary Key Stat Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- 1. Total Registered -->
+        <div class="stat-card">
+            <div class="stat-icon bg-blue-50 text-blue-700">
+                👥
+            </div>
+            <div>
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">អ្នកចុះឈ្មោះសកម្ម</p>
+                <h3 class="text-2xl font-black text-slate-800">{{ total_active_voters }} <span class="text-xs font-normal text-slate-400">នាក់</span></h3>
+                <p class="text-[11px] text-blue-600 font-semibold mt-0.5">ស្រី {{ female_count }} | ប្រុស {{ male_count }}</p>
+            </div>
+        </div>
+
+        <!-- 2. Total Voted -->
+        <div class="stat-card">
+            <div class="stat-icon bg-emerald-50 text-emerald-700">
+                ✓
+            </div>
+            <div>
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">បានបោះឆ្នោតរួច</p>
+                <h3 class="text-2xl font-black text-emerald-600">{{ total_voted }} <span class="text-xs font-normal text-slate-400">នាក់</span></h3>
+                <p class="text-[11px] text-emerald-700 font-semibold mt-0.5">ស្រី {{ female_voted }} | ប្រុស {{ male_voted }}</p>
+            </div>
+        </div>
+
+        <!-- 3. Total Pending -->
+        <div class="stat-card">
+            <div class="stat-icon bg-amber-50 text-amber-700">
+                ⏳
+            </div>
+            <div>
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">មិនទាន់បានបោះ</p>
+                <h3 class="text-2xl font-black text-amber-600">{{ total_not_voted }} <span class="text-xs font-normal text-slate-400">នាក់</span></h3>
+                <p class="text-[11px] text-amber-700 font-semibold mt-0.5">នៅសល់ {{ 100 - turnout_pct }}%</p>
+            </div>
+        </div>
+
+        <!-- 4. Stations / Villages count -->
+        <div class="stat-card">
+            <div class="stat-icon bg-purple-50 text-purple-700">
+                🏛️
+            </div>
+            <div>
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">ភូមិសាស្ត្របោះឆ្នោត</p>
+                <h3 class="text-2xl font-black text-slate-800">{{ total_stations }} <span class="text-xs font-normal text-slate-400">ការិយាល័យ</span></h3>
+                <p class="text-[11px] text-purple-700 font-semibold mt-0.5">{{ total_villages }} ភូមិ ក្នុងឃុំនគរភាស</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- 1. Station Turnout Chart -->
+        <div class="glass-card p-6">
+            <div class="flex items-center justify-between mb-4 border-b pb-3">
+                <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                    <span>🏢</span> ស្ថិតិតាមការិយាល័យទាំង ១៤ (Station Turnout)
+                </h3>
+                <span class="text-xs text-slate-400">បច្ចុប្បន្នភាព</span>
+            </div>
+            <div class="h-72">
+                <canvas id="stationChart"></canvas>
+            </div>
+        </div>
+
+        <!-- 2. Village Turnout Chart -->
+        <div class="glass-card p-6">
+            <div class="flex items-center justify-between mb-4 border-b pb-3">
+                <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                    <span>🏡</span> ស្ថិតិតាមភូមិទាំង ១០ (Village Turnout)
+                </h3>
+                <span class="text-xs text-slate-400">បច្ចុប្បន្នភាព</span>
+            </div>
+            <div class="h-72">
+                <canvas id="villageChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tables Row: Station Summary & Recent Check-ins -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Left: Polling Stations Overview Table (2 Cols) -->
+        <div class="lg:col-span-2 glass-card p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                    <span>🏢</span> តារាងការិយាល័យបោះឆ្នោត (១៤ ការិយាល័យ)
+                </h3>
+                <a href="/stations" class="text-xs text-blue-600 hover:underline font-semibold">មើលទាំងអស់ →</a>
+            </div>
+
+            <div class="data-table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>កូដ</th>
+                            <th>ទីតាំងការិយាល័យ</th>
+                            <th>ភូមិ</th>
+                            <th>ចុះឈ្មោះ</th>
+                            <th>បោះរួច</th>
+                            <th>ភាគរយ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in station_stats %}
+                        <tr>
+                            <td class="font-bold text-blue-900">{{ s.code }}</td>
+                            <td>
+                                <div class="font-semibold text-slate-800">{{ s.name }}</div>
+                                <div class="text-xs text-slate-400">{{ s.location }}</div>
+                            </td>
+                            <td>{{ s.village_name }}</td>
+                            <td class="font-bold">{{ s.registered }}</td>
+                            <td class="font-bold text-emerald-600">{{ s.voted }}</td>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-bold text-slate-700">{{ s.turnout_pct }}%</span>
+                                    <div class="w-16 h-2 bg-slate-200 rounded-full overflow-hidden">
+                                        <div class="h-full bg-emerald-500 rounded-full" style="width: {{ s.turnout_pct }}%;"></div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Right: Real-time Live Check-in Feed (1 Col) -->
+        <div class="glass-card p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>វត្តមានបោះឆ្នោតថ្មីៗ</span>
+                </h3>
+                <span class="text-xs text-slate-400">Live Feed</span>
+            </div>
+
+            <div class="space-y-3 max-h-[420px] overflow-y-auto pr-1">
+                {% if recent_checkins %}
+                    {% for r in recent_checkins %}
+                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs hover:bg-slate-100 transition">
+                        <div>
+                            <div class="font-bold text-slate-800">{{ r.name_kh }}</div>
+                            <div class="text-slate-500">{{ r.national_id }} • {{ r.station.code if r.station else '' }}</div>
+                        </div>
+                        <div class="text-right">
+                            <span class="badge badge-success">
+                                ✓ {{ r.voted_at.strftime('%H:%M:%S') if r.voted_at else '' }}
+                            </span>
+                            <div class="text-[10px] text-slate-400 mt-0.5">លេខរៀង #{{ r.list_no }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-10 text-slate-400 text-sm">
+                        មិនទាន់មានវត្តមានបោះឆ្នោតនៅឡើយទេ
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="mt-4 pt-4 border-t text-center">
+                <a href="/checkin" class="btn btn-primary w-full text-xs">
+                    ⚡ ចូលទៅកាន់ផ្ទាំង Check-in ផ្ទាល់
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Initialize Chart.js Data
+        const stationLabels = [{% for s in station_stats %}"{{ s.code }}",{% endfor %}];
+        const stationVoted = [{% for s in station_stats %}{{ s.voted }},{% endfor %}];
+        const stationTotal = [{% for s in station_stats %}{{ s.registered }},{% endfor %}];
+
+        const villageLabels = [{% for v in village_stats %}"{{ v.name_kh }}",{% endfor %}];
+        const villageVoted = [{% for v in village_stats %}{{ v.voted }},{% endfor %}];
+        const villageTotal = [{% for v in village_stats %}{{ v.registered }},{% endfor %}];
+
+        initCharts(stationLabels, stationVoted, stationTotal, villageLabels, villageVoted, villageTotal);
+
+        // Auto-refresh stats every 8 seconds
+        setInterval(refreshDashboardStats, 8000);
+    });
+</script>
+{% endblock %}

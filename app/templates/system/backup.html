@@ -1,0 +1,327 @@
+{% extends "base.html" %}
+
+{% block title %}ការបម្រុងទុកទិន្នន័យ & ការស្តារឡើងវិញ (Backup & Restore) - រដ្ឋបាលឃុំនគរភាស{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Hero Header -->
+    <div class="hero-banner">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-2 mb-1.5">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-400 text-blue-950 shadow-sm">
+                        🛡️ សុវត្ថិភាពទិន្នន័យ & Disaster Recovery
+                    </span>
+                    <span class="text-xs text-blue-200/60">•</span>
+                    <span class="text-xs font-medium text-blue-100 bg-white/10 px-2.5 py-0.5 rounded-full border border-white/10">
+                        ការបម្រុងទុកកម្រិតរដ្ឋបាល
+                    </span>
+                </div>
+                <h1 class="hero-title text-xl sm:text-2xl lg:text-3xl font-bold font-kh-bold text-white tracking-normal leading-snug">
+                    💾 ការបម្រុងទុក & ស្តារទិន្នន័យ (Backup & Restore)
+                </h1>
+                <p class="hero-subtitle text-xs sm:text-sm text-blue-100 leading-relaxed mt-1">
+                    ទាញយកច្បាប់ចម្លង Database រក្សាទុកដោយសុវត្ថិភាព ឬស្តារទិន្នន័យត្រឡប់មកវិញដោយងាយស្រួល
+                </p>
+            </div>
+            <div class="flex items-center gap-2.5 flex-wrap sm:flex-nowrap flex-shrink-0">
+                <button type="button" onclick="createSnapshot()" class="btn bg-gradient-to-r from-amber-400 to-amber-300 hover:from-amber-300 hover:to-amber-200 text-blue-950 font-bold text-xs sm:text-sm h-10 px-4 shadow-lg border border-amber-300/40 flex items-center justify-center gap-2 whitespace-nowrap transition">
+                    <span>⚡</span> បង្កើត Snapshot ក្នុងម៉ាស៊ីន
+                </button>
+                <button type="button" onclick="openModal('restoreModal')" class="btn bg-white/15 hover:bg-white/25 text-white border border-white/20 text-xs sm:text-sm font-semibold backdrop-blur-sm h-10 px-4 shadow-sm flex items-center justify-center gap-2 whitespace-nowrap transition">
+                    <span>🔄</span> ស្តារទិន្នន័យ (Restore)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Storage & System Health Metrics -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+        <!-- 1. Database Size -->
+        <div class="stat-card">
+            <div class="stat-icon bg-blue-50 text-blue-800">
+                🗄️
+            </div>
+            <div class="min-w-0 flex-1">
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">ទំហំ DATABASE</p>
+                <h3 class="text-2xl font-black font-mono text-slate-900 mt-0.5">{{ db_size_kb }} <span class="text-xs font-normal text-slate-400">KB</span></h3>
+                <p class="text-[11px] text-blue-600 font-medium mt-0.5 truncate">SQLite Storage File</p>
+            </div>
+        </div>
+
+        <!-- 2. Voters -->
+        <div class="stat-card">
+            <div class="stat-icon bg-emerald-50 text-emerald-800">
+                👥
+            </div>
+            <div class="min-w-0 flex-1">
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">អ្នកបោះឆ្នោត</p>
+                <h3 class="text-2xl font-black font-mono text-emerald-600 mt-0.5">{{ total_voters }} <span class="text-xs font-normal text-slate-400">នាក់</span></h3>
+                <p class="text-[11px] text-emerald-700 font-medium mt-0.5 truncate">កំណត់ត្រាក្នុងបញ្ជី</p>
+            </div>
+        </div>
+
+        <!-- 3. Structure -->
+        <div class="stat-card">
+            <div class="stat-icon bg-amber-50 text-amber-800">
+                🏢
+            </div>
+            <div class="min-w-0 flex-1">
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">ការិយាល័យ & ភូមិ</p>
+                <h3 class="text-2xl font-black font-mono text-amber-600 mt-0.5">{{ total_stations }} <span class="text-xs font-normal text-slate-400">/ {{ total_villages }} ភូមិ</span></h3>
+                <p class="text-[11px] text-amber-700 font-medium mt-0.5 truncate">១៤ ការិយាល័យ • ១០ ភូមិ</p>
+            </div>
+        </div>
+
+        <!-- 4. Staff Users -->
+        <div class="stat-card">
+            <div class="stat-icon bg-purple-50 text-purple-800">
+                👑
+            </div>
+            <div class="min-w-0 flex-1">
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">គណនីមន្ត្រី</p>
+                <h3 class="text-2xl font-black font-mono text-purple-600 mt-0.5">{{ total_users }} <span class="text-xs font-normal text-slate-400">គណនី</span></h3>
+                <p class="text-[11px] text-purple-700 font-medium mt-0.5 truncate">Admin, Officers, Chiefs</p>
+            </div>
+        </div>
+
+        <!-- 5. Audit Logs -->
+        <div class="stat-card">
+            <div class="stat-icon bg-teal-50 text-teal-800">
+                📋
+            </div>
+            <div class="min-w-0 flex-1">
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">AUDIT LOGS</p>
+                <h3 class="text-2xl font-black font-mono text-teal-600 mt-0.5">{{ total_logs }} <span class="text-xs font-normal text-slate-400">ជួរ</span></h3>
+                <p class="text-[11px] text-teal-700 font-medium mt-0.5 truncate">កំណត់ត្រាសកម្មភាព</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick 1-Click Download Actions -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="glass-card p-6 border-l-4 border-blue-600 flex flex-col justify-between hover:shadow-lg transition">
+            <div>
+                <div class="flex items-center gap-3 mb-3">
+                    <span class="w-12 h-12 rounded-2xl bg-blue-100 text-blue-900 flex items-center justify-center text-2xl">📥</span>
+                    <div>
+                        <h3 class="font-bold text-base text-slate-900 font-kh-bold">ទាញយកឯកសារ SQLite Backup (.db)</h3>
+                        <p class="text-xs text-slate-500">ច្បាប់ចម្លង Database ពេញលេញ ១០០% (Includes All Tables, Images & Logs)</p>
+                    </div>
+                </div>
+                <p class="text-xs text-slate-600 leading-relaxed mb-4">
+                    ឯកសារនេះអាចយកទៅប្រើប្រាស់ក្នុងការស្តារទិន្នន័យ (Restore) ឡើងវិញបានគ្រប់ពេលវេលាលើកុំព្យូទ័រ ឬ Server ផ្សេងៗដោយគ្មានការបាត់បង់ទិន្នន័យ។
+                </p>
+            </div>
+            <a href="/api/backup/download" class="btn btn-primary text-sm py-2.5 px-4 shadow flex items-center justify-center gap-2">
+                <span>📥</span> ទាញយក SQLite Backup (.db) ភ្លាមៗ
+            </a>
+        </div>
+
+        <div class="glass-card p-6 border-l-4 border-emerald-600 flex flex-col justify-between hover:shadow-lg transition">
+            <div>
+                <div class="flex items-center gap-3 mb-3">
+                    <span class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-900 flex items-center justify-center text-2xl">📊</span>
+                    <div>
+                        <h3 class="font-bold text-base text-slate-900 font-kh-bold">ទាញយកឯកសារ JSON Structured Backup</h3>
+                        <p class="text-xs text-slate-500">ឯកសារ JSON ស្តង់ដារ (Universal Human-Readable Format)</p>
+                    </div>
+                </div>
+                <p class="text-xs text-slate-600 leading-relaxed mb-4">
+                    ទាញយកទិន្នន័យអ្នកបោះឆ្នោត ភូមិ និងការិយាល័យជាទម្រង់ JSON ងាយស្រួលក្នុងការអាន ផ្ទៀងផ្ទាត់ ឬនាំចេញទៅប្រព័ន្ធខាងក្រៅ។
+                </p>
+            </div>
+            <a href="/api/backup/download-json" class="btn btn-success text-sm py-2.5 px-4 shadow flex items-center justify-center gap-2">
+                <span>📊</span> ទាញយក JSON Export (.json) ភ្លាមៗ
+            </a>
+        </div>
+    </div>
+
+    <!-- Local Snapshots Archive -->
+    <div class="glass-card p-6">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h3 class="font-bold text-base text-slate-900 font-kh-bold flex items-center gap-2">
+                    <span>🗂️</span> បញ្ជីច្បាប់ចម្លងបម្រុងទុកក្នុងម៉ាស៊ីន (Local Snapshots)
+                </h3>
+                <p class="text-xs text-slate-500 mt-0.5">ឯកសារបម្រុងទុកដែលបានរក្សាទុកក្នុងថត `backups/` នៃម៉ាស៊ីនបម្រើការ (Server)</p>
+            </div>
+            <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
+                {{ backup_files|length }} ឯកសារ
+            </span>
+        </div>
+
+        <div class="data-table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th class="w-12 text-center">ល.រ</th>
+                        <th>ឈ្មោះឯកសារ Snapshot</th>
+                        <th class="w-44">កាលបរិច្ឆេទបង្កើត</th>
+                        <th class="w-28 text-center">ទំហំឯកសារ</th>
+                        <th class="w-28 text-center">ប្រភេទ</th>
+                        <th class="w-40 text-center">សកម្មភាព</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if backup_files and backup_files|length > 0 %}
+                        {% for f in backup_files %}
+                        <tr class="hover:bg-blue-50/30 transition">
+                            <td class="text-center font-mono text-xs text-slate-500">{{ loop.index }}</td>
+                            <td>
+                                <div class="font-mono text-xs font-bold text-blue-900">{{ f.filename }}</div>
+                            </td>
+                            <td class="font-mono text-xs text-slate-700">{{ f.created_at }}</td>
+                            <td class="text-center font-mono text-xs text-slate-800">{{ f.size_kb }} KB</td>
+                            <td class="text-center">
+                                {% if f.is_db %}
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-900 border border-blue-200">SQLite .db</span>
+                                {% else %}
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-200">JSON</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% if f.is_db %}
+                                <button type="button" onclick="restoreFromSnapshot('{{ f.filename }}')" class="btn btn-primary text-xs py-1 px-3 shadow-sm inline-flex items-center gap-1">
+                                    <span>🔄</span> ស្តារឡើងវិញ
+                                </button>
+                                {% else %}
+                                <span class="text-xs text-slate-400 font-medium">មិនអាចស្តារបាន</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center py-10 text-slate-400 text-sm">
+                                <div class="text-3xl mb-2">📁</div>
+                                ពុំទាន់មានឯកសារ Snapshot ក្នុងថត `backups/` ឡើយ។ លោកអ្នកអាចចុចប៊ូតុង <strong>"⚡ បង្កើត Snapshot ក្នុងម៉ាស៊ីន"</strong> ខាងលើដើម្បីបង្កើត។
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- Modal: Restore Database -->
+<div id="restoreModal" class="modal-overlay">
+    <div class="modal-card max-w-lg">
+        <div class="modal-header">
+            <h3 class="font-bold text-base font-kh-bold flex items-center gap-2">
+                <span>🔄</span> ស្តារទិន្នន័យឡើងវិញ (Restore Database)
+            </h3>
+            <button type="button" onclick="closeModal('restoreModal')" class="text-white/80 hover:text-white text-xl p-1 leading-none">✕</button>
+        </div>
+        <form id="restoreForm" onsubmit="submitRestore(event)" enctype="multipart/form-data">
+            <div class="modal-body space-y-4">
+                
+                <div class="p-3.5 bg-amber-50 border-2 border-amber-200 rounded-2xl text-xs text-amber-900 flex items-start gap-2.5">
+                    <span class="text-xl flex-shrink-0">⚠️</span>
+                    <div>
+                        <strong class="font-bold block text-xs mb-0.5">ការប្រុងប្រយ័ត្នខ្ពស់ (Safety Notice)៖</strong>
+                        <span>ការស្តារទិន្នន័យនឹងជំនួសទិន្នន័យបច្ចុប្បន្នដោយឯកសារថ្មី។ ប្រព័ន្ធនឹង <strong>ស្វ័យប្រវត្តិចម្លង Safety Backup</strong> មួយច្បាប់ទុកមុននឹងធ្វើការ Restore ដើម្បីធានាសុវត្ថិភាព ១០០%។</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">ជ្រើសរើសឯកសារ SQLite Backup (.db) *</label>
+                    <input type="file" name="backup_file" id="restoreFileInput" accept=".db,.sqlite,.sqlite3" required class="form-control text-sm">
+                    <p class="text-[11px] text-slate-500 mt-1">ទទួលយកតែឯកសារ SQLite (.db) ដែលបានទាញយកពីប្រព័ន្ធនេះប៉ុណ្ណោះ</p>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" onclick="closeModal('restoreModal')" class="btn btn-outline text-sm py-2 px-4">បោះបង់</button>
+                <button type="submit" id="restoreSubmitBtn" class="btn btn-primary bg-red-600 hover:bg-red-700 text-white font-bold text-sm py-2 px-5 shadow-md">
+                    🔄 ចាប់ផ្តើមស្តារទិន្នន័យ (Restore)
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    async function createSnapshot() {
+        try {
+            showToast('⏳ កំពុងបង្កើត Snapshot...', 'info');
+            const res = await fetch('/api/backup/create-snapshot', { method: 'POST' });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                showToast(data.message, 'success');
+                setTimeout(() => window.location.reload(), 800);
+            } else {
+                showToast(data.detail || 'មិនអាចបង្កើត Snapshot បានទេ', 'error');
+            }
+        } catch (e) {
+            showToast('កំហុសប្រព័ន្ធ', 'error');
+        }
+    }
+
+    async function restoreFromSnapshot(filename) {
+        if (!confirm(`តើអ្នកពិតជាចង់ស្តារទិន្នន័យពី Snapshot '${filename}' មែនទេ?`)) {
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('snapshot_filename', filename);
+
+        try {
+            showToast('⏳ កំពុងស្តារទិន្នន័យ...', 'info');
+            const res = await fetch('/api/backup/restore', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                showToast(data.message, 'success');
+                setTimeout(() => window.location.reload(), 1000);
+            } else {
+                showToast(data.detail || 'កំហុសក្នុងការស្តារទិន្នន័យ', 'error');
+            }
+        } catch (e) {
+            showToast('កំហុសប្រព័ន្ធ', 'error');
+        }
+    }
+
+    async function submitRestore(e) {
+        e.preventDefault();
+        if (!confirm("តើអ្នកពិតជាចង់បន្តការស្តារទិន្នន័យនេះមែនទេ?")) {
+            return;
+        }
+
+        const form = document.getElementById('restoreForm');
+        const formData = new FormData(form);
+        const btn = document.getElementById('restoreSubmitBtn');
+        btn.disabled = true;
+        btn.innerHTML = '⏳ កំពុងស្តារ...';
+
+        try {
+            const res = await fetch('/api/backup/restore', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                showToast(data.message, 'success');
+                closeModal('restoreModal');
+                setTimeout(() => window.location.reload(), 1000);
+            } else {
+                showToast(data.detail || 'កំហុសក្នុងការស្តារទិន្នន័យ', 'error');
+                btn.disabled = false;
+                btn.innerHTML = '🔄 ចាប់ផ្តើមស្តារទិន្នន័យ (Restore)';
+            }
+        } catch (e) {
+            showToast('កំហុសប្រព័ន្ធ', 'error');
+            btn.disabled = false;
+            btn.innerHTML = '🔄 ចាប់ផ្តើមស្តារទិន្នន័យ (Restore)';
+        }
+    }
+</script>
+{% endblock %}

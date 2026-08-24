@@ -1,0 +1,530 @@
+import os
+import io
+import datetime
+from fastapi import APIRouter, Request, Depends, HTTPException, Query
+from fastapi.responses import HTMLResponse, StreamingResponse, RedirectResponse
+from fastapi.templating import Jinja2Templates
+from sqlalchemy.orm import Session
+from sqlalchemy import func, case, or_
+import openpyxl
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from openpyxl.utils import get_column_letter
+
+from app.database import get_db
+from app.models import Village, PollingStation, Voter, User
+from app.auth import get_current_user_optional
+
+router = APIRouter()
+
+templates_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "templates")
+templates = Jinja2Templates(directory=templates_path)
+
+@router.get("/reports", response_class=HTMLResponse)
+def reports_hub(request: Request, db: Session = Depends(get_db)):
+    current_user = get_current_user_optional(request, db)
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=302)
+
+    villages = db.query(Village).order_by(Village.code).all()
+    stations = db.query(PollingStation).order_by(PollingStation.code).all()
+
+    # Demographic stats
+    voters = db.query(Voter).filter(Voter.status == "active").all()
+    total_active = len(voters)
+    total_voted = len([v for v in voters if v.has_voted])
+    male_count = len([v for v in voters if v.gender == "ប្រុស"])
+    female_count = len([v for v in voters if v.gender == "ស្រី"])
+    male_voted = len([v for v in voters if v.gender == "ប្រុស" and v.has_voted])
+    female_voted = len([v for v in voters if v.gender == "ស្រី" and v.has_voted])
+
+    # Age group calculation
+    current_year = datetime.datetime.now().year
+    age_groups = {"18-30": 0, "31-45": 0, "46-60": 0, "60+": 0}
+    for v in voters:
+        try:
+            birth_year = int(v.dob[:4])
+            age = current_year - birth_year
+            if age <= 30:
+                age_groups["18-30"] += 1
+            elif age <= 45:
+                age_groups["31-45"] += 1
+            elif age <= 60:
+                age_groups["46-60"] += 1
+            else:
+                age_groups["60+"] += 1
+        except Exception:
+            pass
+
+    # Daily Registration Trend (Last 10 Days)
+    daily_trends_raw = (
+        db.query(
+            func.date(Voter.created_at).label("reg_date"),
+            func.count(Voter.id).label("total"),
+            func.sum(case((Voter.gender == "ប្រុស", 1), else_=0)).label("male"),
+            func.sum(case((Voter.gender == "ស្រី", 1), else_=0)).label("female")
+        )
+        .group_by(func.date(Voter.created_at))
+        .order_by(func.date(Voter.created_at).desc())
+        .limit(10)
+        .all()
+    )
+
+    daily_trends = [
+        {
+            "date": str(row.reg_date),
+            "total": row.total,
+            "male": row.male or 0,
+            "female": row.female or 0
+        }
+        for row in daily_trends_raw if row.reg_date
+    ]
+
+    today_str = datetime.date.today().strftime("%Y-%m-%d")
+
+    return templates.TemplateResponse(request=request, name="reports/index.html", context={
+        "current_user": current_user,
+        "villages": villages,
+        "stations": stations,
+        "total_active": total_active,
+        "total_voted": total_voted,
+        "male_count": male_count,
+        "female_count": female_count,
+        "male_voted": male_voted,
+        "female_voted": female_voted,
+        "age_groups": age_groups,
+        "daily_trends": daily_trends,
+        "today_str": today_str
+    })
+
+@router.get("/reports/daily", response_class=HTMLResponse)
+def daily_registration_report(
+    request: Request,
+    date: str = Query("", description="Selected date YYYY-MM-DD"),
+    village_id: str = Query("", description="Village ID filter"),
+    station_id: str = Query("", description="Station ID filter"),
+    gender: str = Query("", description="Gender filter"),
+    q: str = Query("", description="Search query"),
+    db: Session = Depends(get_db)
+):
+    current_user = get_current_user_optional(request, db)
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=302)
+
+    # If date is not provided, pick latest registration date from DB or today
+    if not date or not date.strip():
+        latest_row = db.query(func.date(Voter.created_at)).order_by(Voter.created_at.desc()).first()
+        date = str(latest_row[0]) if latest_row and latest_row[0] else datetime.date.today().strftime("%Y-%m-%d")
+
+    query = db.query(Voter).filter(func.date(Voter.created_at) == date)
+
+    # Role restriction
+    if current_user.role == "officer" and current_user.station_id:
+        query = query.filter(Voter.station_id == current_user.station_id)
+        station_id = str(current_user.station_id)
+    elif current_user.role == "village_chief" and current_user.village_id:
+        query = query.filter(Voter.village_id == current_user.village_id)
+        village_id = str(current_user.village_id)
+
+    if village_id and village_id.isdigit():
+        query = query.filter(Voter.village_id == int(village_id))
+    if station_id and station_id.isdigit():
+        query = query.filter(Voter.station_id == int(station_id))
+    if gender:
+        query = query.filter(Voter.gender == gender)
+    if q and q.strip():
+        search = f"%{q.strip()}%"
+        query = query.filter(
+            or_(
+                Voter.name_kh.ilike(search),
+                Voter.name_en.ilike(search),
+                Voter.national_id.ilike(search),
+                Voter.voter_code.ilike(search)
+            )
+        )
+
+    voters = query.order_by(Voter.created_at.desc(), Voter.list_no.asc()).all()
+
+    total_day = len(voters)
+    male_day = len([v for v in voters if v.gender == "ប្រុស"])
+    female_day = len([v for v in voters if v.gender == "ស្រី"])
+
+    # Recent 10 dates for quick switching
+    recent_dates = (
+        db.query(
+            func.date(Voter.created_at).label("reg_date"),
+            func.count(Voter.id).label("total")
+        )
+        .group_by(func.date(Voter.created_at))
+        .order_by(func.date(Voter.created_at).desc())
+        .limit(10)
+        .all()
+    )
+
+    villages = db.query(Village).order_by(Village.code).all()
+    stations = db.query(PollingStation).order_by(PollingStation.code).all()
+
+    return templates.TemplateResponse(request=request, name="reports/daily.html", context={
+        "current_user": current_user,
+        "selected_date": date,
+        "voters": voters,
+        "total_day": total_day,
+        "male_day": male_day,
+        "female_day": female_day,
+        "recent_dates": recent_dates,
+        "villages": villages,
+        "stations": stations,
+        "village_id": village_id,
+        "station_id": station_id,
+        "gender": gender,
+        "q": q
+    })
+
+@router.get("/reports/daily/export/excel")
+def export_daily_registrations_excel(
+    date: str = Query(..., description="Date YYYY-MM-DD"),
+    village_id: str = Query("", description="Village ID"),
+    station_id: str = Query("", description="Station ID"),
+    db: Session = Depends(get_db)
+):
+    query = db.query(Voter).filter(func.date(Voter.created_at) == date)
+    filter_desc = f"ប្រចាំថ្ងៃទី {date}"
+
+    if village_id and village_id.isdigit():
+        v_obj = db.query(Village).filter(Village.id == int(village_id)).first()
+        if v_obj:
+            query = query.filter(Voter.village_id == int(village_id))
+            filter_desc += f" - ភូមិ {v_obj.name_kh}"
+    if station_id and station_id.isdigit():
+        s_obj = db.query(PollingStation).filter(PollingStation.id == int(station_id)).first()
+        if s_obj:
+            query = query.filter(Voter.station_id == int(station_id))
+            filter_desc += f" - ការិយាល័យ {s_obj.code}"
+
+    voters = query.order_by(Voter.created_at.desc(), Voter.list_no.asc()).all()
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = f"ចុះឈ្មោះ_{date}"
+
+    # Styles
+    title_font = Font(name="Khmer OS Siemreap", size=14, bold=True, color="001F3F")
+    subtitle_font = Font(name="Khmer OS Siemreap", size=11, bold=True, color="333333")
+    header_font = Font(name="Khmer OS Siemreap", size=10, bold=True, color="FFFFFF")
+    data_font = Font(name="Khmer OS Siemreap", size=10)
+    
+    header_fill = PatternFill(start_color="1E3A8A", end_color="1E3A8A", fill_type="solid")
+    sub_header_fill = PatternFill(start_color="F8FAFC", end_color="F8FAFC", fill_type="solid")
+    thin_border = Border(
+        left=Side(style='thin', color='CBD5E0'),
+        right=Side(style='thin', color='CBD5E0'),
+        top=Side(style='thin', color='CBD5E0'),
+        bottom=Side(style='thin', color='CBD5E0')
+    )
+
+    ws.merge_cells("A1:K1")
+    ws["A1"] = "ព្រះរាជាណាចក្រកម្ពុជា ជាតិ សាសនា ព្រះមហាក្សត្រ"
+    ws["A1"].font = title_font
+    ws["A1"].alignment = Alignment(horizontal="center", vertical="center")
+
+    ws.merge_cells("A2:K2")
+    ws["A2"] = f"របាយការណ៍អ្នកចុះឈ្មោះបោះឆ្នោតប្រចាំថ្ងៃ ({filter_desc}) - រដ្ឋបាលឃុំនគរភាស"
+    ws["A2"].font = subtitle_font
+    ws["A2"].alignment = Alignment(horizontal="center", vertical="center")
+
+    ws.merge_cells("A3:K3")
+    now_str = datetime.datetime.now().strftime("%d-%m-%Y %H:%M")
+    ws["A3"] = f"កាលបរិច្ឆេទចេញរបាយការណ៍៖ {now_str} | សរុបចុះឈ្មោះក្នុងថ្ងៃនេះ៖ {len(voters)} នាក់"
+    ws["A3"].font = Font(name="Khmer OS Siemreap", size=9, italic=True, color="666666")
+    ws["A3"].alignment = Alignment(horizontal="center", vertical="center")
+
+    headers = [
+        "ល.រ", "ម៉ោងចុះឈ្មោះ", "កូដអ្នកបោះឆ្នោត", "លេខអត្តសញ្ញាណប័ណ្ណ",
+        "គោត្តនាម-នាម", "អក្សរឡាតាំង", "ភេទ", "ថ្ងៃខែឆ្នាំកំណើត",
+        "ភូមិ", "ការិយាល័យបោះឆ្នោត", "កំណត់សម្គាល់"
+    ]
+
+    for col_num, header in enumerate(headers, 1):
+        cell = ws.cell(row=5, column=col_num, value=header)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = Alignment(horizontal="center", vertical="center")
+        cell.border = thin_border
+
+    row_num = 6
+    for idx, v in enumerate(voters, 1):
+        time_str = v.created_at.strftime("%H:%M:%S") if v.created_at else ""
+        ws.cell(row=row_num, column=1, value=idx).alignment = Alignment(horizontal="center")
+        ws.cell(row=row_num, column=2, value=time_str).alignment = Alignment(horizontal="center")
+        ws.cell(row=row_num, column=3, value=v.voter_code).alignment = Alignment(horizontal="center")
+        ws.cell(row=row_num, column=4, value=v.national_id).alignment = Alignment(horizontal="center")
+        ws.cell(row=row_num, column=5, value=v.name_kh).alignment = Alignment(horizontal="left")
+        ws.cell(row=row_num, column=6, value=v.name_en).alignment = Alignment(horizontal="left")
+        ws.cell(row=row_num, column=7, value=v.gender).alignment = Alignment(horizontal="center")
+        ws.cell(row=row_num, column=8, value=v.dob).alignment = Alignment(horizontal="center")
+        ws.cell(row=row_num, column=9, value=v.village.name_kh if v.village else "").alignment = Alignment(horizontal="left")
+        ws.cell(row=row_num, column=10, value=f"{v.station.code} - {v.station.name}" if v.station else "").alignment = Alignment(horizontal="left")
+        ws.cell(row=row_num, column=11, value=v.notes or "បានចុះឈ្មោះ").alignment = Alignment(horizontal="left")
+
+        for c in range(1, 12):
+            cell = ws.cell(row=row_num, column=c)
+            cell.font = data_font
+            cell.border = thin_border
+            if row_num % 2 == 1:
+                cell.fill = sub_header_fill
+        row_num += 1
+
+    for col in ws.columns:
+        max_len = 0
+        col_letter = get_column_letter(col[0].column)
+        for cell in col:
+            if cell.row < 5:
+                continue
+            if cell.value:
+                max_len = max(max_len, len(str(cell.value)))
+        ws.column_dimensions[col_letter].width = max(max_len + 4, 12)
+
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    filename = f"Daily_Registrations_{date}_{datetime.datetime.now().strftime('%H%M%S')}.xlsx"
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+@router.get("/reports/daily/print", response_class=HTMLResponse)
+def print_daily_registrations(
+    request: Request,
+    date: str = Query(..., description="Date YYYY-MM-DD"),
+    village_id: str = Query("", description="Village ID"),
+    station_id: str = Query("", description="Station ID"),
+    db: Session = Depends(get_db)
+):
+    current_user = get_current_user_optional(request, db)
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=302)
+
+    query = db.query(Voter).filter(func.date(Voter.created_at) == date)
+    village = None
+    station = None
+
+    if village_id and village_id.isdigit():
+        village = db.query(Village).filter(Village.id == int(village_id)).first()
+        if village:
+            query = query.filter(Voter.village_id == int(village_id))
+
+    if station_id and station_id.isdigit():
+        station = db.query(PollingStation).filter(PollingStation.id == int(station_id)).first()
+        if station:
+            query = query.filter(Voter.station_id == int(station_id))
+
+    voters = query.order_by(Voter.created_at.desc(), Voter.list_no.asc()).all()
+
+    return templates.TemplateResponse(request=request, name="reports/daily_print.html", context={
+        "current_user": current_user,
+        "selected_date": date,
+        "voters": voters,
+        "village": village,
+        "station": station,
+        "now": datetime.datetime.now()
+    })
+
+@router.get("/reports/export/excel")
+def export_voter_list_excel(
+    station_id: str = Query("", description="Station ID"),
+    village_id: str = Query("", description="Village ID"),
+    status_filter: str = Query("active", description="Status filter"),
+    db: Session = Depends(get_db)
+):
+    query = db.query(Voter)
+
+    filter_title = "ឃុំនគរភាសទាំងមូល"
+    if station_id and station_id.isdigit():
+        station = db.query(PollingStation).filter(PollingStation.id == int(station_id)).first()
+        if station:
+            query = query.filter(Voter.station_id == int(station_id))
+            filter_title = f"{station.name} ({station.location})"
+
+    if village_id and village_id.isdigit():
+        village = db.query(Village).filter(Village.id == int(village_id)).first()
+        if village:
+            query = query.filter(Voter.village_id == int(village_id))
+            filter_title = f"ភូមិ {village.name_kh} ({village.name_en})"
+
+    if status_filter:
+        query = query.filter(Voter.status == status_filter)
+
+    voters = query.order_by(Voter.station_id.asc(), Voter.list_no.asc()).all()
+
+    # Create OpenPyXL workbook
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "បញ្ជីឈ្មោះបោះឆ្នោត"
+
+    # Styles
+    title_font = Font(name="Khmer OS Siemreap", size=14, bold=True, color="001F3F")
+    subtitle_font = Font(name="Khmer OS Siemreap", size=11, bold=True, color="333333")
+    header_font = Font(name="Khmer OS Siemreap", size=10, bold=True, color="FFFFFF")
+    data_font = Font(name="Khmer OS Siemreap", size=10)
+    
+    header_fill = PatternFill(start_color="1A365D", end_color="1A365D", fill_type="solid")
+    sub_header_fill = PatternFill(start_color="F0F4F8", end_color="F0F4F8", fill_type="solid")
+
+    thin_border = Border(
+        left=Side(style='thin', color='CBD5E0'),
+        right=Side(style='thin', color='CBD5E0'),
+        top=Side(style='thin', color='CBD5E0'),
+        bottom=Side(style='thin', color='CBD5E0')
+    )
+
+    # Title Rows
+    ws.merge_cells("A1:J1")
+    ws["A1"] = "ព្រះរាជាណាចក្រកម្ពុជា ជាតិ សាសនា ព្រះមហាក្សត្រ"
+    ws["A1"].font = title_font
+    ws["A1"].alignment = Alignment(horizontal="center", vertical="center")
+
+    ws.merge_cells("A2:J2")
+    ws["A2"] = f"បញ្ជីឈ្មោះអ្នកចុះឈ្មោះបោះឆ្នោតផ្លូវការ - រដ្ឋបាលឃុំនគរភាស ({filter_title})"
+    ws["A2"].font = subtitle_font
+    ws["A2"].alignment = Alignment(horizontal="center", vertical="center")
+
+    ws.merge_cells("A3:J3")
+    now_str = datetime.datetime.now().strftime("%d-%m-%Y %H:%M")
+    ws["A3"] = f"កាលបរិច្ឆេទចេញរបាយការណ៍៖ {now_str} | ចំនួនសរុប៖ {len(voters)} នាក់"
+    ws["A3"].font = Font(name="Khmer OS Siemreap", size=9, italic=True, color="666666")
+    ws["A3"].alignment = Alignment(horizontal="center", vertical="center")
+
+    ws.row_dimensions[1].height = 25
+    ws.row_dimensions[2].height = 22
+    ws.row_dimensions[3].height = 18
+    ws.row_dimensions[5].height = 26
+
+    # Headers
+    headers = [
+        "ល.រ", "កូដអ្នកបោះឆ្នោត", "លេខរៀងបញ្ជី", "លេខអត្តសញ្ញាណប័ណ្ណ",
+        "គោត្តនាម-នាម", "អក្សរឡាតាំង", "ភេទ", "ថ្ងៃខែឆ្នាំកំណើត",
+        "ភូមិ", "ការិយាល័យបោះឆ្នោត", "ស្ថានភាពវត្តមាន", "ហត្ថលេខា / ស្នាមមេដៃ"
+    ]
+
+    for col_num, header in enumerate(headers, 1):
+        cell = ws.cell(row=5, column=col_num, value=header)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+        cell.border = thin_border
+
+    # Data Rows
+    row_num = 6
+    for idx, v in enumerate(voters, 1):
+        voted_status = "បោះឆ្នោតរួច" if v.has_voted else "មិនទាន់បោះ"
+        ws.cell(row=row_num, column=1, value=idx).alignment = Alignment(horizontal="center")
+        ws.cell(row=row_num, column=2, value=v.voter_code).alignment = Alignment(horizontal="center")
+        ws.cell(row=row_num, column=3, value=v.list_no).alignment = Alignment(horizontal="center")
+        ws.cell(row=row_num, column=4, value=v.national_id).alignment = Alignment(horizontal="center")
+        ws.cell(row=row_num, column=5, value=v.name_kh).alignment = Alignment(horizontal="left")
+        ws.cell(row=row_num, column=6, value=v.name_en).alignment = Alignment(horizontal="left")
+        ws.cell(row=row_num, column=7, value=v.gender).alignment = Alignment(horizontal="center")
+        ws.cell(row=row_num, column=8, value=v.dob).alignment = Alignment(horizontal="center")
+        ws.cell(row=row_num, column=9, value=v.village.name_kh if v.village else "").alignment = Alignment(horizontal="left")
+        ws.cell(row=row_num, column=10, value=f"{v.station.code} - {v.station.name}" if v.station else "").alignment = Alignment(horizontal="left")
+        ws.cell(row=row_num, column=11, value=voted_status).alignment = Alignment(horizontal="center")
+        ws.cell(row=row_num, column=12, value="").alignment = Alignment(horizontal="center") # signature space
+
+        for c in range(1, 13):
+            cell = ws.cell(row=row_num, column=c)
+            cell.font = data_font
+            cell.border = thin_border
+            if row_num % 2 == 1:
+                cell.fill = sub_header_fill
+
+        ws.row_dimensions[row_num].height = 20
+        row_num += 1
+
+    # Auto-adjust column widths
+    for col in ws.columns:
+        max_len = 0
+        col_letter = get_column_letter(col[0].column)
+        for cell in col:
+            if cell.row < 5:
+                continue
+            if cell.value:
+                max_len = max(max_len, len(str(cell.value)))
+        ws.column_dimensions[col_letter].width = max(max_len + 4, 12)
+    ws.column_dimensions['L'].width = 20 # signature column
+
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    filename = f"Voter_List_Nokor_Pheas_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+@router.get("/reports/official-list", response_class=HTMLResponse)
+def official_printable_list(
+    request: Request,
+    station_id: str = Query("", description="Station ID"),
+    village_id: str = Query("", description="Village ID"),
+    db: Session = Depends(get_db)
+):
+    current_user = get_current_user_optional(request, db)
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=302)
+
+    query = db.query(Voter).filter(Voter.status == "active")
+    station = None
+    village = None
+
+    if station_id and station_id.isdigit():
+        station = db.query(PollingStation).filter(PollingStation.id == int(station_id)).first()
+        if station:
+            query = query.filter(Voter.station_id == int(station_id))
+
+    if village_id and village_id.isdigit():
+        village = db.query(Village).filter(Village.id == int(village_id)).first()
+        if village:
+            query = query.filter(Voter.village_id == int(village_id))
+
+    voters = query.order_by(Voter.station_id.asc(), Voter.list_no.asc()).all()
+    villages = db.query(Village).order_by(Village.code).all()
+    stations = db.query(PollingStation).order_by(PollingStation.code).all()
+
+    return templates.TemplateResponse(request=request, name="reports/official_list.html", context={
+        "current_user": current_user,
+        "voters": voters,
+        "station": station,
+        "village": village,
+        "stations": stations,
+        "villages": villages,
+        "now": datetime.datetime.now()
+    })
+
+@router.get("/reports/batch-cards", response_class=HTMLResponse)
+def batch_printable_cards(
+    request: Request,
+    station_id: str = Query("", description="Station ID"),
+    village_id: str = Query("", description="Village ID"),
+    limit: int = Query(20, ge=1, le=100),
+    db: Session = Depends(get_db)
+):
+    current_user = get_current_user_optional(request, db)
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=302)
+
+    query = db.query(Voter).filter(Voter.status == "active")
+    if station_id and station_id.isdigit():
+        query = query.filter(Voter.station_id == int(station_id))
+    if village_id and village_id.isdigit():
+        query = query.filter(Voter.village_id == int(village_id))
+
+    voters = query.order_by(Voter.station_id.asc(), Voter.list_no.asc()).limit(limit).all()
+
+    return templates.TemplateResponse(request=request, name="reports/batch_cards.html", context={
+        "current_user": current_user,
+        "voters": voters
+    })

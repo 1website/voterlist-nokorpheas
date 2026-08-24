@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgM" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e3a8a"/>
+      <stop offset="100%" stop-color="#0f2b5c"/>
+    </linearGradient>
+  </defs>
+  <circle cx="60" cy="60" r="58" fill="url(#bgM)" stroke="#93c5fd" stroke-width="2"/>
+  <!-- Head -->
+  <circle cx="60" cy="46" r="22" fill="#fed7aa"/>
+  <!-- Hair -->
+  <path d="M38 46 C38 28, 82 28, 82 46 C76 34, 44 34, 38 46 Z" fill="#1e293b"/>
+  <!-- Face features / glasses / smile -->
+  <circle cx="52" cy="45" r="2.5" fill="#334155"/>
+  <circle cx="68" cy="45" r="2.5" fill="#334155"/>
+  <path d="M55 55 Q60 59 65 55" stroke="#ea580c" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <!-- Shirt/Body -->
+  <path d="M26 106 C26 78, 94 78, 94 106 Z" fill="#3b82f6"/>
+  <!-- Collar -->
+  <polygon points="60,78 48,88 60,98 72,88" fill="#ffffff"/>
+  <polygon points="60,86 56,106 64,106" fill="#d97706"/>
+</svg>

@@ -1,0 +1,870 @@
+{% extends "base.html" %}
+
+{% block title %}បញ្ជីឈ្មោះអ្នកចុះឈ្មោះបោះឆ្នោត - រដ្ឋបាលឃុំនគរភាស{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Top Header & Actions -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <h2 class="text-2xl font-bold text-slate-800 font-kh-bold flex items-center gap-2">
+                <span>👥</span> បញ្ជីឈ្មោះអ្នកចុះឈ្មោះបោះឆ្នោត
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-500">
+                រដ្ឋបាលឃុំនគរភាស • រកឃើញសរុប <span class="font-bold text-blue-700">{{ total_count }}</span> នាក់
+            </p>
+        </div>
+
+        <div class="flex items-center gap-2">
+            {% if current_user.role in ['admin', 'officer'] %}
+            <button onclick="openAddVoterModal()" class="btn btn-primary text-sm shadow-md">
+                <span>➕</span> ចុះឈ្មោះអ្នកបោះឆ្នោតថ្មី
+            </button>
+            {% endif %}
+            <a href="/reports/daily" class="btn btn-outline text-indigo-800 border-indigo-300 hover:bg-indigo-50 text-sm font-bold">
+                <span>📅</span> របាយការណ៍ប្រចាំថ្ងៃ
+            </a>
+            <a href="/reports/export/excel?station_id={{ station_id }}&village_id={{ village_id }}&status_filter={{ status_filter }}" class="btn btn-outline text-sm">
+                <span>📥</span> Export Excel
+            </a>
+        </div>
+    </div>
+
+    <!-- Search & Multi-Filter Filter Bar -->
+    <div class="glass-card p-5">
+        <form method="GET" action="/voters" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3">
+            <!-- Keyword Search -->
+            <div class="lg:col-span-2">
+                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ស្វែងរក (ឈ្មោះ / ID / កូដ)</label>
+                <input type="text" name="q" value="{{ q }}" placeholder="បញ្ចូលឈ្មោះ ឬលេខអត្តសញ្ញាណប័ណ្ណ..." class="form-control text-sm py-2">
+            </div>
+
+            <!-- Village Filter -->
+            <div>
+                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ភូមិ (១០ ភូមិ)</label>
+                <select name="village_id" id="filterVillageSelect" class="form-control text-sm py-2" onchange="filterSearchStations()" {% if current_user.role == 'village_chief' %}disabled{% endif %}>
+                    <option value="">-- គ្រប់ភូមិទាំងអស់ --</option>
+                    {% for v in villages %}
+                    <option value="{{ v.id }}" {% if village_id == v.id|string %}selected{% endif %}>{{ v.name_kh }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Polling Station Filter -->
+            <div>
+                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ការិយាល័យ</label>
+                <select name="station_id" id="filterStationSelect" class="form-control text-sm py-2" {% if current_user.role == 'officer' %}disabled{% endif %}>
+                    <option value="">-- គ្រប់ការិយាល័យ --</option>
+                    {% for s in stations %}
+                    <option value="{{ s.id }}" data-village-id="{{ s.village_id }}" {% if station_id == s.id|string %}selected{% endif %}>{{ s.code }} - {{ s.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Registration Date Filter -->
+            <div>
+                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ថ្ងៃចុះឈ្មោះ</label>
+                <input type="date" name="date_created" value="{{ date_created }}" class="form-control text-sm py-2 font-mono">
+            </div>
+
+            <!-- Status Filter -->
+            <div>
+                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ស្ថានភាព</label>
+                <select name="status_filter" class="form-control text-sm py-2">
+                    <option value="">-- គ្រប់ស្ថានភាព --</option>
+                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>សកម្ម (Active)</option>
+                    <option value="moved" {% if status_filter == 'moved' %}selected{% endif %}>ផ្លាស់ចេញ (Moved)</option>
+                    <option value="deceased" {% if status_filter == 'deceased' %}selected{% endif %}>មរណភាព (Deceased)</option>
+                    <option value="suspended" {% if status_filter == 'suspended' %}selected{% endif %}>ផ្អាកសិទ្ធិ (Suspended)</option>
+                </select>
+            </div>
+
+            <!-- Voted Filter & Submit Button -->
+            <div class="flex items-end gap-2">
+                <div class="flex-1">
+                    <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">វត្តមាន</label>
+                    <select name="voted_filter" class="form-control text-sm py-2">
+                        <option value="">-- ទាំងអស់ --</option>
+                        <option value="voted" {% if voted_filter == 'voted' %}selected{% endif %}>បោះរួច</option>
+                        <option value="not_voted" {% if voted_filter == 'not_voted' %}selected{% endif %}>មិនទាន់បោះ</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary py-2 px-3 text-sm" title="ស្វែងរក">
+                    🔍
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Voter Table -->
+    <div class="data-table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>លេខរៀង</th>
+                    <th>កូដអ្នកបោះឆ្នោត</th>
+                    <th class="col-national-id">លេខអត្តសញ្ញាណប័ណ្ណ</th>
+                    <th>រូបថត និង គោត្តនាម-នាម</th>
+                    <th>ភេទ / ថ្ងៃកំណើត</th>
+                    <th>ភូមិ</th>
+                    <th>ការិយាល័យ</th>
+                    <th>ស្ថានភាព</th>
+                    <th>វត្តមានបោះឆ្នោត</th>
+                    <th class="text-right">សកម្មភាព</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if voters %}
+                    {% for v in voters %}
+                    <tr>
+                        <td class="font-bold text-center text-slate-500">#{{ v.list_no }}</td>
+                        <td class="font-mono text-xs font-bold text-blue-900">{{ v.voter_code }}</td>
+                        <td class="col-national-id font-mono text-xs font-semibold text-slate-700">{{ v.national_id }}</td>
+                        <td>
+                            <div class="flex items-center gap-3">
+                                <div class="relative group flex-shrink-0">
+                                    <img src="{{ v.photo_display }}" 
+                                         alt="{{ v.name_kh }}" 
+                                         id="voter-avatar-{{ v.id }}"
+                                         class="w-11 h-11 rounded-full object-cover border-2 border-blue-200 shadow-sm transition-transform duration-200 group-hover:scale-105 cursor-pointer bg-slate-100"
+                                         onclick="previewLargePhoto('{{ v.photo_display }}', '{{ v.name_kh }}', '{{ v.voter_code }}')"
+                                         title="ចុចដើម្បីមើលរូបធំ">
+                                    {% if current_user.role in ['admin', 'officer'] %}
+                                    <button type="button" onclick="openChangePhotoModal({{ v.id }}, '{{ v.name_kh }}', '{{ v.photo_display }}')" 
+                                            class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-[10px] flex items-center justify-center shadow-md border border-white" 
+                                            title="ផ្លាស់ប្តូររូបថត">
+                                        📷
+                                    </button>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <div class="font-bold text-slate-900">{{ v.name_kh }}</div>
+                                    <div class="text-xs text-slate-400 uppercase tracking-wider font-semibold">{{ v.name_en }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="font-semibold text-slate-700">{{ v.gender }}</span>
+                            <span class="text-xs text-slate-400 block">{{ v.dob }}</span>
+                        </td>
+                        <td>
+                            <span class="text-slate-700 font-medium">{{ v.village.name_kh if v.village else '' }}</span>
+                        </td>
+                        <td>
+                            <span class="font-bold text-blue-800">{{ v.station.code if v.station else '' }}</span>
+                            <span class="text-[11px] text-slate-400 block truncate max-w-[140px]">{{ v.station.location if v.station else '' }}</span>
+                        </td>
+                        <td>
+                            {% if v.status == 'active' %}
+                                <span class="badge badge-success">សកម្ម</span>
+                            {% elif v.status == 'moved' %}
+                                <span class="badge badge-warning">ផ្លាស់ចេញ</span>
+                            {% elif v.status == 'deceased' %}
+                                <span class="badge badge-danger">មរណភាព</span>
+                            {% elif v.status == 'suspended' %}
+                                <span class="badge badge-secondary">ផ្អាកសិទ្ធិ</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div id="voter-status-{{ v.id }}">
+                                {% if v.has_voted %}
+                                    <span class="badge badge-success">✓ បោះរួច ({{ v.voted_at.strftime('%H:%M') if v.voted_at else '' }})</span>
+                                								{% else %}
+                                    <span class="badge badge-secondary">⏳ មិនទាន់បោះ</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="text-right">
+                            <div class="inline-flex items-center gap-1.5">
+                                <!-- Check-in Button -->
+                                {% if current_user.role in ['admin', 'officer'] and v.status == 'active' %}
+                                <button onclick="toggleCheckin({{ v.id }}, this)" class="btn btn-sm {% if v.has_voted %}btn-outline text-red-600{% else %}btn-success{% endif %}" title="Toggle Check-in">
+                                    {% if v.has_voted %}✕{% else %}✓{% endif %}
+                                </button>
+                                {% endif %}
+
+                                <!-- View/Print Card -->
+                                <a href="/voters/{{ v.id }}/card" target="_blank" class="btn btn-sm btn-outline" title="ប័ណ្ណព័ត៌មាន">
+                                    🪪
+                                </a>
+
+                                <!-- Edit / Delete for Admin / Officer -->
+                                {% if current_user.role in ['admin', 'officer'] %}
+                                <button onclick="openEditVoterModal({{ v.id }})" class="btn btn-sm btn-outline text-blue-600" title="កែប្រែ">
+                                    ✏️
+                                </button>
+                                {% endif %}
+
+                                {% if current_user.role == 'admin' %}
+                                <button onclick="deleteVoter({{ v.id }}, '{{ v.name_kh }}')" class="btn btn-sm btn-outline text-red-600" title="លុប">
+                                    🗑️
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="10" class="text-center py-12 text-slate-400">
+                            រកមិនឃើញទិន្នន័យអ្នកបោះឆ្នោតស្របតាមលក្ខខណ្ឌស្វែងរកនេះឡើយ
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if total_pages > 1 %}
+    <div class="flex items-center justify-between py-4">
+        <div class="text-xs text-slate-500">
+            ទំព័រទី <span class="font-bold text-slate-800">{{ page }}</span> នៃ <span class="font-bold text-slate-800">{{ total_pages }}</span>
+        </div>
+        <div class="flex items-center gap-1">
+            {% if page > 1 %}
+            <a href="?page={{ page - 1 }}&q={{ q }}&village_id={{ village_id }}&station_id={{ station_id }}&status_filter={{ status_filter }}&gender_filter={{ gender_filter }}&voted_filter={{ voted_filter }}" class="btn btn-sm btn-outline">
+                ← ថយក្រោយ
+            </a>
+            {% endif %}
+
+            {% if page < total_pages %}
+            <a href="?page={{ page + 1 }}&q={{ q }}&village_id={{ village_id }}&station_id={{ station_id }}&status_filter={{ status_filter }}&gender_filter={{ gender_filter }}&voted_filter={{ voted_filter }}" class="btn btn-sm btn-outline">
+                បន្ទាប់ →
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- Modal: Add New Voter -->
+<div id="addVoterModal" class="modal-overlay">
+    <div class="modal-card max-w-2xl">
+        <div class="modal-header">
+            <h3 class="font-bold text-base sm:text-lg font-kh-bold flex items-center gap-2">
+                <span>📝</span> ចុះឈ្មោះអ្នកបោះឆ្នោតថ្មី (ឃុំនគរភាស)
+            </h3>
+            <button type="button" onclick="closeModal('addVoterModal')" class="text-white/80 hover:text-white text-xl p-1 leading-none">✕</button>
+        </div>
+        <form id="addVoterForm" onsubmit="submitAddVoter(event)" enctype="multipart/form-data">
+            <div class="modal-body space-y-4">
+                
+                <!-- Profile Photo Picker Section -->
+                <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200">
+                    <label class="block text-xs font-bold text-slate-700 mb-2">📸 រូបថតអ្នកបោះឆ្នោត (Profile Photo)</label>
+                    <div class="flex flex-col sm:flex-row items-center gap-4">
+                        <div class="relative flex-shrink-0">
+                            <img id="addPhotoPreview" src="/static/images/avatars/male_1.jpg" alt="Preview" class="w-20 h-20 rounded-2xl object-cover border-2 border-blue-400 shadow-md bg-white">
+                        </div>
+                        <div class="flex-1 space-y-2 w-full">
+                            <div class="flex gap-2">
+                                <label class="btn btn-outline text-xs py-1.5 px-3 cursor-pointer flex items-center gap-1">
+                                    <span>📁 ជ្រើសរើសរូបពីម៉ាស៊ីន</span>
+                                    <input type="file" name="photo" id="addPhotoInput" accept="image/*" class="hidden" onchange="handleFileSelect(this, 'addPhotoPreview', 'addPresetInput')">
+                                </label>
+                                <button type="button" onclick="clearSelectedPhoto('addPhotoPreview', 'addPresetInput', 'addGenderSelect')" class="btn btn-sm btn-outline text-slate-500 text-xs">
+                                    ↺ កំណត់ឡើងវិញ
+                                </button>
+                            </div>
+                            <input type="hidden" name="photo_preset" id="addPresetInput" value="/static/images/avatars/male_1.jpg">
+                            
+                            <!-- Avatar Preset Quick Chips -->
+                            <div>
+                                <span class="text-[11px] text-slate-500 font-semibold block mb-1">ឬជ្រើសរើសគំរូរូបថត (Realistic Avatars)៖</span>
+                                <div class="flex flex-wrap gap-1.5">
+                                    <button type="button" onclick="selectPreset('/static/images/avatars/male_1.jpg', 'addPhotoPreview', 'addPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 hover:border-blue-600 focus:ring-2 focus:ring-blue-400"><img src="/static/images/avatars/male_1.jpg" class="w-full h-full object-cover"></button>
+                                    <button type="button" onclick="selectPreset('/static/images/avatars/male_2.jpg', 'addPhotoPreview', 'addPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 hover:border-blue-600 focus:ring-2 focus:ring-blue-400"><img src="/static/images/avatars/male_2.jpg" class="w-full h-full object-cover"></button>
+                                    <button type="button" onclick="selectPreset('/static/images/avatars/male_3.jpg', 'addPhotoPreview', 'addPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 hover:border-blue-600 focus:ring-2 focus:ring-blue-400"><img src="/static/images/avatars/male_3.jpg" class="w-full h-full object-cover"></button>
+                                    <button type="button" onclick="selectPreset('/static/images/avatars/male_4.jpg', 'addPhotoPreview', 'addPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 hover:border-blue-600 focus:ring-2 focus:ring-blue-400"><img src="/static/images/avatars/male_4.jpg" class="w-full h-full object-cover"></button>
+                                    <button type="button" onclick="selectPreset('/static/images/avatars/female_1.jpg', 'addPhotoPreview', 'addPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 hover:border-pink-600 focus:ring-2 focus:ring-pink-400"><img src="/static/images/avatars/female_1.jpg" class="w-full h-full object-cover"></button>
+                                    <button type="button" onclick="selectPreset('/static/images/avatars/female_2.jpg', 'addPhotoPreview', 'addPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 hover:border-pink-600 focus:ring-2 focus:ring-pink-400"><img src="/static/images/avatars/female_2.jpg" class="w-full h-full object-cover"></button>
+                                    <button type="button" onclick="selectPreset('/static/images/avatars/female_3.jpg', 'addPhotoPreview', 'addPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 hover:border-pink-600 focus:ring-2 focus:ring-pink-400"><img src="/static/images/avatars/female_3.jpg" class="w-full h-full object-cover"></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="form-group">
+                        <label class="form-label">គោត្តនាម-នាម (ខ្មែរ) *</label>
+                        <input type="text" name="name_kh" required placeholder="ឧ. ស៊ឹម ចាន់ថន" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">ឈ្មោះជាអក្សរឡាតាំង *</label>
+                        <input type="text" name="name_en" required placeholder="ឧ. SIM CHANTHORN" class="form-control uppercase">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="form-group">
+                        <label class="form-label">ភេទ *</label>
+                        <select name="gender" id="addGenderSelect" required class="form-control" onchange="onGenderChange(this.value, 'addPhotoPreview', 'addPresetInput')">
+                            <option value="ប្រុស">ប្រុស (Male)</option>
+                            <option value="ស្រី">ស្រី (Female)</option>
+                        </select>
+                    </div>
+                    <div class="form-group sm:col-span-2">
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="form-label mb-0">ថ្ងៃខែឆ្នាំកំណើត *</label>
+                            <span class="text-[11px] text-slate-500 font-medium">ត្រូវមានអាយុ ១៨ ឆ្នាំឡើងទៅ</span>
+                        </div>
+                        <input type="date" name="dob" id="addDobInput" required value="1995-05-15" onchange="checkVoterAge(this, 'addDobFeedback', 'addVoterSubmitBtn')" oninput="checkVoterAge(this, 'addDobFeedback', 'addVoterSubmitBtn')" class="form-control font-mono">
+                        <div id="addDobFeedback"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="flex items-center justify-between mb-1.5 flex-wrap gap-1">
+                        <label class="form-label mb-0">លេខអត្តសញ្ញាណប័ណ្ណ / ឯកសារបញ្ជាក់ *</label>
+                        <span class="text-[11px] text-blue-700 font-semibold bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
+                            ៩ ខ្ទង់ (ID Card) ឬ ៧ ខ្ទង់ (ឯ.អ)
+                        </span>
+                    </div>
+                    <!-- Quick Document Selector Pills -->
+                    <div class="flex items-center gap-2 mb-2">
+                        <button type="button" onclick="selectDocType('addNationalId', 9, 'ឧ. 020491999 (៩ ខ្ទង់)')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-100 hover:bg-blue-200 text-blue-900 border border-blue-300 transition flex items-center gap-1">
+                            <span>🪪</span> អត្តសញ្ញាណប័ណ្ណ (៩ ខ្ទង់)
+                        </button>
+                        <button type="button" onclick="selectDocType('addNationalId', 7, 'ឧ. 1234567 (៧ ខ្ទង់)')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-100 hover:bg-emerald-200 text-emerald-900 border border-emerald-300 transition flex items-center gap-1">
+                            <span>📄</span> ឯកសារបញ្ជាក់អត្តសញ្ញាណ (៧ ខ្ទង់)
+                        </button>
+                    </div>
+                    <input type="text" name="national_id" id="addNationalId" required maxlength="9" inputmode="numeric" placeholder="ឧ. 020491999 (៩ ខ្ទង់) ឬ 1234567 (៧ ខ្ទង់)" oninput="checkDuplicateID(this)" class="form-control font-mono">
+                    <div id="idCheckFeedback"></div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="form-group">
+                        <label class="form-label">ភូមិ (ទីលំនៅ) *</label>
+                        <select name="village_id" id="addVillageSelect" required class="form-control" onchange="filterStationsByVillage('addVillageSelect', 'addStationSelect')">
+                            {% for v in villages %}
+                            <option value="{{ v.id }}">{{ v.name_kh }} ({{ v.code }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">ការិយាល័យបោះឆ្នោត *</label>
+                        <select name="station_id" id="addStationSelect" required class="form-control">
+                            {% for s in stations %}
+                            <option value="{{ s.id }}" data-village-id="{{ s.village_id }}">{{ s.code }} - {{ s.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="form-group">
+                        <label class="form-label">អាសយដ្ឋានលម្អិត</label>
+                        <input type="text" name="address" placeholder="ក្រុមទី... ភូមិ..." class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">កំណត់សម្គាល់</label>
+                        <input type="text" name="notes" placeholder="កំណត់សម្គាល់ផ្សេងៗ..." class="form-control">
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" onclick="closeModal('addVoterModal')" class="btn btn-outline text-sm py-2 px-4">បោះបង់</button>
+                <button type="submit" id="addVoterSubmitBtn" class="btn btn-primary text-sm py-2 px-5 shadow-md flex items-center gap-2">
+                    <span>💾</span> រក្សាទុកទិន្នន័យ
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Edit Voter -->
+<div id="editVoterModal" class="modal-overlay">
+    <div class="modal-card max-w-2xl">
+        <div class="modal-header">
+            <h3 class="font-bold text-base sm:text-lg font-kh-bold flex items-center gap-2">
+                <span>✏️</span> កែប្រែព័ត៌មានអ្នកបោះឆ្នោត
+            </h3>
+            <button type="button" onclick="closeModal('editVoterModal')" class="text-white/80 hover:text-white text-xl p-1 leading-none">✕</button>
+        </div>
+        <form id="editVoterForm" onsubmit="submitEditVoter(event)" enctype="multipart/form-data">
+            <input type="hidden" name="voter_id" id="editVoterId">
+            <div class="modal-body space-y-4">
+
+                <!-- Profile Photo Picker Section in Edit -->
+                <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200">
+                    <label class="block text-xs font-bold text-slate-700 mb-2">📸 រូបថតអ្នកបោះឆ្នោត (Profile Photo)</label>
+                    <div class="flex flex-col sm:flex-row items-center gap-4">
+                        <div class="relative flex-shrink-0">
+                            <img id="editPhotoPreview" src="/static/images/avatars/male_1.jpg" alt="Preview" class="w-20 h-20 rounded-2xl object-cover border-2 border-blue-400 shadow-md bg-white">
+                        </div>
+                        <div class="flex-1 space-y-2 w-full">
+                            <div class="flex gap-2">
+                                <label class="btn btn-outline text-xs py-1.5 px-3 cursor-pointer flex items-center gap-1">
+                                    <span>📁 ប្តូររូបថ្មី (Upload)</span>
+                                    <input type="file" name="photo" id="editPhotoInput" accept="image/*" class="hidden" onchange="handleFileSelect(this, 'editPhotoPreview', 'editPresetInput')">
+                                </label>
+                            </div>
+                            <input type="hidden" name="photo_preset" id="editPresetInput" value="">
+                            
+                            <!-- Avatar Preset Quick Chips -->
+                            <div>
+                                <span class="text-[11px] text-slate-500 font-semibold block mb-1">ឬជ្រើសរើសគំរូរូបថត (Presets)៖</span>
+                                <div class="flex flex-wrap gap-1.5">
+                                    <button type="button" onclick="selectPreset('/static/images/avatars/male_1.jpg', 'editPhotoPreview', 'editPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 hover:border-blue-600 focus:ring-2 focus:ring-blue-400"><img src="/static/images/avatars/male_1.jpg" class="w-full h-full object-cover"></button>
+                                    <button type="button" onclick="selectPreset('/static/images/avatars/male_2.jpg', 'editPhotoPreview', 'editPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 hover:border-blue-600 focus:ring-2 focus:ring-blue-400"><img src="/static/images/avatars/male_2.jpg" class="w-full h-full object-cover"></button>
+                                    <button type="button" onclick="selectPreset('/static/images/avatars/male_3.jpg', 'editPhotoPreview', 'editPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 hover:border-blue-600 focus:ring-2 focus:ring-blue-400"><img src="/static/images/avatars/male_3.jpg" class="w-full h-full object-cover"></button>
+                                    <button type="button" onclick="selectPreset('/static/images/avatars/male_4.jpg', 'editPhotoPreview', 'editPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 hover:border-blue-600 focus:ring-2 focus:ring-blue-400"><img src="/static/images/avatars/male_4.jpg" class="w-full h-full object-cover"></button>
+                                    <button type="button" onclick="selectPreset('/static/images/avatars/female_1.jpg', 'editPhotoPreview', 'editPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 hover:border-pink-600 focus:ring-2 focus:ring-pink-400"><img src="/static/images/avatars/female_1.jpg" class="w-full h-full object-cover"></button>
+                                    <button type="button" onclick="selectPreset('/static/images/avatars/female_2.jpg', 'editPhotoPreview', 'editPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 hover:border-pink-600 focus:ring-2 focus:ring-pink-400"><img src="/static/images/avatars/female_2.jpg" class="w-full h-full object-cover"></button>
+                                    <button type="button" onclick="selectPreset('/static/images/avatars/female_3.jpg', 'editPhotoPreview', 'editPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 hover:border-pink-600 focus:ring-2 focus:ring-pink-400"><img src="/static/images/avatars/female_3.jpg" class="w-full h-full object-cover"></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="form-group">
+                        <label class="form-label">គោត្តនាម-នាម (ខ្មែរ) *</label>
+                        <input type="text" name="name_kh" id="editNameKh" required class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">ឈ្មោះជាអក្សរឡាតាំង *</label>
+                        <input type="text" name="name_en" id="editNameEn" required class="form-control uppercase">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="form-group">
+                        <label class="form-label">ភេទ *</label>
+                        <select name="gender" id="editGender" required class="form-control">
+                            <option value="ប្រុស">ប្រុស (Male)</option>
+                            <option value="ស្រី">ស្រី (Female)</option>
+                        </select>
+                    </div>
+                    <div class="form-group sm:col-span-2">
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="form-label mb-0">ថ្ងៃខែឆ្នាំកំណើត *</label>
+                            <span class="text-[11px] text-slate-500 font-medium">ត្រូវមានអាយុ ១៨ ឆ្នាំឡើងទៅ</span>
+                        </div>
+                        <input type="date" name="dob" id="editDob" required onchange="checkVoterAge(this, 'editDobFeedback', 'editVoterSubmitBtn')" oninput="checkVoterAge(this, 'editDobFeedback', 'editVoterSubmitBtn')" class="form-control font-mono">
+                        <div id="editDobFeedback"></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="form-group">
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="form-label mb-0">លេខអត្តសញ្ញាណប័ណ្ណ *</label>
+                            <span class="text-[11px] text-blue-600 font-semibold">អតិបរមា ៩ ខ្ទង់</span>
+                        </div>
+                        <input type="text" name="national_id" id="editNationalId" required maxlength="9" inputmode="numeric" oninput="checkDuplicateID(this, document.getElementById('editVoterId').value, 'editIdCheckFeedback')" class="form-control font-mono">
+                        <div id="editIdCheckFeedback"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">ស្ថានភាពអ្នកបោះឆ្នោត *</label>
+                        <select name="status" id="editStatus" required class="form-control">
+                            <option value="active">សកម្ម (Active)</option>
+                            <option value="moved">បានផ្លាស់ចេញ (Moved Out)</option>
+                            <option value="deceased">មរណភាព (Deceased)</option>
+                            <option value="suspended">ផ្អាកសិទ្ធិ (Suspended)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="form-group">
+                        <label class="form-label">ភូមិ *</label>
+                        <select name="village_id" id="editVillageId" required class="form-control" onchange="filterStationsByVillage('editVillageId', 'editStationId')">
+                            {% for v in villages %}
+                            <option value="{{ v.id }}">{{ v.name_kh }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">ការិយាល័យបោះឆ្នោត *</label>
+                        <select name="station_id" id="editStationId" required class="form-control">
+                            {% for s in stations %}
+                            <option value="{{ s.id }}" data-village-id="{{ s.village_id }}">{{ s.code }} - {{ s.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="form-group">
+                        <label class="form-label">អាសយដ្ឋាន</label>
+                        <input type="text" name="address" id="editAddress" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">កំណត់សម្គាល់</label>
+                        <input type="text" name="notes" id="editNotes" class="form-control">
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" onclick="closeModal('editVoterModal')" class="btn btn-outline text-sm py-2 px-4">បោះបង់</button>
+                <button type="submit" id="editVoterSubmitBtn" class="btn btn-primary text-sm py-2 px-5 shadow-md">💾 រក្សាទុកការកែប្រែ</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Quick Change Photo -->
+<div id="quickChangePhotoModal" class="modal-overlay">
+    <div class="modal-card max-w-md">
+        <div class="modal-header">
+            <h3 class="font-bold text-base font-kh-bold flex items-center gap-2">
+                <span>📸</span> ផ្លាស់ប្តូររូបថតអ្នកបោះឆ្នោត
+            </h3>
+            <button type="button" onclick="closeModal('quickChangePhotoModal')" class="text-white/80 hover:text-white text-xl p-1 leading-none">✕</button>
+        </div>
+        <form id="quickPhotoForm" onsubmit="submitQuickPhoto(event)" enctype="multipart/form-data">
+            <input type="hidden" name="voter_id" id="quickPhotoVoterId">
+            <input type="hidden" name="photo_preset" id="quickPhotoPresetInput">
+            <div class="modal-body space-y-4 text-center">
+                <div>
+                    <h4 id="quickPhotoVoterName" class="font-bold text-slate-900 text-lg font-kh-bold">ឈ្មោះអ្នកបោះឆ្នោត</h4>
+                    <p class="text-xs text-slate-500">ជ្រើសរើសរូបថតផ្ទាល់ខ្លួន ឬរូបតំណាងផ្លូវការ</p>
+                </div>
+
+                <div class="flex justify-center">
+                    <img id="quickPhotoPreview" src="/static/images/avatars/male_1.jpg" alt="Preview" class="w-28 h-28 rounded-3xl object-cover border-4 border-blue-500 shadow-xl bg-white">
+                </div>
+
+                <div>
+                    <label class="btn btn-primary w-full py-2 text-sm cursor-pointer flex items-center justify-center gap-2 shadow-md">
+                        <span>📁 ជ្រើសរើសរូបភាពថ្មី (Upload)</span>
+                        <input type="file" name="photo" id="quickPhotoFileInput" accept="image/*" class="hidden" onchange="handleFileSelect(this, 'quickPhotoPreview', 'quickPhotoPresetInput')">
+                    </label>
+                </div>
+
+                <div class="border-t pt-3">
+                    <span class="text-xs text-slate-500 font-semibold block mb-2">ឬជ្រើសរើសរូបគំរូ (Presets)៖</span>
+                    <div class="flex justify-center flex-wrap gap-2">
+                        <button type="button" onclick="selectPreset('/static/images/avatars/male_1.jpg', 'quickPhotoPreview', 'quickPhotoPresetInput')" class="w-9 h-9 rounded-full overflow-hidden border-2 hover:border-blue-600 focus:ring-2 focus:ring-blue-400"><img src="/static/images/avatars/male_1.jpg" class="w-full h-full object-cover"></button>
+                        <button type="button" onclick="selectPreset('/static/images/avatars/male_2.jpg', 'quickPhotoPreview', 'quickPhotoPresetInput')" class="w-9 h-9 rounded-full overflow-hidden border-2 hover:border-blue-600 focus:ring-2 focus:ring-blue-400"><img src="/static/images/avatars/male_2.jpg" class="w-full h-full object-cover"></button>
+                        <button type="button" onclick="selectPreset('/static/images/avatars/male_3.jpg', 'quickPhotoPreview', 'quickPhotoPresetInput')" class="w-9 h-9 rounded-full overflow-hidden border-2 hover:border-blue-600 focus:ring-2 focus:ring-blue-400"><img src="/static/images/avatars/male_3.jpg" class="w-full h-full object-cover"></button>
+                        <button type="button" onclick="selectPreset('/static/images/avatars/male_4.jpg', 'quickPhotoPreview', 'quickPhotoPresetInput')" class="w-9 h-9 rounded-full overflow-hidden border-2 hover:border-blue-600 focus:ring-2 focus:ring-blue-400"><img src="/static/images/avatars/male_4.jpg" class="w-full h-full object-cover"></button>
+                        <button type="button" onclick="selectPreset('/static/images/avatars/female_1.jpg', 'quickPhotoPreview', 'quickPhotoPresetInput')" class="w-9 h-9 rounded-full overflow-hidden border-2 hover:border-pink-600 focus:ring-2 focus:ring-pink-400"><img src="/static/images/avatars/female_1.jpg" class="w-full h-full object-cover"></button>
+                        <button type="button" onclick="selectPreset('/static/images/avatars/female_2.jpg', 'quickPhotoPreview', 'quickPhotoPresetInput')" class="w-9 h-9 rounded-full overflow-hidden border-2 hover:border-pink-600 focus:ring-2 focus:ring-pink-400"><img src="/static/images/avatars/female_2.jpg" class="w-full h-full object-cover"></button>
+                        <button type="button" onclick="selectPreset('/static/images/avatars/female_3.jpg', 'quickPhotoPreview', 'quickPhotoPresetInput')" class="w-9 h-9 rounded-full overflow-hidden border-2 hover:border-pink-600 focus:ring-2 focus:ring-pink-400"><img src="/static/images/avatars/female_3.jpg" class="w-full h-full object-cover"></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" onclick="closeModal('quickChangePhotoModal')" class="btn btn-outline text-sm py-2 px-4">បោះបង់</button>
+                <button type="submit" class="btn btn-primary text-sm py-2 px-5 shadow-md">💾 រក្សាទុករូបថត</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Large Photo Preview -->
+<div id="largePhotoModal" class="modal-overlay">
+    <div class="modal-card max-w-sm text-center">
+        <div class="modal-header">
+            <h3 id="largePhotoTitle" class="font-bold text-base font-kh-bold">រូបថតអ្នកបោះឆ្នោត</h3>
+            <button type="button" onclick="closeModal('largePhotoModal')" class="text-white/80 hover:text-white text-xl p-1 leading-none">✕</button>
+        </div>
+        <div class="modal-body p-6 space-y-3">
+            <div class="flex justify-center">
+                <img id="largePhotoImg" src="" alt="Voter Portrait" class="w-56 h-56 rounded-3xl object-cover border-4 border-blue-900 shadow-2xl bg-white">
+            </div>
+            <div>
+                <h4 id="largePhotoName" class="font-bold text-slate-900 text-lg font-kh-bold mt-2"></h4>
+                <p id="largePhotoCode" class="font-mono text-xs font-bold text-blue-800 bg-blue-50 py-1 px-3 rounded-full inline-block mt-1"></p>
+            </div>
+        </div>
+        <div class="modal-footer justify-center">
+            <button type="button" onclick="closeModal('largePhotoModal')" class="btn btn-primary text-sm py-2 px-6">បិទ</button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function handleFileSelect(input, previewId, presetInputId) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById(previewId).src = e.target.result;
+                if (presetInputId) {
+                    document.getElementById(presetInputId).value = '';
+                }
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function selectPreset(presetUrl, previewId, presetInputId) {
+        document.getElementById(previewId).src = presetUrl;
+        if (presetInputId) {
+            document.getElementById(presetInputId).value = presetUrl;
+        }
+    }
+
+    function onGenderChange(gender, previewId, presetInputId) {
+        const defaultPhoto = gender === 'ស្រី' ? '/static/images/avatars/female_1.jpg' : '/static/images/avatars/male_1.jpg';
+        selectPreset(defaultPhoto, previewId, presetInputId);
+    }
+
+    function clearSelectedPhoto(previewId, presetInputId, genderSelectId) {
+        const gender = document.getElementById(genderSelectId).value;
+        onGenderChange(gender, previewId, presetInputId);
+    }
+
+    function previewLargePhoto(photoUrl, nameKh, voterCode) {
+        document.getElementById('largePhotoImg').src = photoUrl;
+        document.getElementById('largePhotoName').textContent = nameKh;
+        document.getElementById('largePhotoCode').textContent = voterCode;
+        openModal('largePhotoModal');
+    }
+
+    function openChangePhotoModal(voterId, nameKh, currentPhoto) {
+        document.getElementById('quickPhotoVoterId').value = voterId;
+        document.getElementById('quickPhotoVoterName').textContent = nameKh;
+        document.getElementById('quickPhotoPreview').src = currentPhoto;
+        document.getElementById('quickPhotoPresetInput').value = '';
+        document.getElementById('quickPhotoFileInput').value = '';
+        openModal('quickChangePhotoModal');
+    }
+
+    async function submitQuickPhoto(e) {
+        e.preventDefault();
+        const voterId = document.getElementById('quickPhotoVoterId').value;
+        const form = document.getElementById('quickPhotoForm');
+        const formData = new FormData(form);
+
+        try {
+            const res = await fetch(`/api/voters/${voterId}/photo`, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                showToast(data.message, 'success');
+                closeModal('quickChangePhotoModal');
+                const avatarImg = document.getElementById(`voter-avatar-${voterId}`);
+                if (avatarImg && data.photo_url) {
+                    avatarImg.src = data.photo_url;
+                } else {
+                    setTimeout(() => window.location.reload(), 600);
+                }
+            } else {
+                showToast(data.detail || data.message || 'កំហុសក្នុងការផ្លាស់ប្តូររូបថត', 'error');
+            }
+        } catch (err) {
+            showToast('កំហុសប្រព័ន្ធ', 'error');
+        }
+    }
+
+    // All polling stations with their associated village_id
+    const allStationsData = [
+        {% for s in stations %}
+        { 
+            id: {{ s.id }}, 
+            code: "{{ s.code }}", 
+            name: "{{ s.name }}", 
+            location: "{{ s.location }}", 
+            village_id: {{ s.village_id if s.village_id else 'null' }} 
+        },
+        {% endfor %}
+    ];
+
+    function filterStationsByVillage(villageSelectId, stationSelectId, targetStationId = null) {
+        const villageSelect = document.getElementById(villageSelectId);
+        const stationSelect = document.getElementById(stationSelectId);
+        if (!villageSelect || !stationSelect) return;
+
+        const selectedVillageId = parseInt(villageSelect.value);
+        stationSelect.innerHTML = '';
+
+        const matching = allStationsData.filter(s => s.village_id === selectedVillageId);
+
+        if (matching.length > 0) {
+            matching.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.id;
+                opt.textContent = `${s.code} - ${s.name} (${s.location})`;
+                if (targetStationId && parseInt(targetStationId) === s.id) {
+                    opt.selected = true;
+                }
+                stationSelect.appendChild(opt);
+            });
+        } else {
+            const opt = document.createElement('option');
+            opt.value = '';
+            opt.textContent = '-- មិនមានការិយាល័យក្នុងភូមិនេះទេ --';
+            stationSelect.appendChild(opt);
+        }
+    }
+
+    function openAddVoterModal() {
+        document.getElementById('addVoterForm').reset();
+        document.getElementById('addDobInput').value = '1995-05-15';
+        document.getElementById('idCheckFeedback').innerHTML = '';
+        document.getElementById('addPhotoPreview').src = '/static/images/avatars/male_1.jpg';
+        document.getElementById('addPresetInput').value = '/static/images/avatars/male_1.jpg';
+        filterStationsByVillage('addVillageSelect', 'addStationSelect');
+        checkVoterAge(document.getElementById('addDobInput'), 'addDobFeedback', 'addVoterSubmitBtn');
+        openModal('addVoterModal');
+    }
+
+    async function submitAddVoter(e) {
+        e.preventDefault();
+        const dobInput = document.getElementById('addDobInput');
+        if (!checkVoterAge(dobInput, 'addDobFeedback', 'addVoterSubmitBtn')) {
+            showToast('មិនអាចចុះឈ្មោះបានទេ៖ ពលរដ្ឋមិនទាន់គ្រប់អាយុ ១៨ ឆ្នាំឡើយ', 'error');
+            return;
+        }
+
+        const form = document.getElementById('addVoterForm');
+        const formData = new FormData(form);
+
+        try {
+            const res = await fetch('/api/voters', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                showToast(data.message, 'success');
+                closeModal('addVoterModal');
+                setTimeout(() => window.location.reload(), 800);
+            } else {
+                showToast(data.detail || data.message || 'កំហុសក្នុងការចុះឈ្មោះ', 'error');
+            }
+        } catch (err) {
+            showToast('កំហុសប្រព័ន្ធ', 'error');
+        }
+    }
+
+    async function openEditVoterModal(voterId) {
+        try {
+            const res = await fetch(`/api/voters/${voterId}`);
+            const data = await res.json();
+            if (res.ok) {
+                document.getElementById('editVoterId').value = data.id;
+                document.getElementById('editNameKh').value = data.name_kh;
+                document.getElementById('editNameEn').value = data.name_en;
+                document.getElementById('editGender').value = data.gender;
+                document.getElementById('editDob').value = data.dob;
+                document.getElementById('editNationalId').value = data.national_id;
+                document.getElementById('editVillageId').value = data.village_id;
+                document.getElementById('editStatus').value = data.status;
+                document.getElementById('editAddress').value = data.address;
+                document.getElementById('editNotes').value = data.notes;
+                document.getElementById('editPhotoPreview').src = data.photo_url || '/static/images/avatars/male_1.jpg';
+                document.getElementById('editPresetInput').value = '';
+                document.getElementById('editPhotoInput').value = '';
+                if (document.getElementById('editIdCheckFeedback')) {
+                    document.getElementById('editIdCheckFeedback').innerHTML = '';
+                }
+
+                // Filter stations to ONLY show stations belonging to this voter's village
+                filterStationsByVillage('editVillageId', 'editStationId', data.station_id);
+
+                // Check age
+                checkVoterAge(document.getElementById('editDob'), 'editDobFeedback', 'editVoterSubmitBtn');
+
+                openModal('editVoterModal');
+            }
+        } catch (e) {
+            showToast('មិនអាចទាញយកទិន្នន័យបានទេ', 'error');
+        }
+    }
+
+    async function submitEditVoter(e) {
+        e.preventDefault();
+        const dobInput = document.getElementById('editDob');
+        if (!checkVoterAge(dobInput, 'editDobFeedback', 'editVoterSubmitBtn')) {
+            showToast('មិនអាចកែប្រែបានទេ៖ ពលរដ្ឋមិនទាន់គ្រប់អាយុ ១៨ ឆ្នាំឡើយ', 'error');
+            return;
+        }
+
+        const voterId = document.getElementById('editVoterId').value;
+        const form = document.getElementById('editVoterForm');
+        const formData = new FormData(form);
+
+        try {
+            const res = await fetch(`/api/voters/${voterId}/edit`, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                showToast(data.message, 'success');
+                closeModal('editVoterModal');
+                setTimeout(() => window.location.reload(), 800);
+            } else {
+                showToast(data.detail || data.message || 'កំហុសក្នុងការកែប្រែ', 'error');
+            }
+        } catch (err) {
+            showToast('កំហុសប្រព័ន្ធ', 'error');
+        }
+    }
+
+    async function deleteVoter(voterId, nameKh) {
+        if (!confirm(`តើអ្នកពិតជាចង់លុបឈ្មោះ '${nameKh}' មែនទេ?`)) return;
+
+        try {
+            const res = await fetch(`/api/voters/${voterId}/delete`, { method: 'POST' });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                showToast(data.message, 'success');
+                setTimeout(() => window.location.reload(), 600);
+            } else {
+                showToast(data.detail || 'មិនអាចលុបបានទេ', 'error');
+            }
+        } catch (e) {
+            showToast('កំហុសប្រព័ន្ធ', 'error');
+        }
+    }
+
+    function filterSearchStations() {
+        const vSel = document.getElementById('filterVillageSelect');
+        const sSel = document.getElementById('filterStationSelect');
+        if (!vSel || !sSel) return;
+        const vId = vSel.value ? parseInt(vSel.value) : null;
+        const currentVal = sSel.value;
+        
+        sSel.innerHTML = '<option value="">-- គ្រប់ការិយាល័យ --</option>';
+        const list = vId ? allStationsData.filter(s => s.village_id === vId) : allStationsData;
+        list.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.id;
+            opt.textContent = `${s.code} - ${s.name}`;
+            if (currentVal && parseInt(currentVal) === s.id) {
+                opt.selected = true;
+            }
+            sSel.appendChild(opt);
+        });
+    }
+
+    function selectDocType(inputId, length, placeholder) {
+        const input = document.getElementById(inputId);
+        if (input) {
+            input.placeholder = placeholder;
+            input.focus();
+            if (input.value) {
+                checkDuplicateID(input);
+            }
+        }
+    }
+
+    // Initialize Add form station filter on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        filterStationsByVillage('addVillageSelect', 'addStationSelect');
+        const vSel = document.getElementById('filterVillageSelect');
+        if (vSel && vSel.value) {
+            filterSearchStations();
+        }
+    });
+</script>
+{% endblock %}

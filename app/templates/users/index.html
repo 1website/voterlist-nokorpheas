@@ -1,0 +1,282 @@
+{% extends "base.html" %}
+
+{% block title %}គ្រប់គ្រងគណនីអ្នកប្រើប្រាស់ - រដ្ឋបាលឃុំនគរភាស{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Top Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <h2 class="text-2xl font-bold text-slate-800 font-kh-bold flex items-center gap-2">
+                <span>⚙️</span> គ្រប់គ្រងគណនីអ្នកប្រើប្រាស់ & កំណត់សិទ្ធិ
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-500">
+                រដ្ឋបាលឃុំនគរភាស • កំណត់តួនាទី Admin, មន្ត្រីការិយាល័យ (១៤) និងមេភូមិ (១០)
+            </p>
+        </div>
+
+        <div>
+            <button onclick="openAddUserModal()" class="btn btn-primary text-sm shadow-md">
+                <span>➕</span> បង្កើតគណនីថ្មី
+            </button>
+        </div>
+    </div>
+
+    <!-- Users Table -->
+    <div class="data-table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ឈ្មោះគណនី</th>
+                    <th>គោត្តនាម-នាម</th>
+                    <th>តួនាទី (Role)</th>
+                    <th>ការិយាល័យ / ភូមិ</th>
+                    <th>លេខទូរស័ព្ទ</th>
+                    <th>ស្ថានភាព</th>
+                    <th class="text-right">សកម្មភាព</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td class="font-mono font-bold text-blue-900">{{ u.username }}</td>
+                    <td class="font-bold text-slate-800">{{ u.full_name }}</td>
+                    <td>
+                        {% if u.role == 'admin' %}
+                            <span class="badge badge-warning">👑 Admin (មេឃុំ/ស្មៀន)</span>
+                        {% elif u.role == 'officer' %}
+                            <span class="badge badge-primary">🏢 មន្ត្រីការិយាល័យ</span>
+                        {% elif u.role == 'village_chief' %}
+                            <span class="badge badge-success">🏡 មេភូមិ</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if u.role == 'officer' and u.station %}
+                            <span class="font-bold text-slate-700">{{ u.station.code }}</span> - {{ u.station.name }}
+                        {% elif u.role == 'village_chief' and u.village %}
+                            <span class="font-bold text-slate-700">{{ u.village.name_kh }}</span>
+                        {% else %}
+                            <span class="text-slate-400">គ្រប់គ្រងទូទាំងឃុំ</span>
+                        {% endif %}
+                    </td>
+                    <td class="font-mono text-xs">{{ u.phone or '---' }}</td>
+                    <td>
+                        {% if u.is_active %}
+                            <span class="badge badge-success">សកម្ម</span>
+                        {% else %}
+                            <span class="badge badge-danger">ផ្អាក</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-right">
+                        <div class="inline-flex items-center gap-1.5">
+                            <button onclick="openResetPasswordModal({{ u.id }}, '{{ u.username }}')" class="btn btn-sm btn-outline text-amber-700 font-bold" title="ប្តូរពាក្យសម្ងាត់">
+                                🔑 ពាក្យសម្ងាត់
+                            </button>
+                            {% if u.id != current_user.id %}
+                            <button onclick="toggleUserStatus({{ u.id }})" class="btn btn-sm btn-outline {% if u.is_active %}text-red-600{% else %}text-emerald-600{% endif %}">
+                                {% if u.is_active %}ផ្អាក{% else %}បើក{% endif %}
+                            </button>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<!-- Modal: Add User -->
+<div id="addUserModal" class="modal-overlay">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3 class="font-bold text-base sm:text-lg font-kh-bold flex items-center gap-2">
+                <span>➕</span> បង្កើតគណនីអ្នកប្រើប្រាស់ថ្មី
+            </h3>
+            <button type="button" onclick="closeModal('addUserModal')" class="text-white/80 hover:text-white text-xl p-1 leading-none">✕</button>
+        </div>
+        <form id="addUserForm" onsubmit="submitAddUser(event)">
+            <div class="modal-body space-y-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="form-group">
+                        <label class="form-label">ឈ្មោះគណនី (Username) *</label>
+                        <input type="text" name="username" required placeholder="ឧ. officer_0715" class="form-control font-mono">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">ពាក្យសម្ងាត់ *</label>
+                        <input type="password" name="password" required placeholder="••••••••" class="form-control">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="form-group">
+                        <label class="form-label">គោត្តនាម-នាមពេញ *</label>
+                        <input type="text" name="full_name" required placeholder="ឧ. លោក សុខ ចាន់ថា" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">លេខទូរស័ព្ទ</label>
+                        <input type="text" name="phone" placeholder="012 345 678" class="form-control">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">តួនាទី (Role) *</label>
+                    <select name="role" id="userRoleSelect" required onchange="handleRoleChange()" class="form-control">
+                        <option value="officer">មន្ត្រីប្រចាំការិយាល័យ (Station Officer)</option>
+                        <option value="village_chief">មេភូមិ / ជំនួយការ (Village Chief)</option>
+                        <option value="admin">Admin (មេឃុំ / ស្មៀនឃុំ)</option>
+                    </select>
+                </div>
+
+                <div id="stationSelectGroup" class="form-group">
+                    <label class="form-label">ការិយាល័យដែលត្រូវទទួលខុសត្រូវ</label>
+                    <select name="station_id" class="form-control">
+                        <option value="0">-- ជ្រើសរើសការិយាល័យ --</option>
+                        {% for s in stations %}
+                        <option value="{{ s.id }}">{{ s.code }} - {{ s.name }} ({{ s.location }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div id="villageSelectGroup" class="form-group hidden">
+                    <label class="form-label">ភូមិដែលត្រូវទទួលខុសត្រូវ</label>
+                    <select name="village_id" class="form-control">
+                        <option value="0">-- ជ្រើសរើសភូមិ --</option>
+                        {% for v in villages %}
+                        <option value="{{ v.id }}">{{ v.name_kh }} ({{ v.code }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" onclick="closeModal('addUserModal')" class="btn btn-outline text-sm py-2 px-4">បោះបង់</button>
+                <button type="submit" class="btn btn-primary text-sm py-2 px-5 shadow-md">💾 បង្កើតគណនី</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Reset Password -->
+<div id="resetPasswordModal" class="modal-overlay">
+    <div class="modal-card max-w-sm">
+        <div class="modal-header">
+            <h3 class="font-bold text-base font-kh-bold flex items-center gap-2">
+                <span>🔑</span> ប្តូរពាក្យសម្ងាត់
+            </h3>
+            <button type="button" onclick="closeModal('resetPasswordModal')" class="text-white/80 hover:text-white text-xl p-1 leading-none">✕</button>
+        </div>
+        <form id="resetPasswordForm" onsubmit="submitResetPassword(event)">
+            <input type="hidden" name="user_id" id="resetUserId">
+            <div class="modal-body space-y-3">
+                <p class="text-xs text-slate-600">
+                    ប្តូរពាក្យសម្ងាត់សម្រាប់គណនី៖ <strong id="resetUsernameDisplay" class="text-blue-900 font-mono"></strong>
+                </p>
+                <div class="form-group">
+                    <label class="form-label">ពាក្យសម្ងាត់ថ្មី *</label>
+                    <input type="password" name="new_password" required placeholder="បញ្ចូលពាក្យសម្ងាត់ថ្មី" class="form-control">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" onclick="closeModal('resetPasswordModal')" class="btn btn-outline text-sm py-2 px-4">បោះបង់</button>
+                <button type="submit" class="btn btn-primary text-sm py-2 px-5 shadow-md">💾 រក្សាទុក</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function openAddUserModal() {
+        document.getElementById('addUserForm').reset();
+        handleRoleChange();
+        openModal('addUserModal');
+    }
+
+    function handleRoleChange() {
+        const role = document.getElementById('userRoleSelect').value;
+        const stGroup = document.getElementById('stationSelectGroup');
+        const vgGroup = document.getElementById('villageSelectGroup');
+
+        if (role === 'officer') {
+            stGroup.classList.remove('hidden');
+            vgGroup.classList.add('hidden');
+        } else if (role === 'village_chief') {
+            stGroup.classList.add('hidden');
+            vgGroup.classList.remove('hidden');
+        } else {
+            stGroup.classList.add('hidden');
+            vgGroup.classList.add('hidden');
+        }
+    }
+
+    async function submitAddUser(e) {
+        e.preventDefault();
+        const form = document.getElementById('addUserForm');
+        const formData = new FormData(form);
+
+        try {
+            const res = await fetch('/api/users', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                showToast(data.message, 'success');
+                closeModal('addUserModal');
+                setTimeout(() => window.location.reload(), 600);
+            } else {
+                showToast(data.detail || data.message || 'កំហុស', 'error');
+            }
+        } catch (e) {
+            showToast('កំហុសប្រព័ន្ធ', 'error');
+        }
+    }
+
+    function openResetPasswordModal(userId, username) {
+        document.getElementById('resetUserId').value = userId;
+        document.getElementById('resetUsernameDisplay').innerText = username;
+        openModal('resetPasswordModal');
+    }
+
+    async function submitResetPassword(e) {
+        e.preventDefault();
+        const userId = document.getElementById('resetUserId').value;
+        const form = document.getElementById('resetPasswordForm');
+        const formData = new FormData(form);
+
+        try {
+            const res = await fetch(`/api/users/${userId}/reset-password`, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                showToast(data.message, 'success');
+                closeModal('resetPasswordModal');
+            } else {
+                showToast(data.detail || 'កំហុស', 'error');
+            }
+        } catch (e) {
+            showToast('កំហុសប្រព័ន្ធ', 'error');
+        }
+    }
+
+    async function toggleUserStatus(userId) {
+        try {
+            const res = await fetch(`/api/users/${userId}/toggle`, { method: 'POST' });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                showToast(data.message, 'success');
+                setTimeout(() => window.location.reload(), 600);
+            }
+        } catch (e) {
+            showToast('កំហុសប្រព័ន្ធ', 'error');
+        }
+    }
+</script>
+{% endblock %}

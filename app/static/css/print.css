@@ -1,0 +1,94 @@
+/* ==========================================================================
+   Print Stylesheet for Voter Lists & Identification Cards
+   ========================================================================== */
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm 15mm;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 10pt;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .no-print, 
+  .app-header, 
+  .toast-container,
+  button, 
+  .btn, 
+  nav {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  .glass-card {
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+  }
+
+  /* Official Election Table for Print */
+  .official-print-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    font-size: 9pt;
+  }
+
+  .official-print-table th,
+  .official-print-table td {
+    border: 1px solid #000000 !important;
+    padding: 5px 6px;
+    text-align: left;
+  }
+
+  .official-print-table th {
+    background-color: #f0f0f0 !important;
+    font-weight: bold;
+    text-align: center;
+  }
+
+  .official-header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .official-header h1 {
+    font-size: 14pt;
+    font-family: 'Moul', cursive;
+    margin-bottom: 4px;
+  }
+
+  .official-header h2 {
+    font-size: 11pt;
+    font-family: 'Battambang', sans-serif;
+    margin-bottom: 8px;
+  }
+
+  .page-break {
+    page-break-after: always;
+  }
+
+  /* Voter Cards Print Grid */
+  .cards-print-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+  }
+
+  .voter-card-item {
+    border: 2px solid #0f2b5c !important;
+    border-radius: 8px;
+    padding: 12px;
+    page-break-inside: avoid;
+  }
+}

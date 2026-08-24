@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ប្រព័ន្ធគ្រប់គ្រងអ្នកចុះឈ្មោះបោះឆ្នោត - រដ្ឋបាលឃុំនគរភាស{% endblock %}</title>
+    
+    <!-- Tailwind CSS CDN for utility classes -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0f2b5c',
+                        primaryLight: '#1e3a8a',
+                        accent: '#d4af37',
+                        success: '#10b981'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Custom Style and Print CSS with Cache-Buster -->
+    <link rel="stylesheet" href="/static/css/style.css?v=8.0">
+    <link rel="stylesheet" href="/static/css/print.css?v=8.0" media="print">
+
+    <!-- Chart.js & HTML5-QRCode -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800 antialiased m-0 p-0 w-full overflow-x-hidden">
+
+    <!-- ========================================================================= -->
+    <!-- KHMER DATE FLOATING TOP BANNER (បង្ហាញកាលបរិច្ឆេទខ្មែរ 5 វិនាទី) -->
+    <!-- ========================================================================= -->
+    <div id="khmerDateBanner" class="khmer-date-banner no-print">
+        <div class="khmer-date-content">
+            <div class="flex items-center gap-2.5">
+                <span class="text-xl flex-shrink-0">🇰🇭</span>
+                <div class="flex flex-col sm:flex-row sm:items-center sm:gap-2 min-w-0">
+                    <span class="font-bold text-amber-300 font-kh-heading text-xs whitespace-nowrap">កាលបរិច្ឆេទថ្ងៃនេះ៖</span>
+                    <span id="khmerDateText" class="text-white font-kh-bold text-xs sm:text-sm tracking-wide truncate">
+                        <!-- Loaded by JS -->
+                    </span>
+                </div>
+            </div>
+            <button type="button" onclick="dismissKhmerDateBanner()" class="text-white/70 hover:text-white hover:bg-white/15 p-1 rounded-lg transition ml-2 flex-shrink-0" title="បិទ">
+                ✕
+            </button>
+        </div>
+        <!-- 5-Second Timer Progress Bar -->
+        <div class="khmer-date-timer">
+            <div id="khmerDateProgress" class="khmer-date-progress"></div>
+        </div>
+    </div>
+
+    <!-- Backdrop for Mobile Sidebar -->
+    <div id="sidebarBackdrop" class="sidebar-backdrop no-print" onclick="toggleMobileSidebar()"></div>
+
+    <div class="app-layout">
+        
+        {% if current_user %}
+        <!-- ========================================================================= -->
+        <!-- LEFT SIDEBAR (របារចំហៀងខាងឆ្វេង) -->
+        <!-- ========================================================================= -->
+        <aside id="appSidebar" class="sidebar no-print">
+            <!-- Sidebar Header & Commune Title -->
+            <div class="p-4 border-b border-white/10 flex items-center gap-3">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-400 to-amber-200 text-blue-950 flex items-center justify-center font-bold text-xl shadow-md flex-shrink-0 border border-amber-300">
+                    <svg class="w-7 h-7 text-blue-950" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l-1.8 3.5h3.6L12 2zm-5 4l-1.5 3h3L7 6zm10 0l-1.5 3h3L17 6zM3 10v11h18V10h-2v-1l-1.5-3-1.5 4h-2V8.5L12 5.5 10 8.5H8V10l-1.5-4L5 9v1H3zm2 9v-6h3v6H5zm5 0v-6h4v6h-4zm6 0v-6h3v6h-3z"/>
+                    </svg>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <h1 class="text-[15px] font-bold text-white font-kh-heading leading-tight tracking-normal truncate">រដ្ឋបាលឃុំនគរភាស</h1>
+                    <p class="text-xs text-amber-300 font-medium leading-normal truncate mt-0.5">ស្រុកអង្គរជុំ ខេត្តសៀមរាប</p>
+                </div>
+                <!-- Collapse / Hide Button in Sidebar -->
+                <button type="button" onclick="toggleSidebar()" class="ml-auto text-white/70 hover:text-white hover:bg-white/10 p-1.5 rounded-xl transition flex items-center justify-center" title="លាក់ Sidebar (Hide Sidebar)">
+                    <svg class="w-5 h-5 hidden lg:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
+                    </svg>
+                    <span class="lg:hidden text-lg leading-none">✕</span>
+                </button>
+            </div>
+
+            <!-- Current Logged In User Profile Widget -->
+            <div class="p-4 mx-3 my-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-400 to-amber-200 text-blue-950 font-black flex items-center justify-center text-base shadow flex-shrink-0">
+                        {% if current_user.role == 'admin' %}👑{% elif current_user.role == 'officer' %}🏢{% else %}🏡{% endif %}
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <div class="text-xs font-bold text-white truncate">{{ current_user.full_name }}</div>
+                        <div class="text-[10px] text-blue-200 font-mono">@{{ current_user.username }}</div>
+                    </div>
+                </div>
+                <div class="mt-2.5 pt-2 border-t border-white/10 flex items-center justify-between">
+                    {% if current_user.role == 'admin' %}
+                        <span class="badge badge-warning text-[10px]">👑 មេឃុំ / Admin</span>
+                    {% elif current_user.role == 'officer' %}
+                        <span class="badge badge-primary text-[10px]">🏢 ការិយាល័យ {{ current_user.station.code if current_user.station else '' }}</span>
+                    {% elif current_user.role == 'village_chief' %}
+                        <span class="badge badge-success text-[10px]">🏡 ភូមិ {{ current_user.village.name_kh if current_user.village else '' }}</span>
+                    {% endif %}
+                    <span class="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> សកម្ម
+                    </span>
+                </div>
+            </div>
+
+            <!-- Sidebar Navigation Menu -->
+            <nav class="flex-1 px-3 py-2 space-y-1">
+                <!-- Section 1: Main Operations -->
+                <div class="sidebar-nav-header">មុខងារស្នូលបោះឆ្នោត</div>
+
+                <a href="/dashboard" class="sidebar-nav-link {% if request.url.path == '/dashboard' or request.url.path == '/' %}active{% endif %}">
+                    <span class="text-lg">📊</span>
+                    <span>ផ្ទាំងគ្រប់គ្រងស្ថិតិ</span>
+                </a>
+
+                <a href="/checkin" class="sidebar-nav-link {% if '/checkin' in request.url.path %}active{% endif %}">
+                    <span class="text-lg">⚡</span>
+                    <span class="flex-1">Check-in & ស្កេន QR</span>
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                </a>
+
+                <a href="/voters" class="sidebar-nav-link {% if '/voters' in request.url.path and '/card' not in request.url.path %}active{% endif %}">
+                    <span class="text-lg">👥</span>
+                    <span>បញ្ជីឈ្មោះអ្នកបោះឆ្នោត</span>
+                </a>
+
+                <!-- Section 2: Geography & Mapping -->
+                <div class="sidebar-nav-header mt-3">រចនាសម្ព័ន្ធភូមិសាស្ត្រ</div>
+
+                <a href="/stations" class="sidebar-nav-link {% if '/stations' in request.url.path %}active{% endif %}">
+                    <span class="text-lg">🏢</span>
+                    <span class="flex-1">១៤ ការិយាល័យ</span>
+                    <span class="text-[11px] px-1.5 py-0.5 rounded-full bg-white/10 text-slate-300 font-mono">14</span>
+                </a>
+
+                <a href="/villages" class="sidebar-nav-link {% if '/villages' in request.url.path %}active{% endif %}">
+                    <span class="text-lg">🏡</span>
+                    <span class="flex-1">១០ ភូមិ (ឃុំនគរភាស)</span>
+                    <span class="text-[11px] px-1.5 py-0.5 rounded-full bg-white/10 text-slate-300 font-mono">10</span>
+                </a>
+
+                <!-- Section 3: Reports & Settings -->
+                <div class="sidebar-nav-header mt-3">របាយការណ៍ & សុវត្ថិភាព</div>
+
+                <a href="/reports" class="sidebar-nav-link {% if request.url.path == '/reports' %}active{% endif %}">
+                    <span class="text-lg">📑</span>
+                    <span>មជ្ឈមណ្ឌលរបាយការណ៍</span>
+                </a>
+
+                <a href="/reports/daily" class="sidebar-nav-link {% if '/reports/daily' in request.url.path %}active{% endif %}">
+                    <span class="text-lg">📅</span>
+                    <span class="flex-1">ចុះឈ្មោះប្រចាំថ្ងៃ</span>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-500/30 text-blue-200 font-bold border border-blue-400/30">Daily</span>
+                </a>
+
+                {% if current_user.role == 'admin' %}
+                <a href="/audit-logs" class="sidebar-nav-link {% if '/audit-logs' in request.url.path %}active{% endif %}">
+                    <span class="text-lg">📋</span>
+                    <span>កំណត់ត្រាសកម្មភាព</span>
+                </a>
+
+                <a href="/backup" class="sidebar-nav-link {% if '/backup' in request.url.path %}active{% endif %}">
+                    <span class="text-lg">💾</span>
+                    <span>បម្រុងទុកទិន្នន័យ</span>
+                </a>
+
+                <a href="/users" class="sidebar-nav-link {% if '/users' in request.url.path %}active{% endif %}">
+                    <span class="text-lg">⚙️</span>
+                    <span>គណនីអ្នកប្រើ & សិទ្ធិ</span>
+                </a>
+                {% endif %}
+            </nav>
+
+            <!-- Quick Role Switcher Widget (For Test / Evaluation) -->
+            <div class="p-3 mx-3 my-2 rounded-2xl bg-black/20 border border-white/10 text-xs">
+                <div class="text-[10px] font-bold uppercase tracking-wider text-amber-300 mb-2 flex items-center justify-between">
+                    <span>🔄 ប្តូរតួនាទីតេស្ត (Demo)</span>
+                </div>
+                <div class="grid grid-cols-3 gap-1 text-center font-bold">
+                    <a href="/switch-user/admin" class="p-1.5 rounded-lg bg-white/10 hover:bg-amber-400 hover:text-blue-950 transition {% if current_user.role == 'admin' %}border border-amber-400 text-amber-300{% endif %}" title="ចូលជា Admin">
+                        👑 Admin
+                    </a>
+                    <a href="/switch-user/officer_0701" class="p-1.5 rounded-lg bg-white/10 hover:bg-blue-400 hover:text-blue-950 transition {% if current_user.role == 'officer' %}border border-blue-400 text-blue-300{% endif %}" title="ចូលជាមន្ត្រីការិយាល័យ ០៧០១">
+                        🏢 0701
+                    </a>
+                    <a href="/switch-user/chief_v01" class="p-1.5 rounded-lg bg-white/10 hover:bg-emerald-400 hover:text-blue-950 transition {% if current_user.role == 'village_chief' %}border border-emerald-400 text-emerald-300{% endif %}" title="ចូលជាមេភូមិរមៀត">
+                        🏡 V01
+                    </a>
+                </div>
+            </div>
+
+            <!-- Sidebar Footer & Logout -->
+            <div class="p-4 border-t border-white/10 flex items-center justify-between">
+                <div class="text-[10px] text-blue-200">
+                    <div>ប្រព័ន្ធបោះឆ្នោតជាតិ</div>
+                    <div class="font-mono text-white/50">v1.0.0 (FastAPI)</div>
+                </div>
+                <a href="/logout" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-500/20 hover:bg-red-500 text-red-200 hover:text-white border border-red-500/30 text-xs font-bold transition">
+                    <span>🚪</span>
+                    <span>ចាកចេញ</span>
+                </a>
+            </div>
+        </aside>
+        {% endif %}
+
+        <!-- ========================================================================= -->
+        <!-- MAIN CONTENT WRAPPER -->
+        <!-- ========================================================================= -->
+        <div class="content-wrapper">
+            
+            {% if current_user %}
+            <!-- Top App Bar -->
+            <header class="top-bar w-full no-print bg-white/95 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40 px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between shadow-sm">
+                <div class="flex items-center gap-3">
+                    <!-- Sidebar Toggle Button (Desktop & Mobile) -->
+                    <button type="button" onclick="toggleSidebar()" id="sidebarToggleBtn" class="p-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-900 hover:border-blue-300 transition flex items-center justify-center shadow-sm" title="លាក់ / បង្ហាញ Sidebar (Toggle Sidebar)">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/>
+                        </svg>
+                    </button>
+
+                    <!-- Page Title / Quick Commune indicator -->
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-bold text-slate-800 font-kh-heading">រដ្ឋបាលឃុំនគរភាស</span>
+                        <span class="text-xs text-slate-400 font-medium">•</span>
+                        <span class="text-xs font-semibold text-blue-700">ស្រុកអង្គរជុំ ខេត្តសៀមរាប</span>
+                    </div>
+
+                    <!-- Interactive Khmer Date Badge in Top Bar -->
+                    <button type="button" onclick="showKhmerDateBanner()" class="hidden md:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 text-xs font-semibold shadow-xs transition" title="ចុចដើម្បីមើលកាលបរិច្ឆេទខ្មែរពេញលេញ">
+                        <span>📅</span>
+                        <span id="topBarKhmerDateMini">កាលបរិច្ឆេទខ្មែរ</span>
+                    </button>
+                </div>
+
+                <!-- Right Quick Action Shortcuts -->
+                <div class="flex items-center gap-2">
+                    <a href="/checkin" class="btn btn-sm btn-accent shadow-sm font-bold">
+                        ⚡ Check-in វត្តមាន
+                    </a>
+                    <a href="/voters" class="btn btn-sm btn-outline hidden sm:inline-flex font-semibold">
+                        🔍 ស្វែងរកឈ្មោះ
+                    </a>
+                    <a href="/reports/export/excel" class="btn btn-sm btn-outline text-emerald-700 border-emerald-300 hover:bg-emerald-50 hidden md:inline-flex font-semibold">
+                        📥 Export Excel
+                    </a>
+                </div>
+            </header>
+            {% endif %}
+
+            <!-- Main Dynamic Page Content (Full Screen Width) -->
+            <main class="flex-1 p-4 sm:p-6 lg:p-8 w-full min-w-0">
+                {% block content %}{% endblock %}
+            </main>
+
+            <!-- Footer (Full Width) -->
+            <footer class="bg-white border-t border-slate-200 py-4 px-4 sm:px-6 lg:px-8 mt-auto w-full no-print">
+                <div class="w-full flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-2">
+                    <div>
+                        <strong class="text-slate-700">រដ្ឋបាលឃុំនគរភាស ស្រុកអង្គរជុំ ខេត្តសៀមរាប</strong>
+                        <span> • ប្រព័ន្ធគ្រប់គ្រងអ្នកចុះឈ្មោះបោះឆ្នោត (១០ ភូមិ • ១៤ ការិយាល័យ)</span>
+                    </div>
+                    <div class="text-slate-400 font-medium">
+                        គាំទ្រការបោះឆ្នោតជាតិ តម្លាភាព និងសុក្រឹតភាព © 2026
+                    </div>
+                </div>
+            </footer>
+
+        </div>
+
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Main Scripts -->
+    <script src="/static/js/app.js"></script>
+    <script src="/static/js/qr_scanner.js"></script>
+    <script src="/static/js/charts.js"></script>
+    <script>
+        // Sidebar Toggle
+        function toggleSidebar() {
+            if (window.innerWidth < 1024) {
+                toggleMobileSidebar();
+            } else {
+                const layout = document.querySelector('.app-layout');
+                if (layout) {
+                    layout.classList.toggle('sidebar-collapsed');
+                    const isCollapsed = layout.classList.contains('sidebar-collapsed');
+                    localStorage.setItem('sidebar_collapsed', isCollapsed ? 'true' : 'false');
+                }
+            }
+        }
+
+        function toggleMobileSidebar() {
+            const sidebar = document.getElementById('appSidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            if (sidebar && backdrop) {
+                sidebar.classList.toggle('mobile-open');
+                backdrop.classList.toggle('active');
+            }
+        }
+
+        // Khmer Date Formatter & Auto-dismiss in 5s
+        let khmerDateTimer = null;
+
+        function getKhmerDateDetails() {
+            const now = new Date();
+            const khmerDigits = ['០', '១', '២', '៣', '៤', '៥', '៦', '៧', '៨', '៩'];
+            const toKhmerNum = (num) => String(num).split('').map(d => khmerDigits[parseInt(d)] || d).join('');
+
+            const days = ['ថ្ងៃអាទិត្យ', 'ថ្ងៃចន្ទ', 'ថ្ងៃអង្គារ', 'ថ្ងៃពុធ', 'ថ្ងៃព្រហស្បតិ៍', 'ថ្ងៃសុក្រ', 'ថ្ងៃសៅរ៍'];
+            const months = [
+                'មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា',
+                'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ'
+            ];
+
+            const dayName = days[now.getDay()];
+            const dateNum = toKhmerNum(now.getDate());
+            const monthName = months[now.getMonth()];
+            const yearNum = toKhmerNum(now.getFullYear());
+            
+            let hours = now.getHours();
+            const rawMinutes = now.getMinutes();
+            const minutes = toKhmerNum(String(rawMinutes).padStart(2, '0'));
+            const period = hours >= 12 ? 'រសៀល' : 'ព្រឹក';
+            const displayHours = toKhmerNum(hours % 12 || 12);
+
+            const fullText = `${dayName} ទី${dateNum} ខែ${monthName} ឆ្នាំ${yearNum} • វេលាម៉ោង ${displayHours}:${minutes} នាទី${period}`;
+            const miniText = `${dayName} ទី${dateNum} ${monthName} ${yearNum}`;
+
+            return { fullText, miniText };
+        }
+
+        function showKhmerDateBanner() {
+            const banner = document.getElementById('khmerDateBanner');
+            const dateText = document.getElementById('khmerDateText');
+            const progress = document.getElementById('khmerDateProgress');
+            if (!banner || !dateText) return;
+
+            const { fullText } = getKhmerDateDetails();
+            dateText.innerText = fullText;
+
+            // Reset banner visibility and timer bar
+            banner.classList.remove('hidden-banner');
+            if (progress) {
+                progress.style.transition = 'none';
+                progress.style.width = '100%';
+                void progress.offsetWidth; // Force reflow
+                progress.style.transition = 'width 5s linear';
+                progress.style.width = '0%';
+            }
+
+            if (khmerDateTimer) clearTimeout(khmerDateTimer);
+            khmerDateTimer = setTimeout(() => {
+                dismissKhmerDateBanner();
+            }, 5000);
+        }
+
+        function dismissKhmerDateBanner() {
+            const banner = document.getElementById('khmerDateBanner');
+            if (banner) {
+                banner.classList.add('hidden-banner');
+            }
+            if (khmerDateTimer) clearTimeout(khmerDateTimer);
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Restore saved sidebar state on desktop
+            if (window.innerWidth >= 1024 && localStorage.getItem('sidebar_collapsed') === 'true') {
+                const layout = document.querySelector('.app-layout');
+                if (layout) {
+                    layout.classList.add('sidebar-collapsed');
+                }
+            }
+
+            // Populate top bar mini date & show 5s top banner
+            const { miniText } = getKhmerDateDetails();
+            const miniEl = document.getElementById('topBarKhmerDateMini');
+            if (miniEl) miniEl.innerText = miniText;
+
+            showKhmerDateBanner();
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

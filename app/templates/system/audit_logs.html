@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+
+{% block title %}កំណត់ត្រាសកម្មភាពមន្ត្រី និងប្រព័ន្ធ (Audit Logs) - រដ្ឋបាលឃុំនគរភាស{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Hero Header -->
+    <div class="hero-banner">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-2 mb-1.5">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-400 text-blue-950 shadow-sm">
+                        🛡️ សុវត្ថិភាព & តម្លាភាពរដ្ឋបាល
+                    </span>
+                    <span class="text-xs text-blue-200/60">•</span>
+                    <span class="text-xs font-medium text-blue-100 bg-white/10 px-2.5 py-0.5 rounded-full border border-white/10">
+                        ប្រព័ន្ធកត់ត្រាសកម្មភាពស្វ័យប្រវត្តិ
+                    </span>
+                </div>
+                <h1 class="hero-title text-xl sm:text-2xl lg:text-3xl font-bold font-kh-bold text-white tracking-normal leading-snug">
+                    📋 កំណត់ត្រាសកម្មភាពមន្ត្រី (Activity Audit Logs)
+                </h1>
+                <p class="hero-subtitle text-xs sm:text-sm text-blue-100 leading-relaxed mt-1">
+                    តាមដានរាល់ការចុះឈ្មោះ ការកែប្រែ ការលុប ការ Check-in និងការ Login ក្នុងប្រព័ន្ធដោយតម្លាភាព
+                </p>
+            </div>
+            <div class="flex items-center gap-2.5 flex-wrap sm:flex-nowrap flex-shrink-0">
+                <a href="/audit-logs/export/excel?q={{ q }}&action={{ action_filter }}&role={{ role_filter }}&date={{ date_filter }}" class="btn bg-white/15 hover:bg-white/25 text-emerald-300 border border-emerald-400/30 text-xs sm:text-sm font-semibold backdrop-blur-sm h-10 px-4 shadow-sm flex items-center justify-center gap-2 whitespace-nowrap transition">
+                    <span>📥</span> ទាញយកជា Excel
+                </a>
+                <button type="button" onclick="confirmClearLogs()" class="btn bg-red-500/20 hover:bg-red-500/30 text-red-200 border border-red-400/40 text-xs sm:text-sm font-semibold backdrop-blur-sm h-10 px-4 shadow-sm flex items-center justify-center gap-2 whitespace-nowrap transition">
+                    <span>🗑️</span> សម្អាត Logs
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Metrics Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- 1. Total Logs -->
+        <div class="stat-card">
+            <div class="stat-icon bg-blue-50 text-blue-800">
+                📋
+            </div>
+            <div class="min-w-0 flex-1">
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">សរុបសកម្មភាពទាំងអស់</p>
+                <h3 class="text-2xl font-black font-mono text-slate-900 mt-0.5">{{ total_count }} <span class="text-xs font-normal text-slate-400">ជួរ</span></h3>
+                <p class="text-[11px] text-blue-600 font-medium mt-0.5 truncate">កំណត់ត្រាក្នុងប្រព័ន្ធ</p>
+            </div>
+        </div>
+
+        <!-- 2. Today Logs -->
+        <div class="stat-card">
+            <div class="stat-icon bg-emerald-50 text-emerald-800">
+                📅
+            </div>
+            <div class="min-w-0 flex-1">
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">សកម្មភាពថ្ងៃនេះ</p>
+                <h3 class="text-2xl font-black font-mono text-emerald-600 mt-0.5">{{ total_today }} <span class="text-xs font-normal text-slate-400">សកម្មភាព</span></h3>
+                <p class="text-[11px] text-emerald-700 font-medium mt-0.5 truncate">សកម្មភាពក្នុងថ្ងៃនេះ</p>
+            </div>
+        </div>
+
+        <!-- 3. New Registrations -->
+        <div class="stat-card">
+            <div class="stat-icon bg-amber-50 text-amber-800">
+                ➕
+            </div>
+            <div class="min-w-0 flex-1">
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">ការចុះឈ្មោះថ្មី</p>
+                <h3 class="text-2xl font-black font-mono text-amber-600 mt-0.5">{{ total_creates }} <span class="text-xs font-normal text-slate-400">នាក់</span></h3>
+                <p class="text-[11px] text-amber-700 font-medium mt-0.5 truncate">អ្នកបោះឆ្នោតបានចុះឈ្មោះ</p>
+            </div>
+        </div>
+
+        <!-- 4. Checkins -->
+        <div class="stat-card">
+            <div class="stat-icon bg-purple-50 text-purple-800">
+                ⚡
+            </div>
+            <div class="min-w-0 flex-1">
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">CHECK-IN វត្តមាន</p>
+                <h3 class="text-2xl font-black font-mono text-purple-600 mt-0.5">{{ total_checkins }} <span class="text-xs font-normal text-slate-400">នាក់</span></h3>
+                <p class="text-[11px] text-purple-700 font-medium mt-0.5 truncate">វត្តមានបានកត់ត្រា</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search & Filter Toolbar -->
+    <div class="glass-card p-4">
+        <form method="GET" action="/audit-logs" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            
+            <!-- Keyword Search -->
+            <div class="sm:col-span-2 md:col-span-2 lg:col-span-2">
+                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ស្វែងរកពាក្យគន្លឹះ</label>
+                <input type="text" name="q" value="{{ q }}" placeholder="ស្វែងរកឈ្មោះ, គណនី, កូដ, IP..." class="form-control text-sm py-2">
+            </div>
+
+            <!-- Action Filter -->
+            <div>
+                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ប្រភេទសកម្មភាព</label>
+                <select name="action" class="form-control text-sm py-2">
+                    <option value="">-- គ្រប់សកម្មភាព --</option>
+                    {% for act in distinct_actions %}
+                    <option value="{{ act }}" {% if action_filter == act %}selected{% endif %}>{{ act }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Role Filter -->
+            <div>
+                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">តួនាទី (Role)</label>
+                <select name="role" class="form-control text-sm py-2">
+                    <option value="">-- គ្រប់តួនាទី --</option>
+                    <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>👑 Admin (ស្មៀនឃុំ)</option>
+                    <option value="officer" {% if role_filter == 'officer' %}selected{% endif %}>🏢 Officer (មន្ត្រីការិយាល័យ)</option>
+                    <option value="village_chief" {% if role_filter == 'village_chief' %}selected{% endif %}>🏡 Village Chief (មេភូមិ)</option>
+                </select>
+            </div>
+
+            <!-- Date Filter & Submit -->
+            <div class="flex items-end gap-2">
+                <div class="flex-1">
+                    <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">កាលបរិច្ឆេទ</label>
+                    <input type="date" name="date" value="{{ date_filter }}" class="form-control text-sm py-2 font-mono">
+                </div>
+                <button type="submit" class="btn btn-primary py-2 px-3 text-sm flex-shrink-0" title="ស្វែងរក">
+                    🔍
+                </button>
+                {% if q or action_filter or role_filter or date_filter %}
+                <a href="/audit-logs" class="btn btn-outline py-2 px-3 text-sm flex-shrink-0 text-slate-600 hover:bg-slate-100" title="សម្អាត Filter">
+                    ✕
+                </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Data Table -->
+    <div class="data-table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th class="w-12 text-center">ល.រ</th>
+                    <th class="w-40">កាលបរិច្ឆេទ & ម៉ោង</th>
+                    <th class="w-48">គណនីមន្ត្រី (User)</th>
+                    <th class="w-28 text-center">តួនាទី</th>
+                    <th class="w-36 text-center">ប្រភេទសកម្មភាព</th>
+                    <th>បរិយាយសកម្មភាពលម្អិត (Description)</th>
+                    <th class="w-32 text-center">IP Address</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if logs and logs|length > 0 %}
+                    {% for log in logs %}
+                    <tr class="hover:bg-blue-50/30 transition">
+                        <td class="text-center font-mono text-xs text-slate-500">
+                            {{ (page - 1) * limit + loop.index }}
+                        </td>
+                        <td class="font-mono text-xs text-slate-700 whitespace-nowrap">
+                            <span class="font-bold text-slate-900">{{ log.created_at.strftime('%Y-%m-%d') if log.created_at else '' }}</span>
+                            <span class="text-slate-500 block text-[11px]">{{ log.created_at.strftime('%H:%M:%S') if log.created_at else '' }}</span>
+                        </td>
+                        <td>
+                            <div class="font-bold text-slate-900 text-xs font-kh-bold">{{ log.user_full_name or log.username }}</div>
+                            <div class="text-[10px] text-blue-700 font-mono">@{{ log.username }}</div>
+                        </td>
+                        <td class="text-center">
+                            {% if log.user_role == 'admin' %}
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300">👑 Admin</span>
+                            {% elif log.user_role == 'officer' %}
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-900 border border-blue-300">🏢 Officer</span>
+                            {% elif log.user_role == 'village_chief' %}
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-300">🏡 Chief</span>
+                            {% else %}
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">⚙️ System</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center whitespace-nowrap">
+                            {% if log.action == 'CREATE_VOTER' %}
+                                <span class="px-2 py-1 rounded-lg text-[10px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-300 flex items-center justify-center gap-1">
+                                    <span>➕</span> ចុះឈ្មោះថ្មី
+                                </span>
+                            {% elif log.action == 'UPDATE_VOTER' %}
+                                <span class="px-2 py-1 rounded-lg text-[10px] font-bold bg-blue-100 text-blue-900 border border-blue-300 flex items-center justify-center gap-1">
+                                    <span>✏️</span> កែប្រែទិន្នន័យ
+                                </span>
+                            {% elif log.action == 'DELETE_VOTER' %}
+                                <span class="px-2 py-1 rounded-lg text-[10px] font-bold bg-red-100 text-red-900 border border-red-300 flex items-center justify-center gap-1">
+                                    <span>🗑️</span> លុបឈ្មោះ
+                                </span>
+                            {% elif log.action == 'CHECKIN' %}
+                                <span class="px-2 py-1 rounded-lg text-[10px] font-bold bg-purple-100 text-purple-900 border border-purple-300 flex items-center justify-center gap-1">
+                                    <span>⚡</span> Check-in
+                                </span>
+                            {% elif log.action == 'UNCHECKIN' %}
+                                <span class="px-2 py-1 rounded-lg text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300 flex items-center justify-center gap-1">
+                                    <span>↩️</span> លុប Check-in
+                                </span>
+                            {% elif log.action == 'LOGIN' %}
+                                <span class="px-2 py-1 rounded-lg text-[10px] font-bold bg-slate-100 text-slate-900 border border-slate-300 flex items-center justify-center gap-1">
+                                    <span>🔑</span> ចូលប្រព័ន្ធ
+                                </span>
+                            {% elif 'BACKUP' in log.action or 'RESTORE' in log.action %}
+                                <span class="px-2 py-1 rounded-lg text-[10px] font-bold bg-teal-100 text-teal-900 border border-teal-300 flex items-center justify-center gap-1">
+                                    <span>💾</span> Backup/Restore
+                                </span>
+                            {% else %}
+                                <span class="px-2 py-1 rounded-lg text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-300 font-mono">
+                                    {{ log.action }}
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="text-xs text-slate-800 leading-relaxed font-medium">
+                            {{ log.description }}
+                        </td>
+                        <td class="text-center font-mono text-[11px] text-slate-500 whitespace-nowrap">
+                            {{ log.ip_address or '127.0.0.1' }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center py-12 text-slate-400 text-sm">
+                            <div class="text-3xl mb-2">📭</div>
+                            ពុំមានកំណត់ត្រាសកម្មភាពស្របតាមលក្ខខណ្ឌស្វែងរកនេះឡើយ។
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if total_pages > 1 %}
+    <div class="flex items-center justify-between py-2 text-xs text-slate-600">
+        <div>
+            បង្ហាញទំព័រ <strong>{{ page }}</strong> នៃ <strong>{{ total_pages }}</strong> (សរុប {{ total_count }} កំណត់ត្រា)
+        </div>
+        <div class="flex items-center gap-1">
+            {% if page > 1 %}
+            <a href="/audit-logs?page={{ page - 1 }}&q={{ q }}&action={{ action_filter }}&role={{ role_filter }}&date={{ date_filter }}" class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 font-bold transition">
+                ‹ ថយក្រោយ
+            </a>
+            {% endif %}
+
+            <span class="px-3 py-1.5 font-bold text-blue-900 bg-blue-50 border border-blue-200 rounded-lg">
+                {{ page }}
+            </span>
+
+            {% if page < total_pages %}
+            <a href="/audit-logs?page={{ page + 1 }}&q={{ q }}&action={{ action_filter }}&role={{ role_filter }}&date={{ date_filter }}" class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 font-bold transition">
+                បន្ទាប់ ›
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    async function confirmClearLogs() {
+        if (!confirm("តើអ្នកពិតជាចង់សម្អាតកំណត់ត្រាសកម្មភាពទាំងអស់ចេញពីប្រព័ន្ធមែនទេ? (សកម្មភាពនេះមិនអាចត្រឡប់ក្រោយបានឡើយ)")) {
+            return;
+        }
+        try {
+            const res = await fetch('/api/audit-logs/clear', { method: 'POST' });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                showToast(data.message, 'success');
+                setTimeout(() => window.location.reload(), 800);
+            } else {
+                showToast(data.detail || 'មិនអាចសម្អាត Logs បានទេ', 'error');
+            }
+        } catch (e) {
+            showToast('កំហុសប្រព័ន្ធ', 'error');
+        }
+    }
+</script>
+{% endblock %}
