@@ -181,24 +181,6 @@
                 {% endif %}
             </nav>
 
-            <!-- Quick Role Switcher Widget (For Test / Evaluation) -->
-            <div class="p-3 mx-3 my-2 rounded-2xl bg-black/20 border border-white/10 text-xs">
-                <div class="text-[10px] font-bold uppercase tracking-wider text-amber-300 mb-2 flex items-center justify-between">
-                    <span>🔄 ប្តូរតួនាទីតេស្ត (Demo)</span>
-                </div>
-                <div class="grid grid-cols-3 gap-1 text-center font-bold">
-                    <a href="/switch-user/admin" class="p-1.5 rounded-lg bg-white/10 hover:bg-amber-400 hover:text-blue-950 transition {% if current_user.role == 'admin' %}border border-amber-400 text-amber-300{% endif %}" title="ចូលជា Admin">
-                        👑 Admin
-                    </a>
-                    <a href="/switch-user/officer_0701" class="p-1.5 rounded-lg bg-white/10 hover:bg-blue-400 hover:text-blue-950 transition {% if current_user.role == 'officer' %}border border-blue-400 text-blue-300{% endif %}" title="ចូលជាមន្ត្រីការិយាល័យ ០៧០១">
-                        🏢 0701
-                    </a>
-                    <a href="/switch-user/chief_v01" class="p-1.5 rounded-lg bg-white/10 hover:bg-emerald-400 hover:text-blue-950 transition {% if current_user.role == 'village_chief' %}border border-emerald-400 text-emerald-300{% endif %}" title="ចូលជាមេភូមិរមៀត">
-                        🏡 V01
-                    </a>
-                </div>
-            </div>
-
             <!-- Sidebar Footer & Logout -->
             <div class="p-4 border-t border-white/10 flex items-center justify-between">
                 <div class="text-[10px] text-blue-200">

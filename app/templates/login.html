@@ -16,81 +16,65 @@
                 🇰🇭
             </div>
             <h1 class="text-2xl sm:text-3xl font-bold text-white font-kh-heading tracking-normal drop-shadow-md">រដ្ឋបាលឃុំនគរភាស</h1>
-            <p class="text-amber-300 font-bold text-base mt-1.5">ប្រព័ន្ធគ្រប់គ្រងអ្នកចុះឈ្មោះបោះឆ្នោត</p>
+            <p class="text-amber-300 font-bold text-base mt-1.5 font-kh-bold">ប្រព័ន្ធគ្រប់គ្រងអ្នកចុះឈ្មោះបោះឆ្នោត</p>
             <p class="text-xs text-blue-200/90 mt-1">ស្រុកអង្គរជុំ ខេត្តសៀមរាប • (១០ ភូមិ • ១៤ ការិយាល័យ)</p>
         </div>
 
         <!-- Login Card -->
         <div class="bg-white/95 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/20">
+            <div class="text-center mb-6">
+                <h2 class="text-lg font-bold text-slate-800 font-kh-bold">ផ្ទៀងផ្ទាត់ចូលប្រើប្រព័ន្ធ</h2>
+                <p class="text-xs text-slate-500 mt-1">សូមបញ្ចូលឈ្មោះគណនី និងពាក្យសម្ងាត់របស់អ្នក</p>
+            </div>
+
             {% if error %}
-            <div class="mb-5 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-start gap-3">
-                <span class="text-lg">⚠️</span>
-                <div>{{ error }}</div>
+            <div class="mb-5 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-start gap-3 shadow-xs">
+                <span class="text-lg leading-none">⚠️</span>
+                <div class="font-medium text-xs sm:text-sm">{{ error }}</div>
             </div>
             {% endif %}
 
-            <form action="/login" method="POST" class="space-y-5">
+            <form action="/login" method="POST" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">ឈ្មោះគណនី (Username)</label>
-                    <input type="text" name="username" id="usernameInput" required 
-                           value="{{ username or 'admin' }}"
-                           placeholder="បញ្ចូលឈ្មោះគណនី"
-                           class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none text-slate-800 text-sm font-medium transition">
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 font-kh-heading">ឈ្មោះគណនី (Username)</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 text-sm">👤</span>
+                        <input type="text" name="username" id="usernameInput" required 
+                               value="{{ username or '' }}"
+                               placeholder="បញ្ចូលឈ្មោះគណនី..."
+                               autocomplete="username"
+                               class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none text-slate-800 text-sm font-medium transition shadow-xs">
+                    </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">ពាក្យសម្ងាត់ (Password)</label>
-                    <input type="password" name="password" id="passwordInput" required 
-                           value="admin123"
-                           placeholder="បញ្ចូលពាក្យសម្ងាត់"
-                           class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none text-slate-800 text-sm font-medium transition">
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 font-kh-heading">ពាក្យសម្ងាត់ (Password)</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 text-sm">🔒</span>
+                        <input type="password" name="password" id="passwordInput" required 
+                               value=""
+                               placeholder="បញ្ចូលពាក្យសម្ងាត់..."
+                               autocomplete="current-password"
+                               class="w-full pl-10 pr-11 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none text-slate-800 text-sm font-medium transition shadow-xs">
+                        <button type="button" onclick="togglePasswordVisibility()" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-700 transition" title="បង្ហាញ / លាក់ពាក្យសម្ងាត់">
+                            <span id="pwdEyeIcon">👁️</span>
+                        </button>
+                    </div>
                 </div>
 
-                <button type="submit" class="w-full py-3.5 px-4 bg-gradient-to-r from-blue-900 to-indigo-900 hover:from-blue-950 hover:to-indigo-950 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition transform active:scale-[0.98] text-sm flex items-center justify-center gap-2">
-                    <span>🔐</span>
-                    <span>ចូលប្រើប្រព័ន្ធ (Sign In)</span>
-                </button>
+                <div class="pt-2">
+                    <button type="submit" class="w-full py-3.5 px-4 bg-gradient-to-r from-blue-900 to-indigo-900 hover:from-blue-950 hover:to-indigo-950 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition transform active:scale-[0.98] text-sm flex items-center justify-center gap-2 font-kh-bold">
+                        <span>🔐</span>
+                        <span>ចូលប្រើប្រព័ន្ធ (Sign In)</span>
+                    </button>
+                </div>
             </form>
 
-            <!-- Quick Demo Login Selection -->
-            <div class="mt-8 pt-6 border-t border-slate-200">
-                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider text-center mb-3">
-                    ចុចចូលប្រើភ្លាមៗតាមតួនាទី (Demo 1-Click)
+            <div class="mt-6 pt-4 border-t border-slate-150 text-center">
+                <p class="text-[11px] text-slate-400 flex items-center justify-center gap-1.5">
+                    <span>🛡️</span>
+                    <span>ប្រព័ន្ធការពារសុវត្ថិភាព និងរក្សាការសម្ងាត់ខ្ពស់</span>
                 </p>
-                <div class="grid grid-cols-1 gap-2">
-                    <button onclick="fillLogin('admin', 'admin123')" class="flex items-center justify-between p-2.5 rounded-xl border border-amber-200 bg-amber-50/70 hover:bg-amber-100/70 text-amber-900 transition text-left text-xs font-semibold">
-                        <div class="flex items-center gap-2">
-                            <span>👑</span>
-                            <div>
-                                <div>Admin (មេឃុំ/ស្មៀន)</div>
-                                <div class="text-[10px] text-amber-700/80 font-normal">user: admin | pass: admin123</div>
-                            </div>
-                        </div>
-                        <span class="text-xs">ចូលប្រើ →</span>
-                    </button>
-
-                    <button onclick="fillLogin('officer_0701', 'officer123')" class="flex items-center justify-between p-2.5 rounded-xl border border-blue-200 bg-blue-50/70 hover:bg-blue-100/70 text-blue-900 transition text-left text-xs font-semibold">
-                        <div class="flex items-center gap-2">
-                            <span>🏢</span>
-                            <div>
-                                <div>មន្ត្រីការិយាល័យ ០៧០១</div>
-                                <div class="text-[10px] text-blue-700/80 font-normal">user: officer_0701 | pass: officer123</div>
-                            </div>
-                        </div>
-                        <span class="text-xs">ចូលប្រើ →</span>
-                    </button>
-
-                    <button onclick="fillLogin('chief_v01', 'chief123')" class="flex items-center justify-between p-2.5 rounded-xl border border-emerald-200 bg-emerald-50/70 hover:bg-emerald-100/70 text-emerald-900 transition text-left text-xs font-semibold">
-                        <div class="flex items-center gap-2">
-                            <span>🏡</span>
-                            <div>
-                                <div>មេភូមិរមៀត (V01)</div>
-                                <div class="text-[10px] text-emerald-700/80 font-normal">user: chief_v01 | pass: chief123</div>
-                            </div>
-                        </div>
-                        <span class="text-xs">ចូលប្រើ →</span>
-                    </button>
-                </div>
             </div>
         </div>
 
@@ -100,10 +84,17 @@
     </div>
 
     <script>
-        function fillLogin(u, p) {
-            document.getElementById('usernameInput').value = u;
-            document.getElementById('passwordInput').value = p;
-            document.querySelector('form').submit();
+        function togglePasswordVisibility() {
+            const pwdInput = document.getElementById('passwordInput');
+            const eyeIcon = document.getElementById('pwdEyeIcon');
+            if (!pwdInput) return;
+            if (pwdInput.type === 'password') {
+                pwdInput.type = 'text';
+                eyeIcon.textContent = '🙈';
+            } else {
+                pwdInput.type = 'password';
+                eyeIcon.textContent = '👁️';
+            }
         }
     </script>
 </body>
