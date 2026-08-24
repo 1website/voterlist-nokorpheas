@@ -275,9 +275,32 @@ def test_system():
 
     res_v_usr = client.get("/users", cookies=viewer_cookies)
     assert res_v_usr.status_code == 403
-    print("[PASS] 29. Viewer mutation operations (Delete, Check-in, Add, User Management) all strictly blocked (403 Forbidden)")
+    # 30. Test Strict Login Enforcement Across All Protected Routes (Without Login -> Redirect to /login)
+    protected_routes = [
+        "/",
+        "/dashboard",
+        "/voters",
+        "/checkin",
+        "/reports",
+        "/reports/daily",
+        "/reports/official-list",
+        "/reports/batch-cards",
+        "/stations",
+        "/villages",
+        "/users",
+        "/profile",
+        "/audit-logs",
+        "/backup",
+        "/voters/1/card"
+    ]
+    guest_client = TestClient(app)
+    for route in protected_routes:
+        res_guest = guest_client.get(route, follow_redirects=False)
+        assert res_guest.status_code in [302, 303], f"Route {route} failed to redirect guest: {res_guest.status_code}"
+        assert "/login" in res_guest.headers.get("location", "")
+    print(f"[PASS] 30. Strict login enforcement verified across all {len(protected_routes)} protected routes (All 100% redirect to /login)")
 
-    print("\n ALL 29 SYSTEM TESTS PASSED SUCCESSFULLY! ")
+    print("\n ALL 30 SYSTEM TESTS PASSED SUCCESSFULLY! ")
 
 if __name__ == "__main__":
     test_system()

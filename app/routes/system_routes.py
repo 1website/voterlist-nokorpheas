@@ -3,7 +3,7 @@ import shutil
 import json
 import datetime
 from fastapi import APIRouter, Request, Depends, HTTPException, Query, Form, File, UploadFile
-from fastapi.responses import HTMLResponse, JSONResponse, FileResponse, Response
+from fastapi.responses import HTMLResponse, JSONResponse, FileResponse, Response, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, desc, asc, func
@@ -41,7 +41,7 @@ def audit_logs_page(
 ):
     current_user = get_current_user_optional(request, db)
     if not current_user:
-        return templates.TemplateResponse(request=request, name="auth/login.html", context={"error": "សូមចូលប្រើប្រាស់ជាមុនសិន"})
+        return RedirectResponse(url="/login", status_code=302)
     if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="មានតែអ្នកគ្រប់គ្រងប្រព័ន្ធ (Admin) ប៉ុណ្ណោះដែលអាចមើលកំណត់ត្រាសកម្មភាពបាន")
 
@@ -240,7 +240,7 @@ def clear_audit_logs(request: Request, db: Session = Depends(get_db)):
 def backup_page(request: Request, db: Session = Depends(get_db)):
     current_user = get_current_user_optional(request, db)
     if not current_user:
-        return templates.TemplateResponse(request=request, name="auth/login.html", context={"error": "សូមចូលប្រើប្រាស់ជាមុនសិន"})
+        return RedirectResponse(url="/login", status_code=302)
     if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="មានតែ Admin ប៉ុណ្ណោះដែលអាចគ្រប់គ្រងការបម្រុងទុកទិន្នន័យបាន")
 
