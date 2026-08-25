@@ -10,8 +10,136 @@ if hasattr(sys.stdout, "reconfigure"):
         pass
 import os
 from sqlalchemy.orm import Session
-from app.models import Village, PollingStation, Voter, User
+from app.models import Village, PollingStation, Voter, User, BirthCertificate
 from app.auth import hash_password
+
+def seed_birth_certificates(db: Session):
+    if db.query(BirthCertificate).count() > 0:
+        return
+
+    villages = db.query(Village).order_by(Village.code).all()
+    if not villages:
+        return
+
+    print("Seeding birth certificate records & youth voter pipeline data...")
+
+    kh_first_names_male = ["ស៊ឹម", "កែវ", "ចាន់", "ហេង", "ឡុង", "ប៊ុន", "សុខ", "អ៊ុំ", "អ៊ុក", "ទូច", "សួន", "មាស", "គង់", "ពេជ្រ", "ឈុន"]
+    kh_last_names_male = ["វណ្ណា", "រតនា", "វិចិត្រ", "ធឿន", "សុខា", "ពិសិដ្ឋ", "សំណាង", "តារា", "សម្បត្តិ", "វិបុល", "បញ្ញា", "ចាន់ថន", "វុទ្ធី", "សិលា"]
+
+    kh_first_names_female = ["មាស", "គឹម", "អ៊ុក", "ស៊ឹម", "កែវ", "ចាន់", "ហេង", "ឡុង", "ប៊ុន", "សុខ", "ទូច", "សួន", "ឈុន", "ពេជ្រ"]
+    kh_last_names_female = ["សុផល", "សុជាតិ", "សុភា", "កល្យាណ", "ចិន្តា", "ស្រីពៅ", "ធីតា", "បុប្ផា", "ចរិយា", "មុន្នី", "ទេវី", "រស្មី", "លក្ខិណា", "វណ្ណី"]
+
+    latin_map = {
+        "ស៊ឹម": "SIM", "កែវ": "KEO", "ចាន់": "CHAN", "ហេង": "HENG", "ឡុង": "LONG",
+        "ប៊ុន": "BUN", "សុខ": "SOK", "អ៊ុំ": "OUM", "អ៊ុក": "OUK", "ទូច": "TOUCH",
+        "សួន": "SUON", "មាស": "MEAS", "គង់": "KONG", "ពេជ្រ": "PICH", "ឈុន": "CHHUN",
+        "គឹម": "KIM", "វណ្ណា": "VANNA", "រតនា": "ROTHANA", "វិចិត្រ": "VICHET",
+        "ធឿន": "THOEUN", "សុខា": "SOKHA", "ពិសិដ្ឋ": "PISETH", "សំណាង": "SAMNANG",
+        "តារា": "DARA", "សម្បត្តិ": "SAMBATH", "វិបុល": "VIBOL", "បញ្ញា": "PANHA",
+        "ចាន់ថន": "CHANTHORN", "វុទ្ធី": "VUTHY", "សិលា": "SEILA", "សុផល": "SOPHAL",
+        "សុជាតិ": "SOCHEAT", "សុភា": "SOPHEA", "កល្យាណ": "KALYAN", "ចិន្តា": "CHINDA",
+        "ស្រីពៅ": "SREYPOV", "ធីតា": "THIDA", "បុប្ផា": "BOPHA", "ចរិយា": "CHORIYA",
+        "មុន្នី": "MONY", "ទេវី": "DEVI", "រស្មី": "REAKSMEY", "លក្ខិណា": "LEAKHENA", "វណ្ណី": "VANNY"
+    }
+
+    # Generate 65 realistic birth certificates
+    cert_idx = 1
+    for v in villages:
+        # 6-8 records per village
+        records_for_village = random.randint(6, 8)
+        for _ in range(records_for_village):
+            is_female = random.choice([True, False])
+            if is_female:
+                fn = random.choice(kh_first_names_female)
+                ln = random.choice(kh_last_names_female)
+                gender = "ស្រី"
+            else:
+                fn = random.choice(kh_first_names_male)
+                ln = random.choice(kh_last_names_male)
+                gender = "ប្រុស"
+
+            name_kh = f"{fn} {ln}"
+            en_fn = latin_map.get(fn, fn)
+            en_ln = latin_map.get(ln, ln)
+            name_en = f"{en_fn} {en_ln}"
+
+            # Category distribution:
+            # 40% turning 18 in 2026 (born 2008)
+            # 25% turning 18 next year 2027 (born 2009)
+            # 20% eligible now 19-20 (born 2006-2007)
+            # 15% under 17 (born 2012-2016)
+            cat_rnd = random.random()
+            if cat_rnd < 0.40:
+                b_year = 2008
+                b_month = random.randint(1, 12)
+                b_day = random.randint(1, 28)
+            elif cat_rnd < 0.65:
+                b_year = 2009
+                b_month = random.randint(1, 12)
+                b_day = random.randint(1, 28)
+            elif cat_rnd < 0.85:
+                b_year = random.choice([2006, 2007])
+                b_month = random.randint(1, 12)
+                b_day = random.randint(1, 28)
+            else:
+                b_year = random.randint(2012, 2017)
+                b_month = random.randint(1, 12)
+                b_day = random.randint(1, 28)
+
+            dob_str = f"{b_year}-{b_month:02d}-{b_day:02d}"
+            cert_no = f"ស.ក-{b_year}-{cert_idx:04d}"
+            book_no = f"សៀវភៅលេខ {(cert_idx // 20) + 1:02d}/{b_year}"
+
+            father_fn = random.choice(kh_first_names_male)
+            father_ln = random.choice(kh_last_names_male)
+            father_name = f"{father_fn} {father_ln}"
+
+            mother_fn = random.choice(kh_first_names_female)
+            mother_ln = random.choice(kh_last_names_female)
+            mother_name = f"{mother_fn} {mother_ln}"
+
+            address_str = f"ក្រុមទី {random.randint(1, 12)} {v.name_kh}"
+            pob_str = f"{v.name_kh} ឃុំនគរភាស ស្រុកអង្គរជុំ ខេត្តសៀមរាប"
+
+            # Check if this person should be linked to an existing voter
+            matched_voter = None
+            is_reg = False
+            voter_id = None
+            if b_year <= 2008 and random.random() < 0.50:
+                # Find an active voter in this village
+                voter_cand = db.query(Voter).filter(Voter.village_id == v.id, Voter.status == "active").first()
+                if voter_cand:
+                    # Match name and dob with this voter
+                    name_kh = voter_cand.name_kh
+                    name_en = voter_cand.name_en
+                    gender = voter_cand.gender
+                    dob_str = voter_cand.dob
+                    matched_voter = voter_cand
+                    is_reg = True
+                    voter_id = voter_cand.id
+
+            bc = BirthCertificate(
+                certificate_no=cert_no,
+                book_no=book_no,
+                name_kh=name_kh,
+                name_en=name_en,
+                gender=gender,
+                dob=dob_str,
+                pob=pob_str,
+                father_name=father_name,
+                mother_name=mother_name,
+                address=address_str,
+                village_id=v.id,
+                voter_id=voter_id,
+                is_registered_voter=is_reg,
+                notes="កត់ត្រាក្នុងបញ្ជីអត្រានុកូលដ្ឋានរដ្ឋបាលឃុំនគរភាស",
+                created_at=datetime.datetime.now() - datetime.timedelta(days=random.randint(1, 30))
+            )
+            db.add(bc)
+            cert_idx += 1
+
+    db.commit()
+    print(f"Successfully seeded {cert_idx - 1} birth certificates!")
 
 def seed_database(db: Session):
     # Always ensure Admin account exists
@@ -28,6 +156,9 @@ def seed_database(db: Session):
         db.add(default_admin)
         db.commit()
         print("Ensured default admin account exists.")
+
+    # Always ensure birth certificates are seeded if missing
+    seed_birth_certificates(db)
 
     # Check if already seeded
     if db.query(Village).count() > 0:

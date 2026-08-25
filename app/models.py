@@ -20,6 +20,7 @@ class Village(Base):
     stations = relationship("PollingStation", back_populates="village")
     voters = relationship("Voter", back_populates="village")
     users = relationship("User", back_populates="village")
+    birth_certificates = relationship("BirthCertificate", back_populates="village")
 
     @property
     def total_voters(self):
@@ -28,6 +29,18 @@ class Village(Base):
     @property
     def total_voted(self):
         return len([v for v in self.voters if v.status == "active" and v.has_voted])
+
+    @property
+    def total_birth_records(self):
+        return len(self.birth_certificates)
+
+    @property
+    def eligible_youth_count(self):
+        return len([b for b in self.birth_certificates if b.is_eligible_now or b.is_turning_18_this_year])
+
+    @property
+    def unregistered_youth_count(self):
+        return len([b for b in self.birth_certificates if (b.is_eligible_now or b.is_turning_18_this_year) and not b.is_registered_voter])
 
 
 class PollingStation(Base):
@@ -91,6 +104,7 @@ class Voter(Base):
     village = relationship("Village", back_populates="voters")
     station = relationship("PollingStation", back_populates="voters")
     voted_by_user = relationship("User", foreign_keys=[voted_by_user_id])
+    birth_certificate = relationship("BirthCertificate", back_populates="voter", uselist=False)
 
     @property
     def photo_display(self):
@@ -150,3 +164,113 @@ class AuditLog(Base):
 
     # Relationship
     user = relationship("User", foreign_keys=[user_id])
+
+
+class BirthCertificate(Base):
+    __tablename__ = "birth_certificates"
+
+    id = Column(Integer, primary_key=True, index=True)
+    certificate_no = Column(String(50), unique=True, index=True, nullable=False) # e.g. ស.ក-២០២៦-០០១
+    book_no = Column(String(50), nullable=True)                                  # e.g. ០១/២០២៦
+    name_kh = Column(String(100), nullable=False)                                # ឈ្មោះខ្មែរ
+    name_en = Column(String(100), nullable=False)                                # ឈ្មោះឡាតាំង
+    gender = Column(String(20), nullable=False)                                  # ប្រុស / ស្រី
+    dob = Column(String(50), nullable=False)                                     # YYYY-MM-DD
+    pob = Column(String(255), nullable=True)                                     # ទីកន្លែងកំណើត
+    father_name = Column(String(100), nullable=True)                             # ឈ្មោះឪពុក
+    mother_name = Column(String(100), nullable=True)                             # ឈ្មោះម្តាយ
+    address = Column(String(255), nullable=True)                                 # ក្រុមទី...
+    village_id = Column(Integer, ForeignKey("villages.id"), nullable=False)
+    
+    # ភ្ជាប់ជាមួយ Voter ពេលគាត់បានចុះឈ្មោះបោះឆ្នោត
+    voter_id = Column(Integer, ForeignKey("voters.id"), nullable=True)
+    is_registered_voter = Column(Boolean, default=False)
+    notes = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=get_cambodia_now)
+    updated_at = Column(DateTime, default=get_cambodia_now, onupdate=get_cambodia_now)
+
+    # Relationships
+    village = relationship("Village", back_populates="birth_certificates")
+    voter = relationship("Voter", back_populates="birth_certificate", foreign_keys=[voter_id])
+
+    @property
+    def age(self):
+        try:
+            today = get_cambodia_now().date()
+            dob_parts = [int(p) for p in self.dob.strip().split("-") if p.isdigit()]
+            if len(dob_parts) >= 1:
+                birth_year = dob_parts[0]
+                birth_month = dob_parts[1] if len(dob_parts) >= 2 else 1
+                birth_day = dob_parts[2] if len(dob_parts) >= 3 else 1
+                birth_date = datetime.date(birth_year, birth_month, birth_day)
+                age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
+                return max(0, age)
+        except Exception:
+            pass
+        return 0
+
+    @property
+    def birth_year(self):
+        try:
+            dob_parts = [int(p) for p in self.dob.strip().split("-") if p.isdigit()]
+            if dob_parts:
+                return dob_parts[0]
+        except Exception:
+            pass
+        return 0
+
+    @property
+    def is_eligible_now(self):
+        """Has reached 18 years of age today"""
+        return self.age >= 18
+
+    @property
+    def is_turning_18_this_year(self):
+        """Turns 18 during the current calendar year (e.g. 2026 - birth_year == 18)"""
+        current_year = get_cambodia_now().year
+        return (current_year - self.birth_year) == 18
+
+    @property
+    def is_turning_18_next_year(self):
+        """Turns 18 during next calendar year (e.g. 2026 - birth_year == 17)"""
+        current_year = get_cambodia_now().year
+        return (current_year - self.birth_year) == 17
+
+    @property
+    def eligibility_category(self):
+        if self.is_eligible_now:
+            return "eligible_now" # គ្រប់អាយុបោះឆ្នោត (១៨+)
+        elif self.is_turning_18_this_year:
+            return "turning_18_this_year" # គ្រប់អាយុ ១៨ ឆ្នាំក្នុងឆ្នាំនេះ
+        elif self.is_turning_18_next_year:
+            return "turning_18_next_year" # នឹងគ្រប់អាយុ ១៨ ឆ្នាំនៅឆ្នាំក្រោយ
+        else:
+            return "under_18" # អនីតិជន (<១៧)
+
+    @property
+    def eligibility_badge(self):
+        if self.is_eligible_now:
+            return {
+                "text": "គ្រប់អាយុ (១៨+)",
+                "class": "bg-emerald-100 text-emerald-800 border-emerald-300",
+                "icon": "✅"
+            }
+        elif self.is_turning_18_this_year:
+            return {
+                "text": "គ្រប់អាយុឆ្នាំនេះ",
+                "class": "bg-amber-100 text-amber-800 border-amber-300",
+                "icon": "⚡"
+            }
+        elif self.is_turning_18_next_year:
+            return {
+                "text": "គ្រប់អាយុឆ្នាំក្រោយ",
+                "class": "bg-blue-100 text-blue-800 border-blue-300",
+                "icon": "⏳"
+            }
+        else:
+            return {
+                "text": "អនីតិជន (<១៧)",
+                "class": "bg-slate-100 text-slate-700 border-slate-300",
+                "icon": "👶"
+            }
+

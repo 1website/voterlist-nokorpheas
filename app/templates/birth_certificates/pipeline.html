@@ -1,0 +1,311 @@
+{% extends "base.html" %}
+
+{% block title %}ផ្ទាំងវិភាគទិន្នន័យយុវជន & សិទ្ធិបោះឆ្នោត - រដ្ឋបាលឃុំនគរភាស{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Header & Navigation -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2">
+                <span class="text-2xl sm:text-3xl">📊</span>
+                <h2 class="text-2xl font-bold text-slate-800 font-kh-bold">
+                    ផ្ទាំងវិភាគទិន្នន័យយុវជន & សិទ្ធិបោះឆ្នោត
+                </h2>
+            </div>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">
+                រដ្ឋបាលឃុំនគរភាស • តាមដានស្ថិតិយុវជនគ្រប់អាយុ ១៨ ឆ្នាំ (First-Time Voters) និងអត្រាចុះឈ្មោះតាមភូមិទាំង ១០
+            </p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+            <a href="/birth-certificates" class="btn btn-outline text-slate-700 hover:bg-slate-100 text-sm font-bold flex items-center gap-1.5">
+                <span>📜</span>
+                <span>បញ្ជីសំបុត្រកំណើត</span>
+            </a>
+
+            <a href="/birth-certificates/print-eligible" class="btn btn-primary text-sm shadow-md flex items-center gap-1.5" target="_blank">
+                <span>🖨️</span>
+                <span>បោះពុម្ពបញ្ជីជំរុញតាមភូមិ</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- 4 KPI Stat Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Total Eligible Youth -->
+        <div class="glass-card p-4 flex items-center gap-4 border-l-4 border-blue-600">
+            <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-700 flex items-center justify-center text-2xl flex-shrink-0 shadow-inner">
+                👥
+            </div>
+            <div class="min-w-0">
+                <div class="text-xs text-slate-500 font-bold uppercase tracking-wider">យុវជនគ្រប់អាយុសរុប</div>
+                <div class="text-2xl font-bold text-slate-900 font-mono mt-0.5">{{ all_eligible_count }}</div>
+                <div class="text-[11px] text-blue-700 font-medium mt-0.5">អាយុ ១៨ ឆ្នាំឡើងទៅ</div>
+            </div>
+        </div>
+
+        <!-- Registered Youth -->
+        <div class="glass-card p-4 flex items-center gap-4 border-l-4 border-emerald-500">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center text-2xl flex-shrink-0 shadow-inner">
+                ✅
+            </div>
+            <div class="min-w-0">
+                <div class="text-xs text-slate-500 font-bold uppercase tracking-wider">បានចុះឈ្មោះបោះឆ្នោតរួច</div>
+                <div class="text-2xl font-bold text-emerald-700 font-mono mt-0.5">{{ registered_youth_count }}</div>
+                <div class="text-[11px] text-emerald-600 font-semibold mt-0.5">អត្រាចុះឈ្មោះ {{ reg_rate }}%</div>
+            </div>
+        </div>
+
+        <!-- Unregistered Youth Gap -->
+        <div class="glass-card p-4 flex items-center gap-4 border-l-4 border-rose-500 bg-rose-50/20">
+            <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center text-2xl flex-shrink-0 shadow-inner animate-pulse">
+                ⚠️
+            </div>
+            <div class="min-w-0">
+                <div class="text-xs text-rose-700 font-bold uppercase tracking-wider">មិនទាន់បានចុះឈ្មោះ</div>
+                <div class="text-2xl font-bold text-rose-600 font-mono mt-0.5">{{ unregistered_youth_count }}</div>
+                <div class="text-[11px] text-rose-600 font-semibold mt-0.5">ត្រូវជំរុញឱ្យមកចុះឈ្មោះ</div>
+            </div>
+        </div>
+
+        <!-- Turning 18 Next Year -->
+        <div class="glass-card p-4 flex items-center gap-4 border-l-4 border-purple-500">
+            <div class="w-12 h-12 rounded-2xl bg-purple-50 text-purple-700 flex items-center justify-center text-2xl flex-shrink-0 shadow-inner">
+                ⏳
+            </div>
+            <div class="min-w-0">
+                <div class="text-xs text-slate-500 font-bold uppercase tracking-wider">គ្រប់អាយុឆ្នាំក្រោយ ({{ current_year + 1 }})</div>
+                <div class="text-2xl font-bold text-purple-700 font-mono mt-0.5">{{ turning_18_next_year_count }}</div>
+                <div class="text-[11px] text-purple-600 font-medium mt-0.5">ត្រៀមសម្រាប់រដូវកាលក្រោយ</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Village Breakdown Bar Chart -->
+        <div class="lg:col-span-8 glass-card p-5">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="text-base font-bold text-slate-800 font-kh-heading flex items-center gap-2">
+                        <span>🏢</span> ស្ថានភាពយុវជនគ្រប់អាយុតាមភូមិទាំង ១០
+                    </h3>
+                    <p class="text-xs text-slate-500">ប្រៀបធៀបចំនួនយុវជនបានចុះឈ្មោះ និងមិនទាន់បានចុះឈ្មោះ</p>
+                </div>
+            </div>
+            <div class="h-72 w-full">
+                <canvas id="villageYouthChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Demographics Doughnut Chart -->
+        <div class="lg:col-span-4 glass-card p-5 flex flex-col justify-between">
+            <div>
+                <h3 class="text-base font-bold text-slate-800 font-kh-heading flex items-center gap-2 mb-1">
+                    <span>🍩</span> រចនាសម្ព័ន្ធអាយុក្នុងបញ្ជី
+                </h3>
+                <p class="text-xs text-slate-500 mb-3">បែងចែកតាមក្រុមអាយុ និងសិទ្ធិ</p>
+                <div class="h-56 w-full flex items-center justify-center">
+                    <canvas id="ageGroupChart"></canvas>
+                </div>
+            </div>
+            <div class="pt-3 border-t border-slate-100 grid grid-cols-2 gap-2 text-xs">
+                <div class="flex items-center gap-1.5">
+                    <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                    <span class="text-slate-600">គ្រប់អាយុ (១៨+): <b>{{ eligible_18_plus_count }}</b></span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span class="w-3 h-3 rounded-full bg-amber-500"></span>
+                    <span class="text-slate-600">គ្រប់អាយុឆ្នាំនេះ: <b>{{ turning_18_this_year_count }}</b></span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span class="w-3 h-3 rounded-full bg-purple-500"></span>
+                    <span class="text-slate-600">គ្រប់អាយុឆ្នាំក្រោយ: <b>{{ turning_18_next_year_count }}</b></span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span class="w-3 h-3 rounded-full bg-slate-400"></span>
+                    <span class="text-slate-600">អនីតិជន (<១៧): <b>{{ under_17_count }}</b></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Village Performance & Priority Outreach Table -->
+    <div class="glass-card overflow-hidden">
+        <div class="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+            <div>
+                <h3 class="text-base font-bold text-slate-800 font-kh-heading flex items-center gap-2">
+                    <span>🏘️</span> តារាងតាមដាន និងអាទិភាពចុះជំរុញតាមភូមិនីមួយៗ
+                </h3>
+                <p class="text-xs text-slate-500">រៀបលំដាប់តាមភូមិដែលមានយុវជនមិនទាន់ចុះឈ្មោះច្រើនជាងគេ (Priority Outreach)</p>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-100 text-slate-700 text-xs uppercase border-b border-slate-200 font-kh-heading">
+                        <th class="py-3 px-3 text-center w-12">ល.រ</th>
+                        <th class="py-3 px-3">ឈ្មោះភូមិ</th>
+                        <th class="py-3 px-3">មេភូមិទទួលខុសត្រូវ</th>
+                        <th class="py-3 px-3 text-center">សំបុត្រកំណើតសរុប</th>
+                        <th class="py-3 px-3 text-center">យុវជនគ្រប់អាយុ (១៨+)</th>
+                        <th class="py-3 px-3 text-center">ចុះឈ្មោះរួច</th>
+                        <th class="py-3 px-3 text-center">មិនទាន់ចុះឈ្មោះ (គម្លាត)</th>
+                        <th class="py-3 px-3 text-center w-36">អត្រាចុះឈ្មោះ (%)</th>
+                        <th class="py-3 px-3 text-right">សកម្មភាព</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200/70 text-sm">
+                    {% for vs in village_stats %}
+                    <tr class="hover:bg-blue-50/40 transition {% if vs.unregistered_count > 0 %}bg-rose-50/10{% endif %}">
+                        <td class="py-3 px-3 text-center text-xs font-mono text-slate-400">{{ loop.index }}</td>
+                        
+                        <!-- Village Name -->
+                        <td class="py-3 px-3">
+                            <div class="font-bold text-slate-800">{{ vs.village.name_kh }}</div>
+                            <div class="text-xs text-slate-400 font-mono">{{ vs.village.code }} • {{ vs.village.name_en }}</div>
+                        </td>
+
+                        <!-- Chief -->
+                        <td class="py-3 px-3">
+                            <div class="text-xs font-semibold text-slate-700">{{ vs.village.chief_name or '-' }}</div>
+                            <div class="text-[11px] text-blue-700 font-mono">{{ vs.village.chief_phone or '-' }}</div>
+                        </td>
+
+                        <!-- Total Births -->
+                        <td class="py-3 px-3 text-center font-mono font-bold text-slate-700">
+                            {{ vs.total_births }}
+                        </td>
+
+                        <!-- Eligible Youth -->
+                        <td class="py-3 px-3 text-center font-mono font-bold text-blue-900">
+                            {{ vs.eligible_count }}
+                        </td>
+
+                        <!-- Registered -->
+                        <td class="py-3 px-3 text-center">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-mono font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                {{ vs.registered_count }}
+                            </span>
+                        </td>
+
+                        <!-- Unregistered Gap -->
+                        <td class="py-3 px-3 text-center">
+                            {% if vs.unregistered_count > 0 %}
+                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-rose-100 text-rose-800 border border-rose-300 animate-pulse">
+                                ⚠️ {{ vs.unregistered_count }}
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                💯 គ្រប់ចំនួន
+                            </span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Rate Progress -->
+                        <td class="py-3 px-3 text-center">
+                            <div class="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+                                <div class="bg-gradient-to-r from-blue-600 to-emerald-500 h-2.5 rounded-full" style="width: {{ vs.rate }}%"></div>
+                            </div>
+                            <div class="text-[11px] font-mono font-bold text-slate-700 mt-1">{{ vs.rate }}%</div>
+                        </td>
+
+                        <!-- Actions -->
+                        <td class="py-3 px-3 text-right">
+                            <div class="flex items-center justify-end gap-1.5">
+                                <a href="/birth-certificates?village_id={{ vs.village.id }}&eligibility=turning_18_this_year&reg_status=unregistered" class="btn btn-sm btn-outline text-xs px-2.5 py-1 text-blue-900 border-blue-200 hover:bg-blue-50" title="មើលបញ្ជីយុវជនមិនទាន់ចុះឈ្មោះ">
+                                    🔍 មើលបញ្ជី
+                                </a>
+                                <a href="/birth-certificates/print-eligible?village_id={{ vs.village.id }}" class="btn btn-sm btn-primary text-xs px-2.5 py-1" target="_blank" title="បោះពុម្ពសម្រាប់ភូមិនេះ">
+                                    🖨️ Print
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    // 1. Village Youth Bar Chart
+    const villageLabels = {{ village_stats|map(attribute='village.name_kh')|list|tojson }};
+    const registeredData = {{ village_stats|map(attribute='registered_count')|list|tojson }};
+    const unregisteredData = {{ village_stats|map(attribute='unregistered_count')|list|tojson }};
+
+    const ctx1 = document.getElementById('villageYouthChart').getContext('2d');
+    new Chart(ctx1, {
+        type: 'bar',
+        data: {
+            labels: villageLabels,
+            datasets: [
+                {
+                    label: 'បានចុះឈ្មោះបោះឆ្នោតរួច',
+                    data: registeredData,
+                    backgroundColor: '#10b981',
+                    borderRadius: 6
+                },
+                {
+                    label: 'មិនទាន់បានចុះឈ្មោះ (Gap)',
+                    data: unregisteredData,
+                    backgroundColor: '#f43f5e',
+                    borderRadius: 6
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    stacked: false,
+                    grid: { display: false }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: { precision: 0 }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: { font: { family: 'Khmer OS Siemreap', size: 11 } }
+                }
+            }
+        }
+    });
+
+    // 2. Demographics Doughnut Chart
+    const ctx2 = document.getElementById('ageGroupChart').getContext('2d');
+    new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+            labels: ['គ្រប់អាយុ (១៨+)', 'គ្រប់អាយុឆ្នាំនេះ', 'គ្រប់អាយុឆ្នាំក្រោយ', 'អនីតិជន (<១៧)'],
+            datasets: [{
+                data: [
+                    {{ eligible_18_plus_count }},
+                    {{ turning_18_this_year_count }},
+                    {{ turning_18_next_year_count }},
+                    {{ under_17_count }}
+                ],
+                backgroundColor: ['#10b981', '#f59e0b', '#a855f7', '#94a3b8']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            cutout: '65%'
+        }
+    });
+});
+</script>
+{% endblock %}

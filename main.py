@@ -24,7 +24,8 @@ from app.routes import (
     checkin_routes,
     report_routes,
     user_routes,
-    system_routes
+    system_routes,
+    birth_routes
 )
 
 import time
@@ -34,6 +35,7 @@ def init_database_with_retry(max_retries=6, delay_sec=2):
     for attempt in range(1, max_retries + 1):
         try:
             print(f"🔄 Initializing database (Attempt {attempt}/{max_retries})...")
+            import app.models
             Base.metadata.create_all(bind=engine)
             from app.database import ensure_schema_migrations
             ensure_schema_migrations()
@@ -83,6 +85,7 @@ app.include_router(checkin_routes.router)
 app.include_router(report_routes.router)
 app.include_router(user_routes.router)
 app.include_router(system_routes.router)
+app.include_router(birth_routes.router)
 
 if __name__ == "__main__":
     port = 8000

@@ -1,0 +1,681 @@
+{% extends "base.html" %}
+
+{% block title %}បញ្ជីកត់ត្រាសំបុត្រកំណើត & យុវជន - រដ្ឋបាលឃុំនគរភាស{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Top Header & Actions -->
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2">
+                <span class="text-2xl sm:text-3xl">📜</span>
+                <h2 class="text-2xl font-bold text-slate-800 font-kh-bold">
+                    កត់ត្រាសំបុត្រកំណើត & តាមដានយុវជនគ្រប់អាយុ
+                </h2>
+            </div>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">
+                រដ្ឋបាលឃុំនគរភាស • គ្រប់គ្រងអត្រានុកូលដ្ឋាន និងតាមដានយុវជនគ្រប់អាយុបោះឆ្នោត ១៨ ឆ្នាំ (First-Time Voters)
+            </p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+            {% if current_user.role in ['admin', 'officer', 'village_chief'] %}
+            <button onclick="openAddBirthModal()" class="btn btn-primary text-sm shadow-md flex items-center gap-1.5">
+                <span>➕</span>
+                <span>កត់ត្រាសំបុត្រកំណើតថ្មី</span>
+            </button>
+            {% endif %}
+            
+            <a href="/birth-certificates/youth-pipeline" class="btn btn-outline text-blue-900 border-blue-300 hover:bg-blue-50 text-sm font-bold flex items-center gap-1.5">
+                <span>📊</span>
+                <span>ផ្ទាំងវិភាគយុវជន</span>
+            </a>
+
+            <a href="/birth-certificates/print-eligible{% if selected_village_id %}?village_id={{ selected_village_id }}{% endif %}" class="btn btn-outline text-amber-900 border-amber-300 hover:bg-amber-50 text-sm font-bold flex items-center gap-1.5" target="_blank">
+                <span>🖨️</span>
+                <span>បញ្ជីជំរុញ (Print)</span>
+            </a>
+
+            <a href="/birth-certificates/export-excel?village_id={{ village_id }}&eligibility={{ eligibility }}&reg_status={{ reg_status }}" class="btn btn-outline text-emerald-900 border-emerald-300 hover:bg-emerald-50 text-sm font-bold flex items-center gap-1.5">
+                <span>📥</span>
+                <span>Export Excel</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- KPI Summary Stat Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Total Birth Records -->
+        <div class="glass-card p-4 flex items-center gap-4 border-l-4 border-blue-600">
+            <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-700 flex items-center justify-center text-2xl flex-shrink-0 shadow-inner">
+                📜
+            </div>
+            <div class="min-w-0">
+                <div class="text-xs text-slate-500 font-bold uppercase tracking-wider">សំបុត្រកំណើតសរុប</div>
+                <div class="text-2xl font-bold text-slate-900 font-mono mt-0.5">{{ kpi_total }}</div>
+                <div class="text-[11px] text-slate-500 mt-0.5">ទិន្នន័យអត្រានុកូលដ្ឋានឃុំ</div>
+            </div>
+        </div>
+
+        <!-- Turning 18 This Year -->
+        <div class="glass-card p-4 flex items-center gap-4 border-l-4 border-amber-500">
+            <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center text-2xl flex-shrink-0 shadow-inner">
+                ⚡
+            </div>
+            <div class="min-w-0">
+                <div class="text-xs text-slate-500 font-bold uppercase tracking-wider">គ្រប់អាយុក្នុងឆ្នាំ {{ current_year }}</div>
+                <div class="text-2xl font-bold text-amber-700 font-mono mt-0.5">{{ kpi_turning_18_this_year }}</div>
+                <div class="text-[11px] text-amber-600 font-medium mt-0.5">យុវជនបោះឆ្នោតលើកដំបូង</div>
+            </div>
+        </div>
+
+        <!-- Unregistered Gap -->
+        <div class="glass-card p-4 flex items-center gap-4 border-l-4 border-rose-500 bg-rose-50/20">
+            <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center text-2xl flex-shrink-0 shadow-inner animate-pulse">
+                ⚠️
+            </div>
+            <div class="min-w-0">
+                <div class="text-xs text-rose-700 font-bold uppercase tracking-wider">គ្រប់អាយុមិនទាន់ចុះឈ្មោះ</div>
+                <div class="text-2xl font-bold text-rose-600 font-mono mt-0.5">{{ kpi_unregistered_eligible }}</div>
+                <div class="text-[11px] text-rose-600 font-semibold mt-0.5">មុខសញ្ញាត្រូវចុះជំរុញ</div>
+            </div>
+        </div>
+
+        <!-- Youth Registration Rate -->
+        <div class="glass-card p-4 flex items-center gap-4 border-l-4 border-emerald-500">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center text-2xl flex-shrink-0 shadow-inner">
+                🎯
+            </div>
+            <div class="min-w-0">
+                <div class="text-xs text-slate-500 font-bold uppercase tracking-wider">អត្រាយុវជនបានចុះឈ្មោះ</div>
+                <div class="text-2xl font-bold text-emerald-700 font-mono mt-0.5">{{ kpi_reg_rate }}%</div>
+                <div class="text-[11px] text-slate-500 mt-0.5">ចុះរួច {{ kpi_registered_eligible }} / {{ kpi_eligible_now }} នាក់</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search & Multi-Filter Bar -->
+    <div class="glass-card p-5">
+        <form method="GET" action="/birth-certificates" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            <!-- Keyword Search -->
+            <div class="lg:col-span-2">
+                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ស្វែងរក (ឈ្មោះ / លេខសំបុត្រ / ឪពុក-ម្តាយ)</label>
+                <input type="text" name="q" value="{{ q }}" placeholder="បញ្ចូលឈ្មោះ ឬលេខសំបុត្រ..." class="form-control text-sm py-2">
+            </div>
+
+            <!-- Village Filter -->
+            <div>
+                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ភូមិ (១០ ភូមិ)</label>
+                <select name="village_id" class="form-control text-sm py-2" {% if current_user.role == 'village_chief' %}disabled{% endif %}>
+                    <option value="">-- គ្រប់ភូមិទាំងអស់ --</option>
+                    {% for v in villages %}
+                    <option value="{{ v.id }}" {% if village_id == v.id|string or selected_village_id == v.id %}selected{% endif %}>{{ v.name_kh }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Eligibility Category Filter -->
+            <div>
+                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ក្រុមអាយុ / សិទ្ធិបោះឆ្នោត</label>
+                <select name="eligibility" class="form-control text-sm py-2">
+                    <option value="all" {% if eligibility == 'all' %}selected{% endif %}>-- គ្រប់អាយុ --</option>
+                    <option value="turning_18_this_year" {% if eligibility == 'turning_18_this_year' %}selected{% endif %}>⚡ គ្រប់អាយុឆ្នាំនេះ ({{ current_year }})</option>
+                    <option value="eligible_now" {% if eligibility == 'eligible_now' %}selected{% endif %}>✅ គ្រប់អាយុ (១៨+)</option>
+                    <option value="turning_18_next_year" {% if eligibility == 'turning_18_next_year' %}selected{% endif %}>⏳ គ្រប់អាយុឆ្នាំក្រោយ ({{ current_year + 1 }})</option>
+                    <option value="under_18" {% if eligibility == 'under_18' %}selected{% endif %}>👶 អនីតិជន (<១៧)</option>
+                </select>
+            </div>
+
+            <!-- Registration Status Filter -->
+            <div>
+                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ស្ថានភាពចុះឈ្មោះ</label>
+                <select name="reg_status" class="form-control text-sm py-2">
+                    <option value="all" {% if reg_status == 'all' %}selected{% endif %}>-- ទាំងអស់ --</option>
+                    <option value="unregistered" {% if reg_status == 'unregistered' %}selected{% endif %}>⚠️ មិនទាន់ចុះឈ្មោះ</option>
+                    <option value="registered" {% if reg_status == 'registered' %}selected{% endif %}>✅ បានចុះឈ្មោះរួច</option>
+                </select>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex items-end gap-2">
+                <button type="submit" class="btn btn-primary text-sm py-2 flex-1 flex items-center justify-center gap-1 shadow-xs">
+                    <span>🔍</span> <span>ស្វែងរក</span>
+                </button>
+                <a href="/birth-certificates" class="btn btn-outline text-sm py-2 px-3 hover:bg-slate-100" title="សម្អាតតម្រង">
+                    🔄
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Main Table Card -->
+    <div class="glass-card overflow-hidden">
+        <div class="p-4 bg-slate-50/80 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+                <span class="text-slate-700 font-bold text-sm">បញ្ជីសំបុត្រកំណើត</span>
+                <span class="badge bg-blue-100 text-blue-900 border-blue-200 text-xs font-bold">{{ total_count }} កំណត់ត្រា</span>
+            </div>
+            <div class="text-xs text-slate-500">
+                ទំព័រទី <span class="font-bold text-slate-800">{{ page }}</span> នៃ <span class="font-bold text-slate-800">{{ total_pages }}</span>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-100/90 text-slate-700 text-xs uppercase border-b border-slate-200 font-kh-heading">
+                        <th class="py-3 px-3 text-center w-12">ល.រ</th>
+                        <th class="py-3 px-3">លេខសំបុត្រកំណើត</th>
+                        <th class="py-3 px-3">ឈ្មោះពលរដ្ឋ</th>
+                        <th class="py-3 px-3 text-center">ភេទ</th>
+                        <th class="py-3 px-3">ថ្ងៃខែឆ្នាំកំណើត & អាយុ</th>
+                        <th class="py-3 px-3 text-center">សិទ្ធិបោះឆ្នោត</th>
+                        <th class="py-3 px-3">ភូមិ & ឪពុកម្តាយ</th>
+                        <th class="py-3 px-3 text-center">ស្ថានភាពបោះឆ្នោត</th>
+                        <th class="py-3 px-3 text-right">សកម្មភាព</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200/70 text-sm">
+                    {% if records %}
+                        {% for r in records %}
+                        <tr class="hover:bg-blue-50/40 transition">
+                            <!-- Index -->
+                            <td class="py-3 px-3 text-center text-xs font-mono text-slate-400">
+                                {{ (page - 1) * page_size + loop.index }}
+                            </td>
+
+                            <!-- Certificate No -->
+                            <td class="py-3 px-3">
+                                <div class="font-bold text-blue-950 font-mono text-xs">{{ r.certificate_no }}</div>
+                                {% if r.book_no %}
+                                <div class="text-[10px] text-slate-400 font-mono">សៀវភៅ៖ {{ r.book_no }}</div>
+                                {% endif %}
+                            </td>
+
+                            <!-- Name -->
+                            <td class="py-3 px-3">
+                                <div class="font-bold text-slate-800 text-sm">{{ r.name_kh }}</div>
+                                <div class="text-xs text-slate-500 font-mono font-medium tracking-wide uppercase">{{ r.name_en }}</div>
+                            </td>
+
+                            <!-- Gender -->
+                            <td class="py-3 px-3 text-center">
+                                {% if r.gender == 'ស្រី' %}
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-pink-50 text-pink-700 border border-pink-200">
+                                    ស្រី
+                                </span>
+                                {% else %}
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                                    ប្រុស
+                                </span>
+                                {% endif %}
+                            </td>
+
+                            <!-- DOB & Age -->
+                            <td class="py-3 px-3">
+                                <div class="font-mono text-xs font-semibold text-slate-800">{{ r.dob }}</div>
+                                <div class="text-xs text-slate-500 font-kh-bold">
+                                    អាយុ៖ <span class="font-bold text-blue-900 font-mono">{{ r.age }}</span> ឆ្នាំ
+                                </div>
+                            </td>
+
+                            <!-- Eligibility Badge -->
+                            <td class="py-3 px-3 text-center">
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold border {{ r.eligibility_badge.class }}">
+                                    <span>{{ r.eligibility_badge.icon }}</span>
+                                    <span>{{ r.eligibility_badge.text }}</span>
+                                </span>
+                            </td>
+
+                            <!-- Village & Parents -->
+                            <td class="py-3 px-3">
+                                <div class="text-xs font-bold text-slate-800">{{ r.village.name_kh if r.village else 'N/A' }}</div>
+                                <div class="text-[11px] text-slate-500 truncate max-w-[180px]" title="ឪពុក៖ {{ r.father_name or '-' }} | ម្តាយ៖ {{ r.mother_name or '-' }}">
+                                    {% if r.father_name or r.mother_name %}
+                                    ឳ/ម៖ {{ r.father_name or '' }}{% if r.father_name and r.mother_name %} - {% endif %}{{ r.mother_name or '' }}
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </div>
+                            </td>
+
+                            <!-- Voting Status -->
+                            <td class="py-3 px-3 text-center">
+                                {% if r.is_registered_voter and r.voter %}
+                                <div class="inline-flex flex-col items-center">
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                        <span>✅</span> <span>បានចុះឈ្មោះ</span>
+                                    </span>
+                                    <span class="text-[10px] font-mono text-slate-500 font-bold mt-0.5">{{ r.voter.voter_code }}</span>
+                                </div>
+                                {% else %}
+                                    {% if r.is_eligible_now or r.is_turning_18_this_year %}
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-300 animate-pulse">
+                                        <span>⚠️</span> <span>មិនទាន់ចុះឈ្មោះ</span>
+                                    </span>
+                                    {% else %}
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 border border-slate-300">
+                                        មិនទាន់ដល់អាយុ
+                                    </span>
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+
+                            <!-- Actions -->
+                            <td class="py-3 px-3 text-right">
+                                <div class="flex items-center justify-end gap-1.5">
+                                    {% if not r.is_registered_voter and (r.is_eligible_now or r.is_turning_18_this_year) and current_user.role in ['admin', 'officer'] %}
+                                    <button onclick="openConvertModal('{{ r.id }}', '{{ r.name_kh }}', '{{ r.name_en }}', '{{ r.dob }}', '{{ r.village_id }}', '{{ r.village.name_kh if r.village else '' }}', '{{ r.address or '' }}')" class="btn btn-sm bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold px-2.5 py-1 rounded-xl shadow-xs text-xs flex items-center gap-1" title="បំប្លែងទៅជាអ្នកបោះឆ្នោត (1-Click Promote to Voter)">
+                                        <span>⚡</span>
+                                        <span>ចុះជា Voter</span>
+                                    </button>
+                                    {% endif %}
+
+                                    {% if current_user.role in ['admin', 'officer', 'village_chief'] %}
+                                    <button onclick="openEditBirthModal('{{ r.id }}', '{{ r.certificate_no }}', '{{ r.book_no or '' }}', '{{ r.name_kh }}', '{{ r.name_en }}', '{{ r.gender }}', '{{ r.dob }}', '{{ r.pob or '' }}', '{{ r.father_name or '' }}', '{{ r.mother_name or '' }}', '{{ r.address or '' }}', '{{ r.village_id }}', '{{ r.notes or '' }}')" class="p-1.5 rounded-xl border border-slate-200 text-slate-600 hover:text-blue-900 hover:bg-blue-50 transition" title="កែប្រែ">
+                                        ✏️
+                                    </button>
+                                    {% endif %}
+
+                                    {% if current_user.role == 'admin' %}
+                                    <form method="POST" action="/birth-certificates/delete/{{ r.id }}" onsubmit="return confirm('តើអ្នកពិតជាចង់លុបសំបុត្រកំណើតលេខ {{ r.certificate_no }} ឈ្មោះ {{ r.name_kh }} នេះមែនទេ?');" class="inline">
+                                        <button type="submit" class="p-1.5 rounded-xl border border-slate-200 text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition" title="លុប">
+                                            🗑️
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="9" class="py-12 text-center text-slate-400">
+                                <div class="text-4xl mb-2">📜</div>
+                                <div class="text-base font-bold text-slate-600">មិនមានទិន្នន័យសំបុត្រកំណើតឡើយ</div>
+                                <p class="text-xs text-slate-400 mt-1">សូមសាកល្បងផ្លាស់ប្តូរពាក្យស្វែងរក ឬបន្ថែមសំបុត្រកំណើតថ្មី</p>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if total_pages > 1 %}
+        <div class="p-4 border-t border-slate-200 bg-slate-50/60 flex items-center justify-between">
+            <div class="text-xs text-slate-500">
+                បង្ហាញទិន្នន័យពី <span class="font-bold">{{ (page - 1) * page_size + 1 }}</span> ដល់ <span class="font-bold">{{ [page * page_size, total_count]|min }}</span> នៃ <span class="font-bold">{{ total_count }}</span>
+            </div>
+            <div class="flex items-center gap-1">
+                {% if page > 1 %}
+                <a href="/birth-certificates?page={{ page - 1 }}&q={{ q }}&village_id={{ village_id }}&eligibility={{ eligibility }}&reg_status={{ reg_status }}" class="btn btn-outline text-xs px-3 py-1.5">
+                    ⬅️ ថយក្រោយ
+                </a>
+                {% endif %}
+
+                <span class="px-3 py-1 text-xs font-mono font-bold text-slate-700 bg-white border border-slate-200 rounded-xl shadow-xs">
+                    {{ page }} / {{ total_pages }}
+                </span>
+
+                {% if page < total_pages %}
+                <a href="/birth-certificates?page={{ page + 1 }}&q={{ q }}&village_id={{ village_id }}&eligibility={{ eligibility }}&reg_status={{ reg_status }}" class="btn btn-outline text-xs px-3 py-1.5">
+                    បន្ទាប់ ➡️
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODAL: ADD BIRTH CERTIFICATE -->
+<!-- ========================================================================= -->
+<div id="addBirthModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-200">
+        <div class="p-5 border-b border-slate-200 flex items-center justify-between sticky top-0 bg-white z-10">
+            <div class="flex items-center gap-2">
+                <span class="text-2xl">📜</span>
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800 font-kh-heading">កត់ត្រាសំបុត្រកំណើតថ្មី</h3>
+                    <p class="text-xs text-slate-500">បញ្ចូលទិន្នន័យអត្រានុកូលដ្ឋានចូលក្នុងប្រព័ន្ធឃុំ</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeAddBirthModal()" class="text-slate-400 hover:text-slate-700 text-lg font-bold p-1 rounded-lg">✕</button>
+        </div>
+
+        <form method="POST" action="/birth-certificates/create" class="p-6 space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- Certificate No -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">លេខសំបុត្រកំណើត <span class="text-rose-500">*</span></label>
+                    <input type="text" name="certificate_no" required placeholder="ឧ. ស.ក-២០២៦-០០១" class="form-control text-sm">
+                </div>
+
+                <!-- Book No -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">លេខសៀវភៅអត្រានុកូលដ្ឋាន</label>
+                    <input type="text" name="book_no" placeholder="ឧ. សៀវភៅលេខ ០១/២០២៦" class="form-control text-sm">
+                </div>
+
+                <!-- Name Khmer -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">ឈ្មោះជាភាសាខ្មែរ <span class="text-rose-500">*</span></label>
+                    <input type="text" name="name_kh" required placeholder="ឧ. ស៊ឹម ចាន់ថន" class="form-control text-sm font-kh-bold">
+                </div>
+
+                <!-- Name Latin -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">ឈ្មោះជាអក្សរឡាតាំង <span class="text-rose-500">*</span></label>
+                    <input type="text" name="name_en" required placeholder="ឧ. SIM CHANTHORN" class="form-control text-sm uppercase font-mono">
+                </div>
+
+                <!-- Gender -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">ភេទ <span class="text-rose-500">*</span></label>
+                    <select name="gender" required class="form-control text-sm">
+                        <option value="ប្រុស">ប្រុស (Male)</option>
+                        <option value="ស្រី">ស្រី (Female)</option>
+                    </select>
+                </div>
+
+                <!-- DOB -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">ថ្ងៃខែឆ្នាំកំណើត <span class="text-rose-500">*</span></label>
+                    <input type="date" name="dob" required class="form-control text-sm font-mono">
+                </div>
+
+                <!-- Village -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">ភូមិ <span class="text-rose-500">*</span></label>
+                    <select name="village_id" required class="form-control text-sm">
+                        {% for v in villages %}
+                        <option value="{{ v.id }}" {% if current_user.village_id == v.id %}selected{% endif %}>{{ v.name_kh }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Place of Birth -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">ទីកន្លែងកំណើត</label>
+                    <input type="text" name="pob" placeholder="ឧ. ឃុំនគរភាស ស្រុកអង្គរជុំ ខេត្តសៀមរាប" class="form-control text-sm">
+                </div>
+
+                <!-- Father Name -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">ឈ្មោះឪពុក</label>
+                    <input type="text" name="father_name" placeholder="ឧ. ស៊ឹម វណ្ណា" class="form-control text-sm">
+                </div>
+
+                <!-- Mother Name -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">ឈ្មោះម្តាយ</label>
+                    <input type="text" name="mother_name" placeholder="ឧ. អ៊ុក សុភា" class="form-control text-sm">
+                </div>
+            </div>
+
+            <!-- Address -->
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">អាសយដ្ឋានបច្ចុប្បន្ន</label>
+                <input type="text" name="address" placeholder="ឧ. ក្រុមទី ៣ ភូមិរមៀត" class="form-control text-sm">
+            </div>
+
+            <!-- Notes -->
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">កំណត់ចំណាំ</label>
+                <textarea name="notes" rows="2" placeholder="ព័ត៌មានបន្ថែម..." class="form-control text-sm"></textarea>
+            </div>
+
+            <div class="pt-4 border-t border-slate-200 flex items-center justify-end gap-2">
+                <button type="button" onclick="closeAddBirthModal()" class="btn btn-outline text-sm">បោះបង់</button>
+                <button type="submit" class="btn btn-primary text-sm shadow-md">
+                    <span>💾</span> រក្សាទុកសំបុត្រកំណើត
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODAL: EDIT BIRTH CERTIFICATE -->
+<!-- ========================================================================= -->
+<div id="editBirthModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-200">
+        <div class="p-5 border-b border-slate-200 flex items-center justify-between sticky top-0 bg-white z-10">
+            <div class="flex items-center gap-2">
+                <span class="text-2xl">✏️</span>
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800 font-kh-heading">កែប្រែសំបុត្រកំណើត</h3>
+                    <p class="text-xs text-slate-500">កែសម្រួលព័ត៌មានអត្រានុកូលដ្ឋាន</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeEditBirthModal()" class="text-slate-400 hover:text-slate-700 text-lg font-bold p-1 rounded-lg">✕</button>
+        </div>
+
+        <form id="editBirthForm" method="POST" action="" class="p-6 space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- Certificate No -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">លេខសំបុត្រកំណើត <span class="text-rose-500">*</span></label>
+                    <input type="text" id="edit_cert_no" name="certificate_no" required class="form-control text-sm">
+                </div>
+
+                <!-- Book No -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">លេខសៀវភៅ</label>
+                    <input type="text" id="edit_book_no" name="book_no" class="form-control text-sm">
+                </div>
+
+                <!-- Name Khmer -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">ឈ្មោះជាភាសាខ្មែរ <span class="text-rose-500">*</span></label>
+                    <input type="text" id="edit_name_kh" name="name_kh" required class="form-control text-sm font-kh-bold">
+                </div>
+
+                <!-- Name Latin -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">ឈ្មោះជាអក្សរឡាតាំង <span class="text-rose-500">*</span></label>
+                    <input type="text" id="edit_name_en" name="name_en" required class="form-control text-sm uppercase font-mono">
+                </div>
+
+                <!-- Gender -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">ភេទ <span class="text-rose-500">*</span></label>
+                    <select id="edit_gender" name="gender" required class="form-control text-sm">
+                        <option value="ប្រុស">ប្រុស (Male)</option>
+                        <option value="ស្រី">ស្រី (Female)</option>
+                    </select>
+                </div>
+
+                <!-- DOB -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">ថ្ងៃខែឆ្នាំកំណើត <span class="text-rose-500">*</span></label>
+                    <input type="date" id="edit_dob" name="dob" required class="form-control text-sm font-mono">
+                </div>
+
+                <!-- Village -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">ភូមិ <span class="text-rose-500">*</span></label>
+                    <select id="edit_village_id" name="village_id" required class="form-control text-sm">
+                        {% for v in villages %}
+                        <option value="{{ v.id }}">{{ v.name_kh }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Place of Birth -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">ទីកន្លែងកំណើត</label>
+                    <input type="text" id="edit_pob" name="pob" class="form-control text-sm">
+                </div>
+
+                <!-- Father Name -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">ឈ្មោះឪពុក</label>
+                    <input type="text" id="edit_father_name" name="father_name" class="form-control text-sm">
+                </div>
+
+                <!-- Mother Name -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">ឈ្មោះម្តាយ</label>
+                    <input type="text" id="edit_mother_name" name="mother_name" class="form-control text-sm">
+                </div>
+            </div>
+
+            <!-- Address -->
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">អាសយដ្ឋានបច្ចុប្បន្ន</label>
+                <input type="text" id="edit_address" name="address" class="form-control text-sm">
+            </div>
+
+            <!-- Notes -->
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">កំណត់ចំណាំ</label>
+                <textarea id="edit_notes" name="notes" rows="2" class="form-control text-sm"></textarea>
+            </div>
+
+            <div class="pt-4 border-t border-slate-200 flex items-center justify-end gap-2">
+                <button type="button" onclick="closeEditBirthModal()" class="btn btn-outline text-sm">បោះបង់</button>
+                <button type="submit" class="btn btn-primary text-sm shadow-md">
+                    <span>💾</span> រក្សាទុកការកែប្រែ
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODAL: CONVERT TO VOTER (1-CLICK PROMOTE) -->
+<!-- ========================================================================= -->
+<div id="convertModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-slate-200">
+        <div class="p-5 border-b border-slate-200 flex items-center justify-between bg-gradient-to-r from-blue-900 to-indigo-950 text-white rounded-t-2xl">
+            <div class="flex items-center gap-2">
+                <span class="text-2xl">⚡</span>
+                <div>
+                    <h3 class="text-lg font-bold font-kh-heading">ចុះឈ្មោះជាអ្នកបោះឆ្នោត</h3>
+                    <p class="text-xs text-blue-200">បំប្លែងព័ត៌មានពីសំបុត្រកំណើតទៅកាន់បញ្ជីឈ្មោះបោះឆ្នោត</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeConvertModal()" class="text-white/70 hover:text-white text-lg font-bold p-1 rounded-lg">✕</button>
+        </div>
+
+        <form id="convertForm" method="POST" action="" class="p-6 space-y-4">
+            <!-- Summary Info Box -->
+            <div class="p-3.5 rounded-xl bg-blue-50/80 border border-blue-200 text-xs space-y-1">
+                <div class="flex justify-between">
+                    <span class="text-slate-500">ឈ្មោះពលរដ្ឋ៖</span>
+                    <span id="cv_name_kh" class="font-bold text-slate-800 font-kh-bold text-sm"></span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-500">ឈ្មោះឡាតាំង៖</span>
+                    <span id="cv_name_en" class="font-bold text-blue-900 font-mono"></span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-500">ថ្ងៃខែឆ្នាំកំណើត៖</span>
+                    <span id="cv_dob" class="font-bold text-slate-800 font-mono"></span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-500">ភូមិ៖</span>
+                    <span id="cv_village_name" class="font-bold text-slate-800"></span>
+                </div>
+            </div>
+
+            <!-- National ID Input -->
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">
+                    លេខអត្តសញ្ញាណប័ណ្ណសញ្ជាតិខ្មែរ (៩ ខ្ទង់) ឬ ឯ.អ (៧ ខ្ទង់) <span class="text-rose-500">*</span>
+                </label>
+                <input type="text" name="national_id" required placeholder="ឧ. 012345678" maxlength="10" class="form-control text-base font-mono font-bold tracking-wider text-blue-900 focus:ring-2 focus:ring-blue-500">
+                <p class="text-[11px] text-slate-400 mt-1">បញ្ចូលលេខ ៩ ខ្ទង់ ឬលេខ ៧ ខ្ទង់សម្រាប់ឯកសារបញ្ជាក់អត្តសញ្ញាណ</p>
+            </div>
+
+            <!-- Polling Station Selection -->
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">
+                    ការិយាល័យបោះឆ្នោតដែលត្រូវចាត់តាំង <span class="text-rose-500">*</span>
+                </label>
+                <select name="station_id" id="cv_station_select" required class="form-control text-sm">
+                    {% for s in stations %}
+                    <option value="{{ s.id }}" data-village-id="{{ s.village_id }}">{{ s.code }} - {{ s.name }} ({{ s.location }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Address Input -->
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">អាសយដ្ឋានជាក់ស្តែង</label>
+                <input type="text" id="cv_address" name="address" class="form-control text-sm">
+            </div>
+
+            <div class="pt-4 border-t border-slate-200 flex items-center justify-end gap-2">
+                <button type="button" onclick="closeConvertModal()" class="btn btn-outline text-sm">បោះបង់</button>
+                <button type="submit" class="btn btn-primary text-sm shadow-md flex items-center gap-1.5">
+                    <span>⚡</span> បញ្ជាក់ការចុះឈ្មោះ
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openAddBirthModal() {
+    document.getElementById('addBirthModal').classList.remove('hidden');
+    document.getElementById('addBirthModal').classList.add('flex');
+}
+function closeAddBirthModal() {
+    document.getElementById('addBirthModal').classList.add('hidden');
+    document.getElementById('addBirthModal').classList.remove('flex');
+}
+
+function openEditBirthModal(id, certNo, bookNo, nameKh, nameEn, gender, dob, pob, father, mother, address, villageId, notes) {
+    document.getElementById('editBirthForm').action = `/birth-certificates/edit/${id}`;
+    document.getElementById('edit_cert_no').value = certNo;
+    document.getElementById('edit_book_no').value = bookNo;
+    document.getElementById('edit_name_kh').value = nameKh;
+    document.getElementById('edit_name_en').value = nameEn;
+    document.getElementById('edit_gender').value = gender;
+    document.getElementById('edit_dob').value = dob;
+    document.getElementById('edit_pob').value = pob;
+    document.getElementById('edit_father_name').value = father;
+    document.getElementById('edit_mother_name').value = mother;
+    document.getElementById('edit_address').value = address;
+    document.getElementById('edit_village_id').value = villageId;
+    document.getElementById('edit_notes').value = notes;
+
+    document.getElementById('editBirthModal').classList.remove('hidden');
+    document.getElementById('editBirthModal').classList.add('flex');
+}
+function closeEditBirthModal() {
+    document.getElementById('editBirthModal').classList.add('hidden');
+    document.getElementById('editBirthModal').classList.remove('flex');
+}
+
+function openConvertModal(id, nameKh, nameEn, dob, villageId, villageName, address) {
+    document.getElementById('convertForm').action = `/birth-certificates/convert-to-voter/${id}`;
+    document.getElementById('cv_name_kh').innerText = nameKh;
+    document.getElementById('cv_name_en').innerText = nameEn;
+    document.getElementById('cv_dob').innerText = dob;
+    document.getElementById('cv_village_name').innerText = villageName;
+    document.getElementById('cv_address').value = address;
+
+    // Auto-select station belonging to this village if possible
+    const select = document.getElementById('cv_station_select');
+    for (let opt of select.options) {
+        if (opt.getAttribute('data-village-id') === villageId) {
+            opt.selected = true;
+            break;
+        }
+    }
+
+    document.getElementById('convertModal').classList.remove('hidden');
+    document.getElementById('convertModal').classList.add('flex');
+}
+function closeConvertModal() {
+    document.getElementById('convertModal').classList.add('hidden');
+    document.getElementById('convertModal').classList.remove('flex');
+}
+</script>
+{% endblock %}

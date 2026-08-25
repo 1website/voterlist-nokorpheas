@@ -45,3 +45,25 @@ class StationSchema(BaseModel):
     village_id: Optional[int] = None
     officer_name: Optional[str] = ""
     officer_phone: Optional[str] = ""
+
+class BirthCertificateCreateSchema(BaseModel):
+    certificate_no: str
+    book_no: Optional[str] = ""
+    name_kh: str
+    name_en: str
+    gender: str
+    dob: str
+    pob: Optional[str] = ""
+    father_name: Optional[str] = ""
+    mother_name: Optional[str] = ""
+    address: Optional[str] = ""
+    village_id: int
+    notes: Optional[str] = ""
+
+class ConvertToVoterSchema(BaseModel):
+    birth_id: int
+    national_id: str
+    station_id: int
+    address: Optional[str] = ""
+    notes: Optional[str] = ""
+

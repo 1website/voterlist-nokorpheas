@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>បញ្ជីជំរុញយុវជនគ្រប់អាយុចុះឈ្មោះបោះឆ្នោត - រដ្ឋបាលឃុំនគរភាស</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/css/style.css?v=9.0">
+    <link rel="stylesheet" href="/static/css/print.css?v=9.0" media="print">
+
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 12mm 10mm 15mm 10mm;
+        }
+        body {
+            background-color: #f8fafc;
+            font-family: 'Khmer OS Siemreap', system-ui, sans-serif;
+            color: #1e293b;
+        }
+        @media print {
+            body {
+                background: transparent;
+                padding: 0;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-page {
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+            }
+        }
+        .muol-text {
+            font-family: 'Khmer OS Muol Light', serif;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8">
+
+    <!-- Top Action Bar (Screen Only) -->
+    <div class="no-print max-w-4xl mx-auto mb-6 p-4 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <a href="/birth-certificates" class="btn btn-outline text-xs px-3 py-1.5 font-bold">
+                ⬅️ ត្រឡប់ក្រោយ
+            </a>
+            <span class="text-sm font-bold text-slate-700 font-kh-heading">
+                ទម្រង់បោះពុម្ពបញ្ជីជំរុញយុវជន (Outreach Action List)
+            </span>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <!-- Village Selector -->
+            <form method="GET" action="/birth-certificates/print-eligible" class="flex items-center gap-2">
+                <select name="village_id" onchange="this.form.submit()" class="text-xs py-1.5 px-3 rounded-xl border border-slate-300 font-kh-bold">
+                    <option value="">-- គ្រប់ភូមិទាំងអស់ (១០ ភូមិ) --</option>
+                    {% for v in villages %}
+                    <option value="{{ v.id }}" {% if selected_village and selected_village.id == v.id %}selected{% endif %}>{{ v.name_kh }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+
+            <button onclick="window.print()" class="btn btn-primary text-xs px-4 py-1.5 shadow-md flex items-center gap-1.5">
+                <span>🖨️</span> <span>បោះពុម្ព (Print A4)</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Official Printable A4 Document Sheet -->
+    <div class="print-page max-w-4xl mx-auto bg-white p-8 sm:p-12 rounded-2xl shadow-md border border-slate-200">
+        
+        <!-- Header -->
+        <div class="flex justify-between items-start border-b-2 border-slate-800 pb-4 mb-6">
+            <div class="text-left">
+                <div class="text-xs font-bold text-slate-600">រដ្ឋបាលខេត្តសៀមរាប</div>
+                <div class="text-xs font-bold text-slate-600">រដ្ឋបាលស្រុកអង្គរជុំ</div>
+                <div class="text-sm font-bold text-slate-900 muol-text mt-0.5">រដ្ឋបាលឃុំនគរភាស</div>
+                {% if selected_village %}
+                <div class="text-xs font-bold text-blue-900 mt-1 font-kh-bold">
+                    📍 {{ selected_village.name_kh }} (មេភូមិ៖ {{ selected_village.chief_name or '-' }})
+                </div>
+                {% else %}
+                <div class="text-xs font-bold text-slate-700 mt-1">
+                    📍 ទូទាំងឃុំនគរភាស (១០ ភូមិ)
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="text-center">
+                <div class="text-xs font-bold muol-text text-slate-900 tracking-wider">ព្រះរាជាណាចក្រកម្ពុជា</div>
+                <div class="text-xs font-bold muol-text text-slate-900">ជាតិ សាសនា ព្រះមហាក្សត្រ</div>
+                <div class="text-[10px] text-slate-500 italic mt-1">3 3 3</div>
+            </div>
+        </div>
+
+        <!-- Document Title -->
+        <div class="text-center mb-6">
+            <h1 class="text-base sm:text-lg font-bold text-slate-900 muol-text leading-relaxed">
+                បញ្ជីឈ្មោះយុវជនគ្រប់អាយុបោះឆ្នោត (១៨ ឆ្នាំ) មិនទាន់បានចុះឈ្មោះបោះឆ្នោត
+            </h1>
+            <p class="text-xs text-slate-600 mt-1">
+                សម្រាប់មេភូមិចុះណែនាំឱ្យទៅធ្វើអត្តសញ្ញាណប័ណ្ណសញ្ជាតិខ្មែរ និងចុះឈ្មោះក្នុងបញ្ជីបោះឆ្នោតផ្លូវការ
+            </p>
+            <div class="inline-block mt-2 px-3 py-1 bg-amber-50 border border-amber-200 rounded-full text-xs font-bold text-amber-900">
+                ⚡ រកឃើញយុវជនត្រូវជំរុញសរុប៖ <span class="font-mono text-sm">{{ records|length }}</span> នាក់
+            </div>
+        </div>
+
+        <!-- Main Table -->
+        <div class="overflow-x-auto mb-6">
+            <table class="w-full text-left border-collapse border border-slate-400 text-xs">
+                <thead>
+                    <tr class="bg-slate-100 text-slate-900 font-bold border-b border-slate-400 font-kh-heading text-center">
+                        <th class="p-2 border border-slate-400 w-8">ល.រ</th>
+                        <th class="p-2 border border-slate-400">លេខសំបុត្រកំណើត</th>
+                        <th class="p-2 border border-slate-400 text-left">ឈ្មោះខ្មែរ-ឡាតាំង</th>
+                        <th class="p-2 border border-slate-400 w-12">ភេទ</th>
+                        <th class="p-2 border border-slate-400">ថ្ងៃខែកំណើត</th>
+                        <th class="p-2 border border-slate-400 w-12">អាយុ</th>
+                        <th class="p-2 border border-slate-400 text-left">ភូមិ</th>
+                        <th class="p-2 border border-slate-400 text-left">ឈ្មោះឪពុក-ម្តាយ</th>
+                        <th class="p-2 border border-slate-400 w-28 text-center">លទ្ធផលចុះជួប / ចំណាំ</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-300">
+                    {% if records %}
+                        {% for r in records %}
+                        <tr class="leading-tight">
+                            <td class="p-2 border border-slate-400 text-center font-mono font-bold">{{ loop.index }}</td>
+                            <td class="p-2 border border-slate-400 font-mono text-[11px]">{{ r.certificate_no }}</td>
+                            <td class="p-2 border border-slate-400">
+                                <div class="font-bold text-slate-900">{{ r.name_kh }}</div>
+                                <div class="font-mono text-[10px] text-slate-600 uppercase">{{ r.name_en }}</div>
+                            </td>
+                            <td class="p-2 border border-slate-400 text-center font-bold">{{ r.gender }}</td>
+                            <td class="p-2 border border-slate-400 text-center font-mono">{{ r.dob }}</td>
+                            <td class="p-2 border border-slate-400 text-center font-bold font-mono">{{ r.age }}</td>
+                            <td class="p-2 border border-slate-400 font-semibold">{{ r.village.name_kh if r.village else '-' }}</td>
+                            <td class="p-2 border border-slate-400 text-[11px]">
+                                {% if r.father_name or r.mother_name %}
+                                {{ r.father_name or '' }}{% if r.father_name and r.mother_name %} / {% endif %}{{ r.mother_name or '' }}
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                            <td class="p-2 border border-slate-400 text-center text-[10px] text-slate-400">
+                                [ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ]
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="9" class="p-6 text-center text-slate-500 font-bold">
+                                🎉 គ្មានយុវជនដែលមិនទាន់ចុះឈ្មោះបោះឆ្នោតក្នុងបញ្ជីនេះឡើយ!
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer Signatures -->
+        <div class="mt-8 pt-4 grid grid-cols-2 gap-8 text-center text-xs">
+            <div>
+                <div class="font-bold text-slate-700">បានឃើញ និងឯកភាព</div>
+                <div class="font-bold muol-text text-slate-900 mt-1">មេឃុំនគរភាស</div>
+                <div class="h-20"></div>
+                <div class="font-bold text-slate-600">...................................................</div>
+            </div>
+
+            <div>
+                <div class="text-slate-600">នគរភាស, ថ្ងៃទី {{ print_date }}</div>
+                <div class="font-bold muol-text text-slate-900 mt-1">មេភូមិ / អ្នករៀបចំ</div>
+                <div class="h-20"></div>
+                <div class="font-bold text-slate-600">
+                    {% if selected_village and selected_village.chief_name %}
+                    {{ selected_village.chief_name }}
+                    {% else %}
+                    ...................................................
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>
