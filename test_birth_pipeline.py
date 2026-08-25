@@ -191,6 +191,100 @@ def test_birth_certificate_attachments():
     db.commit()
     db.close()
 
+def test_birth_certificate_duplicate_check():
+    cookies = get_admin_cookies()
+    db = SessionLocal()
+    village = db.query(Village).first()
+    assert village is not None
+
+    test_cert_dup = "ស.ក-DUP-TEST-001"
+    test_book_dup = "សៀវភៅលេខ ៨៨/២០២៦"
+
+    # Clean up before test
+    db.query(BirthCertificate).filter(BirthCertificate.certificate_no == test_cert_dup).delete()
+    db.commit()
+
+    # 1. Check duplicate API for non-existing record
+    res_api_clean = client.get(
+        f"/api/birth-certificates/check-duplicate?certificate_no={test_cert_dup}&book_no={test_book_dup}",
+        cookies=cookies
+    )
+    assert res_api_clean.status_code == 200
+    clean_data = res_api_clean.json()
+    assert clean_data["duplicate"] is False
+
+    # 2. Insert original record
+    res_create = client.post(
+        "/birth-certificates/create",
+        data={
+            "certificate_no": test_cert_dup,
+            "book_no": test_book_dup,
+            "name_kh": "ជា សុជាតិ",
+            "name_en": "CHEA SOCHEAT",
+            "gender": "ប្រុស",
+            "dob": "2008-01-15",
+            "village_id": village.id
+        },
+        cookies=cookies,
+        follow_redirects=False
+    )
+    assert res_create.status_code == 302
+    assert "msg=" in res_create.headers["location"]
+
+    original = db.query(BirthCertificate).filter(BirthCertificate.certificate_no == test_cert_dup).first()
+    assert original is not None
+
+    # 3. Check duplicate API for existing record -> should return duplicate: True and details
+    res_api_dup = client.get(
+        f"/api/birth-certificates/check-duplicate?certificate_no={test_cert_dup}&book_no={test_book_dup}",
+        cookies=cookies
+    )
+    assert res_api_dup.status_code == 200
+    dup_data = res_api_dup.json()
+    assert dup_data["duplicate"] is True
+    assert "ជា សុជាតិ" in dup_data["message"]
+    assert dup_data["existing"]["name_kh"] == "ជា សុជាតិ"
+    assert dup_data["existing"]["certificate_no"] == test_cert_dup
+
+    # 4. Check duplicate API with exclude_id = original.id (edit mode) -> should return duplicate: False
+    res_api_exclude = client.get(
+        f"/api/birth-certificates/check-duplicate?certificate_no={test_cert_dup}&book_no={test_book_dup}&exclude_id={original.id}",
+        cookies=cookies
+    )
+    assert res_api_exclude.status_code == 200
+    assert res_api_exclude.json()["duplicate"] is False
+
+    # 5. Try creating duplicate record -> should redirect with error message
+    res_create_dup = client.post(
+        "/birth-certificates/create",
+        data={
+            "certificate_no": test_cert_dup,
+            "book_no": test_book_dup,
+            "name_kh": "អ្នកថ្មី ចង់បញ្ចូលស្ទួន",
+            "name_en": "NEW PERSON DUP",
+            "gender": "ស្រី",
+            "dob": "2008-06-20",
+            "village_id": village.id
+        },
+        cookies=cookies,
+        follow_redirects=False
+    )
+    assert res_create_dup.status_code == 302
+    assert "error=" in res_create_dup.headers["location"]
+    import urllib.parse
+    decoded_loc = urllib.parse.unquote(res_create_dup.headers["location"])
+    assert "ជា សុជាតិ" in decoded_loc
+    assert "ទិន្នន័យស្ទួន" in decoded_loc
+
+    # Verify no second record was created
+    dup_count = db.query(BirthCertificate).filter(BirthCertificate.certificate_no == test_cert_dup).count()
+    assert dup_count == 1
+
+    # Clean up
+    db.delete(original)
+    db.commit()
+    db.close()
+
 if __name__ == "__main__":
     print("Running tests manually...")
     test_birth_certificates_list_page()
@@ -207,4 +301,6 @@ if __name__ == "__main__":
     print("✅ test_export_excel passed")
     test_print_eligible_view()
     print("✅ test_print_eligible_view passed")
-    print("🎉 All 7 tests passed successfully!")
+    test_birth_certificate_duplicate_check()
+    print("✅ test_birth_certificate_duplicate_check passed")
+    print("🎉 All 8 tests passed successfully!")

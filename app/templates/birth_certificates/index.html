@@ -44,6 +44,29 @@
         </div>
     </div>
 
+    <!-- Flash Messages (Errors / Success) -->
+    {% if request.query_params.get('error') %}
+    <div class="p-4 rounded-2xl bg-rose-50 border-2 border-rose-300 text-rose-800 flex items-start gap-3 shadow-md animate-pulse">
+        <span class="text-2xl flex-shrink-0">🚫</span>
+        <div class="flex-1 min-w-0">
+            <strong class="font-bold text-rose-900 block font-kh-bold text-sm">⚠️ ទិន្នន័យស្ទួន ឬមិនអាចបញ្ចូលបាន</strong>
+            <p class="text-xs sm:text-sm mt-0.5 text-rose-700 leading-relaxed">{{ request.query_params.get('error') }}</p>
+        </div>
+        <button onclick="this.parentElement.remove()" class="text-rose-400 hover:text-rose-700 font-bold text-lg p-1 rounded-lg">✕</button>
+    </div>
+    {% endif %}
+
+    {% if request.query_params.get('msg') %}
+    <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-800 flex items-start gap-3 shadow-xs">
+        <span class="text-2xl flex-shrink-0">✅</span>
+        <div class="flex-1 min-w-0">
+            <strong class="font-bold text-emerald-900 block font-kh-bold text-sm">ប្រតិបត្តិការជោគជ័យ</strong>
+            <p class="text-xs sm:text-sm mt-0.5 text-emerald-700">{{ request.query_params.get('msg') }}</p>
+        </div>
+        <button onclick="this.parentElement.remove()" class="text-emerald-400 hover:text-emerald-700 font-bold text-lg p-1 rounded-lg">✕</button>
+    </div>
+    {% endif %}
+
     <!-- KPI Summary Stat Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- Total Birth Records -->
@@ -329,24 +352,42 @@
 
         <!-- Pagination -->
         {% if total_pages > 1 %}
-        <div class="p-4 border-t border-slate-200 bg-slate-50/60 flex items-center justify-between">
+        <div class="p-4 border-t border-slate-200 bg-slate-50/70 flex flex-col sm:flex-row items-center justify-between gap-3">
             <div class="text-xs text-slate-500">
-                បង្ហាញទិន្នន័យពី <span class="font-bold">{{ (page - 1) * page_size + 1 }}</span> ដល់ <span class="font-bold">{{ [page * page_size, total_count]|min }}</span> នៃ <span class="font-bold">{{ total_count }}</span>
+                បង្ហាញទិន្នន័យពី <span class="font-bold text-slate-800">{{ (page - 1) * page_size + 1 }}</span> ដល់ <span class="font-bold text-slate-800">{{ [page * page_size, total_count]|min }}</span> នៃ <span class="font-bold text-slate-800">{{ total_count }}</span> កំណត់ត្រា (១០ កំណត់ត្រាក្នុង ១ ទំព័រ)
             </div>
-            <div class="flex items-center gap-1">
+            <div class="flex items-center gap-1.5 flex-wrap">
                 {% if page > 1 %}
-                <a href="/birth-certificates?page={{ page - 1 }}&q={{ q }}&village_id={{ village_id }}&eligibility={{ eligibility }}&reg_status={{ reg_status }}" class="btn btn-outline text-xs px-3 py-1.5">
+                <a href="/birth-certificates?page=1&q={{ q }}&village_id={{ village_id }}&eligibility={{ eligibility }}&reg_status={{ reg_status }}" class="btn btn-outline text-xs px-2.5 py-1.5" title="ទំព័រដំបូង">
+                    ⏮️
+                </a>
+                <a href="/birth-certificates?page={{ page - 1 }}&q={{ q }}&village_id={{ village_id }}&eligibility={{ eligibility }}&reg_status={{ reg_status }}" class="btn btn-outline text-xs px-3 py-1.5 font-bold">
                     ⬅️ ថយក្រោយ
                 </a>
                 {% endif %}
 
-                <span class="px-3 py-1 text-xs font-mono font-bold text-slate-700 bg-white border border-slate-200 rounded-xl shadow-xs">
-                    {{ page }} / {{ total_pages }}
-                </span>
+                {% for p in range(1, total_pages + 1) %}
+                    {% if p == page %}
+                    <span class="px-3 py-1.5 text-xs font-mono font-bold text-white bg-blue-900 rounded-xl shadow-xs border border-blue-950">
+                        {{ p }}
+                    </span>
+                    {% elif p <= 2 or p >= total_pages - 1 or (p >= page - 1 and p <= page + 1) %}
+                    <a href="/birth-certificates?page={{ p }}&q={{ q }}&village_id={{ village_id }}&eligibility={{ eligibility }}&reg_status={{ reg_status }}" class="px-3 py-1.5 text-xs font-mono font-bold text-slate-700 bg-white border border-slate-200 hover:bg-blue-50 hover:text-blue-900 rounded-xl shadow-xs transition">
+                        {{ p }}
+                    </a>
+                    {% elif p == 3 and page > 3 %}
+                    <span class="text-slate-400 text-xs px-1">...</span>
+                    {% elif p == total_pages - 2 and page < total_pages - 2 %}
+                    <span class="text-slate-400 text-xs px-1">...</span>
+                    {% endif %}
+                {% endfor %}
 
                 {% if page < total_pages %}
-                <a href="/birth-certificates?page={{ page + 1 }}&q={{ q }}&village_id={{ village_id }}&eligibility={{ eligibility }}&reg_status={{ reg_status }}" class="btn btn-outline text-xs px-3 py-1.5">
+                <a href="/birth-certificates?page={{ page + 1 }}&q={{ q }}&village_id={{ village_id }}&eligibility={{ eligibility }}&reg_status={{ reg_status }}" class="btn btn-outline text-xs px-3 py-1.5 font-bold">
                     បន្ទាប់ ➡️
+                </a>
+                <a href="/birth-certificates?page={{ total_pages }}&q={{ q }}&village_id={{ village_id }}&eligibility={{ eligibility }}&reg_status={{ reg_status }}" class="btn btn-outline text-xs px-2.5 py-1.5" title="ទំព័រចុងក្រោយ">
+                    ⏭️
                 </a>
                 {% endif %}
             </div>
@@ -371,30 +412,39 @@
             <button type="button" onclick="closeAddBirthModal()" class="text-slate-400 hover:text-slate-700 text-lg font-bold p-1 rounded-lg">✕</button>
         </div>
 
-        <form method="POST" action="/birth-certificates/create" enctype="multipart/form-data" class="p-6 space-y-4">
+        <form id="addBirthForm" method="POST" action="/birth-certificates/create" enctype="multipart/form-data" class="p-6 space-y-4">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <!-- Certificate No -->
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">លេខសំបុត្រកំណើត <span class="text-rose-500">*</span></label>
-                    <input type="text" name="certificate_no" required placeholder="ឧ. ស.ក-២០២៦-០០១" class="form-control text-sm">
+                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold flex items-center justify-between">
+                        <span>លេខសំបុត្រកំណើត <span class="text-rose-500">*</span></span>
+                        <span class="text-[10px] text-blue-600 font-medium font-mono">ឧ. ស.ក-២០២៦-០០១</span>
+                    </label>
+                    <input type="text" id="add_cert_no" name="certificate_no" required placeholder="ឧ. ស.ក-២០២៦-០០១" oninput="checkDuplicateBirthCert('add_cert_no', 'add_book_no', 0, 'addBirthDupFeedback', 'addBirthSubmitBtn')" class="form-control text-sm font-semibold">
                 </div>
 
                 <!-- Book No -->
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">លេខសៀវភៅអត្រានុកូលដ្ឋាន</label>
-                    <input type="text" name="book_no" placeholder="ឧ. សៀវភៅលេខ ០១/២០២៦" class="form-control text-sm">
+                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold flex items-center justify-between">
+                        <span>លេខសៀវភៅអត្រានុកូលដ្ឋាន</span>
+                        <span class="text-[10px] text-slate-400 font-mono">ឧ. ០១/២០២៦</span>
+                    </label>
+                    <input type="text" id="add_book_no" name="book_no" placeholder="ឧ. សៀវភៅលេខ ០១/២០២៦" oninput="checkDuplicateBirthCert('add_cert_no', 'add_book_no', 0, 'addBirthDupFeedback', 'addBirthSubmitBtn')" class="form-control text-sm">
                 </div>
+
+                <!-- Duplicate Live Feedback Container for Add -->
+                <div id="addBirthDupFeedback" class="sm:col-span-2"></div>
 
                 <!-- Name Khmer -->
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">ឈ្មោះជាភាសាខ្មែរ <span class="text-rose-500">*</span></label>
-                    <input type="text" name="name_kh" required placeholder="ឧ. ស៊ឹម ចាន់ថន" class="form-control text-sm font-kh-bold">
+                    <input type="text" id="add_name_kh" name="name_kh" required placeholder="ឧ. ស៊ឹម ចាន់ថន" class="form-control text-sm font-kh-bold">
                 </div>
 
                 <!-- Name Latin -->
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">ឈ្មោះជាអក្សរឡាតាំង <span class="text-rose-500">*</span></label>
-                    <input type="text" name="name_en" required placeholder="ឧ. SIM CHANTHORN" class="form-control text-sm uppercase font-mono">
+                    <input type="text" id="add_name_en" name="name_en" required placeholder="ឧ. SIM CHANTHORN" class="form-control text-sm uppercase font-mono">
                 </div>
 
                 <!-- Gender -->
@@ -477,8 +527,8 @@
 
             <div class="pt-4 border-t border-slate-200 flex items-center justify-end gap-2">
                 <button type="button" onclick="closeAddBirthModal()" class="btn btn-outline text-sm">បោះបង់</button>
-                <button type="submit" class="btn btn-primary text-sm shadow-md">
-                    <span>💾</span> រក្សាទុកសំបុត្រកំណើត
+                <button type="submit" id="addBirthSubmitBtn" class="btn btn-primary text-sm shadow-md flex items-center gap-1.5">
+                    <span>💾</span> <span>រក្សាទុកសំបុត្រកំណើត</span>
                 </button>
             </div>
         </form>
@@ -505,15 +555,20 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <!-- Certificate No -->
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">លេខសំបុត្រកំណើត <span class="text-rose-500">*</span></label>
-                    <input type="text" id="edit_cert_no" name="certificate_no" required class="form-control text-sm">
+                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold flex items-center justify-between">
+                        <span>លេខសំបុត្រកំណើត <span class="text-rose-500">*</span></span>
+                    </label>
+                    <input type="text" id="edit_cert_no" name="certificate_no" required oninput="checkDuplicateBirthCert('edit_cert_no', 'edit_book_no', currentEditBirthId, 'editBirthDupFeedback', 'editBirthSubmitBtn')" class="form-control text-sm font-semibold">
                 </div>
 
                 <!-- Book No -->
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">លេខសៀវភៅ</label>
-                    <input type="text" id="edit_book_no" name="book_no" class="form-control text-sm">
+                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">លេខសៀវភៅអត្រានុកូលដ្ឋាន</label>
+                    <input type="text" id="edit_book_no" name="book_no" oninput="checkDuplicateBirthCert('edit_cert_no', 'edit_book_no', currentEditBirthId, 'editBirthDupFeedback', 'editBirthSubmitBtn')" class="form-control text-sm">
                 </div>
+
+                <!-- Duplicate Live Feedback Container for Edit -->
+                <div id="editBirthDupFeedback" class="sm:col-span-2"></div>
 
                 <!-- Name Khmer -->
                 <div>
@@ -620,8 +675,8 @@
 
             <div class="pt-4 border-t border-slate-200 flex items-center justify-end gap-2">
                 <button type="button" onclick="closeEditBirthModal()" class="btn btn-outline text-sm">បោះបង់</button>
-                <button type="submit" class="btn btn-primary text-sm shadow-md">
-                    <span>💾</span> រក្សាទុកការកែប្រែ
+                <button type="submit" id="editBirthSubmitBtn" class="btn btn-primary text-sm shadow-md flex items-center gap-1.5">
+                    <span>💾</span> <span>រក្សាទុកការកែប្រែ</span>
                 </button>
             </div>
         </form>
@@ -727,10 +782,29 @@
 </div>
 
 <script>
+let currentEditBirthId = 0;
+
 function openAddBirthModal() {
+    const form = document.getElementById('addBirthForm');
+    if (form) form.reset();
+    const feedback = document.getElementById('addBirthDupFeedback');
+    if (feedback) feedback.innerHTML = '';
+    const certInput = document.getElementById('add_cert_no');
+    const bookInput = document.getElementById('add_book_no');
+    if (certInput) certInput.classList.remove('border-red-500', 'ring-2', 'ring-red-200', 'bg-red-50/30', 'border-emerald-500', 'ring-1', 'ring-emerald-200');
+    if (bookInput) bookInput.classList.remove('border-red-500', 'ring-2', 'ring-red-200', 'bg-red-50/30', 'border-emerald-500', 'ring-1', 'ring-emerald-200');
+    const submitBtn = document.getElementById('addBirthSubmitBtn');
+    if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+    const label = document.getElementById('add_attachment_label');
+    if (label) label.innerText = 'ចុចទីនេះដើម្បីជ្រើសរើសឯកសារចម្លង (រូបថត ឬ PDF)';
+
     document.getElementById('addBirthModal').classList.remove('hidden');
     document.getElementById('addBirthModal').classList.add('flex');
 }
+
 function closeAddBirthModal() {
     document.getElementById('addBirthModal').classList.add('hidden');
     document.getElementById('addBirthModal').classList.remove('flex');
@@ -747,19 +821,33 @@ function updateAddFileLabel(input) {
 }
 
 function openEditBirthModal(id, certNo, bookNo, nameKh, nameEn, gender, dob, pob, father, mother, address, villageId, notes, attachmentUrl, isPdf) {
+    currentEditBirthId = id;
     document.getElementById('editBirthForm').action = `/birth-certificates/edit/${id}`;
     document.getElementById('edit_cert_no').value = certNo;
-    document.getElementById('edit_book_no').value = bookNo;
+    document.getElementById('edit_book_no').value = bookNo || '';
     document.getElementById('edit_name_kh').value = nameKh;
     document.getElementById('edit_name_en').value = nameEn;
     document.getElementById('edit_gender').value = gender;
     document.getElementById('edit_dob').value = dob;
-    document.getElementById('edit_pob').value = pob;
-    document.getElementById('edit_father_name').value = father;
-    document.getElementById('edit_mother_name').value = mother;
-    document.getElementById('edit_address').value = address;
+    document.getElementById('edit_pob').value = pob || '';
+    document.getElementById('edit_father_name').value = father || '';
+    document.getElementById('edit_mother_name').value = mother || '';
+    document.getElementById('edit_address').value = address || '';
     document.getElementById('edit_village_id').value = villageId;
-    document.getElementById('edit_notes').value = notes;
+    document.getElementById('edit_notes').value = notes || '';
+
+    // Clear duplicate feedback & styles
+    const feedback = document.getElementById('editBirthDupFeedback');
+    if (feedback) feedback.innerHTML = '';
+    const certInput = document.getElementById('edit_cert_no');
+    const bookInput = document.getElementById('edit_book_no');
+    if (certInput) certInput.classList.remove('border-red-500', 'ring-2', 'ring-red-200', 'bg-red-50/30', 'border-emerald-500', 'ring-1', 'ring-emerald-200');
+    if (bookInput) bookInput.classList.remove('border-red-500', 'ring-2', 'ring-red-200', 'bg-red-50/30', 'border-emerald-500', 'ring-1', 'ring-emerald-200');
+    const submitBtn = document.getElementById('editBirthSubmitBtn');
+    if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
 
     // Reset file input and label
     document.getElementById('edit_attachment_input').value = '';

@@ -61,7 +61,7 @@ def birth_certificates_list(
     eligibility: str = Query("all", description="all, turning_18_this_year, turning_18_next_year, eligible_now, under_18"),
     reg_status: str = Query("all", description="all, registered, unregistered"),
     page: int = Query(1, ge=1),
-    page_size: int = Query(25, ge=10, le=100),
+    page_size: int = Query(10, ge=1, le=100),
     db: Session = Depends(get_db)
 ):
     current_user = get_current_user_optional(request, db)
@@ -245,6 +245,62 @@ def youth_pipeline_dashboard(
         }
     )
 
+@router.get("/api/birth-certificates/check-duplicate")
+def check_duplicate_birth_certificate(
+    certificate_no: str = Query("", description="Certificate Number"),
+    book_no: str = Query("", description="Book Number"),
+    exclude_id: int = Query(0, description="Exclude ID for edit mode"),
+    db: Session = Depends(get_db)
+):
+    cert_clean = certificate_no.strip()
+    book_clean = book_no.strip() if book_no else ""
+
+    if not cert_clean:
+        return {"duplicate": False, "message": ""}
+
+    query = db.query(BirthCertificate)
+    if exclude_id > 0:
+        query = query.filter(BirthCertificate.id != exclude_id)
+
+    # 1. Match both Certificate No and Book No if Book No provided
+    existing = None
+    if book_clean:
+        existing = query.filter(
+            func.lower(func.trim(BirthCertificate.certificate_no)) == cert_clean.lower(),
+            func.lower(func.trim(BirthCertificate.book_no)) == book_clean.lower()
+        ).first()
+
+    # 2. Match Certificate No if no exact (cert + book) match or if book_no not provided
+    if not existing:
+        existing = query.filter(
+            func.lower(func.trim(BirthCertificate.certificate_no)) == cert_clean.lower()
+        ).first()
+
+    if existing:
+        v_name = f"ភូមិ{existing.village.name_kh}" if existing.village else ""
+        b_info = f"សៀវភៅលេខ {existing.book_no}" if existing.book_no else ""
+        details = " • ".join(filter(None, [f"លេខសំបុត្រ {existing.certificate_no}", b_info, v_name]))
+        
+        book_mention = f" និងលេខសៀវភៅ '{existing.book_no}'" if existing.book_no else ""
+        return {
+            "duplicate": True,
+            "message": f"លេខសំបុត្រកំណើត '{existing.certificate_no}'{book_mention} ត្រូវបានបញ្ចូលសម្រាប់ឈ្មោះ '{existing.name_kh}' ({details}) រួចហើយ!",
+            "existing": {
+                "id": existing.id,
+                "certificate_no": existing.certificate_no,
+                "book_no": existing.book_no or "",
+                "name_kh": existing.name_kh,
+                "name_en": existing.name_en,
+                "dob": existing.dob,
+                "village_name": existing.village.name_kh if existing.village else ""
+            }
+        }
+
+    return {
+        "duplicate": False,
+        "message": "លេខសំបុត្រកំណើត និងលេខសៀវភៅត្រឹមត្រូវ (មិនស្ទួនក្នុងប្រព័ន្ធឡើយ អាចកត់ត្រាបាន)"
+    }
+
 @router.post("/birth-certificates/create")
 async def create_birth_certificate(
     request: Request,
@@ -268,10 +324,26 @@ async def create_birth_certificate(
         return RedirectResponse(url="/login", status_code=302)
 
     cert_clean = certificate_no.strip()
-    existing = db.query(BirthCertificate).filter(BirthCertificate.certificate_no == cert_clean).first()
+    book_clean = book_no.strip() if book_no else ""
+
+    # Check duplicate certificate_no and book_no
+    existing = None
+    if book_clean:
+        existing = db.query(BirthCertificate).filter(
+            func.lower(func.trim(BirthCertificate.certificate_no)) == cert_clean.lower(),
+            func.lower(func.trim(BirthCertificate.book_no)) == book_clean.lower()
+        ).first()
+
+    if not existing:
+        existing = db.query(BirthCertificate).filter(
+            func.lower(func.trim(BirthCertificate.certificate_no)) == cert_clean.lower()
+        ).first()
+
     if existing:
+        v_name = f"ភូមិ{existing.village.name_kh}" if existing.village else ""
+        book_text = f" និងលេខសៀវភៅ '{existing.book_no}'" if existing.book_no else ""
         return RedirectResponse(
-            url="/birth-certificates?error=លេខសំបុត្រកំណើតនេះមានក្នុងប្រព័ន្ធរួចហើយ",
+            url=f"/birth-certificates?error=ទិន្នន័យស្ទួន៖ លេខសំបុត្រកំណើត '{existing.certificate_no}'{book_text} ត្រូវបានបញ្ចូលសម្រាប់ឈ្មោះ '{existing.name_kh}' ({v_name}) រួចហើយ!",
             status_code=302
         )
 
@@ -286,7 +358,7 @@ async def create_birth_certificate(
 
     birth = BirthCertificate(
         certificate_no=cert_clean,
-        book_no=book_no.strip() if book_no else None,
+        book_no=book_clean if book_clean else None,
         name_kh=name_kh.strip(),
         name_en=name_en.strip().upper(),
         gender=gender.strip(),
@@ -350,18 +422,32 @@ async def edit_birth_certificate(
         raise HTTPException(status_code=404, detail="រកមិនឃើញសំបុត្រកំណើត")
 
     cert_clean = certificate_no.strip()
-    dup = db.query(BirthCertificate).filter(
-        BirthCertificate.certificate_no == cert_clean,
-        BirthCertificate.id != id
-    ).first()
+    book_clean = book_no.strip() if book_no else ""
+
+    dup = None
+    if book_clean:
+        dup = db.query(BirthCertificate).filter(
+            func.lower(func.trim(BirthCertificate.certificate_no)) == cert_clean.lower(),
+            func.lower(func.trim(BirthCertificate.book_no)) == book_clean.lower(),
+            BirthCertificate.id != id
+        ).first()
+
+    if not dup:
+        dup = db.query(BirthCertificate).filter(
+            func.lower(func.trim(BirthCertificate.certificate_no)) == cert_clean.lower(),
+            BirthCertificate.id != id
+        ).first()
+
     if dup:
+        v_name = f"ភូមិ{dup.village.name_kh}" if dup.village else ""
+        book_text = f" និងលេខសៀវភៅ '{dup.book_no}'" if dup.book_no else ""
         return RedirectResponse(
-            url=f"/birth-certificates?error=លេខសំបុត្រកំណើត {cert_clean} មានរួចហើយ",
+            url=f"/birth-certificates?error=ទិន្នន័យស្ទួន៖ លេខសំបុត្រកំណើត '{dup.certificate_no}'{book_text} មានរួចហើយសម្រាប់ឈ្មោះ '{dup.name_kh}' ({v_name})!",
             status_code=302
         )
 
     birth.certificate_no = cert_clean
-    birth.book_no = book_no.strip() if book_no else None
+    birth.book_no = book_clean if book_clean else None
     birth.name_kh = name_kh.strip()
     birth.name_en = name_en.strip().upper()
     birth.gender = gender.strip()

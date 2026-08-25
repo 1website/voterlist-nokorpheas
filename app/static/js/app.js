@@ -1,5 +1,5 @@
-// Toast notification system
-function showToast(message, type = 'success') {
+// Toast notification system with smooth slideInRight and slideOutRight
+function showToast(message, type = 'success', duration = 4500) {
     let container = document.getElementById('toastContainer');
     if (!container) {
         container = document.createElement('div');
@@ -10,16 +10,52 @@ function showToast(message, type = 'success') {
 
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
-    const icon = type === 'success' ? '✓' : '⚠️';
-    toast.innerHTML = `<span>${icon}</span> <div>${message}</div>`;
+    
+    let icon = '✓';
+    let title = 'ប្រតិបត្តិការជោគជ័យ';
+    if (type === 'error' || type === 'danger') {
+        icon = '🚫';
+        title = '⚠️ ស្ទួនទិន្នន័យ / កំហុសប្រតិបត្តិការ';
+        playAudioBeep(false);
+    } else if (type === 'warning') {
+        icon = '⚡';
+        title = 'ការព្រមាន';
+        playAudioBeep(false);
+    } else if (type === 'info') {
+        icon = 'ℹ️';
+        title = 'ព័ត៌មានប្រព័ន្ធ';
+    } else {
+        playAudioBeep(true);
+    }
+
+    toast.innerHTML = `
+        <div class="toast-icon-wrap">${icon}</div>
+        <div class="toast-content-wrap">
+            <div class="toast-title">${title}</div>
+            <div class="toast-message">${message}</div>
+        </div>
+        <button type="button" class="toast-close-btn" onclick="dismissToast(this.closest('.toast'))" title="បិទ">✕</button>
+    `;
+
     container.appendChild(toast);
 
+    let dismissTimeout = setTimeout(() => {
+        dismissToast(toast);
+    }, duration);
+
+    toast._dismissTimeout = dismissTimeout;
+}
+
+function dismissToast(toastElement) {
+    if (!toastElement || toastElement._isDismissing) return;
+    toastElement._isDismissing = true;
+    if (toastElement._dismissTimeout) clearTimeout(toastElement._dismissTimeout);
+    toastElement.classList.add('toast-dismissing');
     setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateY(10px)';
-        toast.style.transition = 'all 0.3s ease';
-        setTimeout(() => toast.remove(), 300);
-    }, 4000);
+        if (toastElement && toastElement.parentNode) {
+            toastElement.remove();
+        }
+    }, 320);
 }
 
 // Play confirmation audio beep
@@ -191,6 +227,12 @@ function checkDuplicateID(inputElement, excludeId = 0, feedbackId = 'idCheckFeed
                 if (data.duplicate) {
                     inputElement.classList.remove('border-emerald-500', 'ring-1', 'ring-emerald-200');
                     inputElement.classList.add('border-red-500', 'ring-2', 'ring-red-200', 'bg-red-50/30');
+                    
+                    if (window._lastIdDupToastMsg !== data.message) {
+                        window._lastIdDupToastMsg = data.message;
+                        showToast(data.message, 'error', 5500);
+                    }
+
                     feedback.innerHTML = `
                         <div class="p-3 bg-red-50 border-2 border-red-300 rounded-xl text-xs text-red-700 flex items-start gap-2.5 shadow-sm mt-1.5">
                             <span class="text-lg leading-none flex-shrink-0">🚫</span>
@@ -201,6 +243,7 @@ function checkDuplicateID(inputElement, excludeId = 0, feedbackId = 'idCheckFeed
                         </div>
                     `;
                 } else {
+                    window._lastIdDupToastMsg = null;
                     inputElement.classList.remove('border-red-500', 'ring-2', 'ring-red-200', 'bg-red-50/30');
                     inputElement.classList.add('border-emerald-500', 'ring-1', 'ring-emerald-200');
                     feedback.innerHTML = `
@@ -309,3 +352,126 @@ function checkVoterAge(inputElement, feedbackId, submitBtnId) {
         return true;
     }
 }
+
+// Live Duplicate Birth Certificate Checker
+let birthDupTimer = null;
+function checkDuplicateBirthCert(certInputId, bookInputId, excludeId = 0, feedbackId = 'birthDupFeedback', submitBtnId = 'birthSubmitBtn') {
+    clearTimeout(birthDupTimer);
+    const certInput = document.getElementById(certInputId);
+    const bookInput = document.getElementById(bookInputId);
+    const feedback = document.getElementById(feedbackId);
+    const submitBtn = submitBtnId ? document.getElementById(submitBtnId) : null;
+
+    if (!certInput) return;
+    const certVal = certInput.value.trim();
+    const bookVal = bookInput ? bookInput.value.trim() : "";
+
+    if (!certVal) {
+        if (feedback) feedback.innerHTML = '';
+        certInput.classList.remove('border-red-500', 'ring-2', 'ring-red-200', 'bg-red-50/30', 'border-emerald-500', 'ring-1', 'ring-emerald-200');
+        if (bookInput) bookInput.classList.remove('border-red-500', 'ring-2', 'ring-red-200', 'bg-red-50/30', 'border-emerald-500', 'ring-1', 'ring-emerald-200');
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+        return;
+    }
+
+    birthDupTimer = setTimeout(async () => {
+        try {
+            const url = `/api/birth-certificates/check-duplicate?certificate_no=${encodeURIComponent(certVal)}&book_no=${encodeURIComponent(bookVal)}&exclude_id=${excludeId}`;
+            const res = await fetch(url);
+            const data = await res.json();
+
+            if (data.duplicate) {
+                // Style inputs red
+                certInput.classList.remove('border-emerald-500', 'ring-1', 'ring-emerald-200');
+                certInput.classList.add('border-red-500', 'ring-2', 'ring-red-200', 'bg-red-50/30');
+                if (bookInput && bookVal) {
+                    bookInput.classList.remove('border-emerald-500', 'ring-1', 'ring-emerald-200');
+                    bookInput.classList.add('border-red-500', 'ring-2', 'ring-red-200', 'bg-red-50/30');
+                }
+
+                if (window._lastBirthDupToastMsg !== data.message) {
+                    window._lastBirthDupToastMsg = data.message;
+                    showToast(data.message, 'error', 6000);
+                }
+
+                if (feedback) {
+                    const ex = data.existing || {};
+                    feedback.innerHTML = `
+                        <div class="p-3 bg-red-50 border-2 border-red-300 rounded-xl text-xs text-red-800 flex items-start gap-2.5 shadow-sm mt-2 animate-pulse">
+                            <span class="text-xl leading-none flex-shrink-0">🚫</span>
+                            <div class="space-y-1 min-w-0 flex-1">
+                                <strong class="font-bold text-red-900 block text-xs font-kh-bold">
+                                    ⚠️ ស្ទួនទិន្នន័យ៖ លេខសំបុត្រកំណើត ឬសៀវភៅនេះ បានបញ្ចូលរួចហើយ!
+                                </strong>
+                                <div class="text-[11px] text-red-700 leading-relaxed">
+                                    <span>${data.message}</span>
+                                </div>
+                                ${ex.name_kh ? `
+                                <div class="pt-1.5 mt-1.5 border-t border-red-200 flex flex-wrap gap-x-3 gap-y-1 text-[11px] font-medium text-red-900">
+                                    <span>👤 ឈ្មោះ៖ <strong>${ex.name_kh}</strong> (${ex.name_en || ''})</span>
+                                    <span>🎂 ថ្ងៃខែឆ្នាំកំណើត៖ <strong>${ex.dob || ''}</strong></span>
+                                    ${ex.village_name ? `<span>🏡 ភូមិ៖ <strong>${ex.village_name}</strong></span>` : ''}
+                                </div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+            } else {
+                window._lastBirthDupToastMsg = null;
+                // Style inputs green
+                certInput.classList.remove('border-red-500', 'ring-2', 'ring-red-200', 'bg-red-50/30');
+                certInput.classList.add('border-emerald-500', 'ring-1', 'ring-emerald-200');
+                if (bookInput) {
+                    bookInput.classList.remove('border-red-500', 'ring-2', 'ring-red-200', 'bg-red-50/30');
+                    if (bookVal) {
+                        bookInput.classList.add('border-emerald-500', 'ring-1', 'ring-emerald-200');
+                    }
+                }
+
+                if (feedback) {
+                    feedback.innerHTML = `
+                        <div class="p-2 bg-emerald-50 border border-emerald-300 rounded-xl text-xs text-emerald-800 flex items-center gap-2 mt-2 shadow-xs">
+                            <span class="text-base leading-none">✅</span>
+                            <div>
+                                <strong class="font-bold text-emerald-900">លេខសំបុត្រកំណើតអាចប្រើប្រាស់បាន</strong>
+                                <span class="text-emerald-700 ml-1">មិនស្ទួនក្នុងប្រព័ន្ធឡើយ។</span>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+            }
+        } catch (e) {
+            console.error("Error checking duplicate birth cert", e);
+        }
+    }, 250);
+}
+
+// Automatically trigger toasts if URL parameters 'msg' or 'error' exist
+document.addEventListener('DOMContentLoaded', function() {
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const errorMsg = urlParams.get('error');
+        const successMsg = urlParams.get('msg');
+        if (errorMsg) {
+            showToast(errorMsg, 'error');
+        } else if (successMsg) {
+            showToast(successMsg, 'success');
+        }
+    } catch (e) {
+        console.error(e);
+    }
+});
+
