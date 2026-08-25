@@ -8,17 +8,33 @@ if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding='utf-8')
     except Exception:
         pass
+import os
 from sqlalchemy.orm import Session
 from app.models import Village, PollingStation, Voter, User
 from app.auth import hash_password
 
 def seed_database(db: Session):
+    # Always ensure Admin account exists
+    admin_exists = db.query(User).filter(User.username == "admin").first()
+    if not admin_exists:
+        default_admin = User(
+            username="admin",
+            password_hash=hash_password("admin123"),
+            full_name="ស្មៀនឃុំនគរភាស (Admin)",
+            role="admin",
+            phone="012 999 888",
+            is_active=True
+        )
+        db.add(default_admin)
+        db.commit()
+        print("Ensured default admin account exists.")
+
     # Check if already seeded
     if db.query(Village).count() > 0:
-        print("Database already seeded.")
+        print("Database already initialized.")
         return
 
-    print("Seeding database for Nokor Pheas Commune (ឃុំនគរភាស)...")
+    print("Initializing database schema and records for Nokor Pheas Commune (ឃុំនគរភាស)...")
 
     # 1. 10 Villages of Nokor Pheas Commune
     villages_data = [
@@ -123,6 +139,12 @@ def seed_database(db: Session):
     db.flush()
 
     # 4. Realistic Cambodian Voters (130+ Voters across all 14 stations)
+    seed_voters = os.getenv("SEED_DEMO_VOTERS", "true").strip().lower() not in ["false", "0", "no"]
+    if not seed_voters:
+        db.commit()
+        print(f"Initialized database with {len(villages_data)} villages, {len(stations_data)} polling stations, and staff accounts (0 demo voters).")
+        return
+
     first_names_male = ["សុខ", "ចាន់", "វណ្ណា", "សុផល", "សម្បត្តិ", "វិបុល", "រដ្ឋា", "វិចិត្រ", "ដារ៉ា", "កុសល", "វុទ្ធី", "សារិទ្ធ", "សំណាង", "ពិសិដ្ឋ", "គង់", "ប៊ុនធឿន", "សុភាព"]
     last_names = ["ស៊ឹម", "អ៊ុំ", "មាស", "ហេង", "កែវ", "ចាន់", "គឹម", "ឡុង", "ប៊ុន", "សួន", "ម៉ែន", "ពេជ្រ", "ទេព", "ហុង", "អ៊ុក", "ឃីម", "ង៉ែត", "យិន", "ឈឹម", "នួន", "ផន", "លី", "ទិត្យ", "ជា", "សេង", "ប្រាក់"]
     first_names_female = ["ស្រីពៅ", "ចរិយា", "បុប្ផា", "ធីតា", "រចនា", "ម៉ាលី", "សុគន្ធា", "ស្រីមុំ", "សុជាតិ", "សុវណ្ណ", "កល្យាណ", "សុភា", "កញ្ញា", "ទេវី", "ស្រីនាង", "ពិសី", "ចិន្តា"]

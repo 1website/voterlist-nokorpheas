@@ -1,3 +1,10 @@
+databases:
+  - name: voterlist-db
+    databaseName: voterlist_db
+    user: voter_admin
+    region: singapore
+    plan: free
+
 services:
   - type: web
     name: voterlist-nokorpheas
@@ -11,3 +18,9 @@ services:
         value: 3.11.8
       - key: TZ
         value: Asia/Phnom_Penh
+      - key: DATABASE_URL
+        fromDatabase:
+          name: voterlist-db
+          property: connectionString
+      - key: SEED_DEMO_VOTERS
+        value: "true"

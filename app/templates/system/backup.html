@@ -38,15 +38,22 @@
 
     <!-- Storage & System Health Metrics -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-        <!-- 1. Database Size -->
+        <!-- 1. Database Size & Engine Type -->
         <div class="stat-card">
             <div class="stat-icon bg-blue-50 text-blue-800">
                 🗄️
             </div>
             <div class="min-w-0 flex-1">
-                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">ទំហំ DATABASE</p>
-                <h3 class="text-2xl font-black font-mono text-slate-900 mt-0.5">{{ db_size_kb }} <span class="text-xs font-normal text-slate-400">KB</span></h3>
-                <p class="text-[11px] text-blue-600 font-medium mt-0.5 truncate">SQLite Storage File</p>
+                <div class="flex items-center justify-between gap-1">
+                    <p class="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">DATABASE</p>
+                    {% if is_sqlite %}
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700">SQLite</span>
+                    {% else %}
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">Postgres</span>
+                    {% endif %}
+                </div>
+                <h3 class="text-2xl font-black font-mono text-slate-900 mt-0.5">{{ db_size_kb }} <span class="text-xs font-normal text-slate-400">{% if is_sqlite %}KB{% else %}Cloud{% endif %}</span></h3>
+                <p class="text-[11px] {% if is_sqlite %}text-blue-600{% else %}text-emerald-700 font-bold{% endif %} font-medium mt-0.5 truncate">{{ db_type_name }}</p>
             </div>
         </div>
 
@@ -223,14 +230,14 @@
                     <span class="text-xl flex-shrink-0">⚠️</span>
                     <div>
                         <strong class="font-bold block text-xs mb-0.5">ការប្រុងប្រយ័ត្នខ្ពស់ (Safety Notice)៖</strong>
-                        <span>ការស្តារទិន្នន័យនឹងជំនួសទិន្នន័យបច្ចុប្បន្នដោយឯកសារថ្មី។ ប្រព័ន្ធនឹង <strong>ស្វ័យប្រវត្តិចម្លង Safety Backup</strong> មួយច្បាប់ទុកមុននឹងធ្វើការ Restore ដើម្បីធានាសុវត្ថិភាព ១០០%។</span>
+                        <span>ការស្តារទិន្នន័យនឹងបញ្ចូល ឬកែសម្រួលទិន្នន័យក្នុងប្រព័ន្ធ។ លោកអ្នកអាចប្រើប្រាស់ <strong>JSON Backup (.json)</strong> ឬ <strong>SQLite File (.db)</strong> ដើម្បីស្តារទិន្នន័យ។</span>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">ជ្រើសរើសឯកសារ SQLite Backup (.db) *</label>
-                    <input type="file" name="backup_file" id="restoreFileInput" accept=".db,.sqlite,.sqlite3" required class="form-control text-sm">
-                    <p class="text-[11px] text-slate-500 mt-1">ទទួលយកតែឯកសារ SQLite (.db) ដែលបានទាញយកពីប្រព័ន្ធនេះប៉ុណ្ណោះ</p>
+                    <label class="form-label">ជ្រើសរើសឯកសារ Backup (.json ឬ .db) *</label>
+                    <input type="file" name="backup_file" id="restoreFileInput" accept=".json,.db,.sqlite,.sqlite3" required class="form-control text-sm">
+                    <p class="text-[11px] text-slate-500 mt-1">គាំទ្រទាំងឯកសារ JSON Backup (.json) និង SQLite Database (.db)</p>
                 </div>
             </div>
 
