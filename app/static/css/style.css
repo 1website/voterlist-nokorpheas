@@ -1198,6 +1198,97 @@ html.dark .border-amber-300 {
   border-color: rgba(251, 191, 36, 0.4) !important;
 }
 
+/* ========================================================================= */
+/* DARK MODE MODAL & INNER CARD STYLING (កែសម្រួលផ្ទៃខាងក្នុង Modal ឱ្យច្បាស់) */
+/* ========================================================================= */
+html.dark .bg-gradient-to-r.from-blue-50\/80.to-indigo-50\/80,
+html.dark .bg-gradient-to-r.from-blue-50.to-indigo-50,
+html.dark .from-blue-50\/80,
+html.dark .to-indigo-50\/80 {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+}
+
+html.dark .modal-card label.bg-white,
+html.dark .modal-card .bg-white,
+html.dark #addBirthModal .bg-white,
+html.dark #editBirthModal .bg-white,
+html.dark #convertModal .bg-white {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+html.dark .modal-card label.bg-white:hover {
+  background-color: #334155 !important;
+  border-color: #60a5fa !important;
+}
+
+html.dark .modal-card .bg-slate-50,
+html.dark .modal-card .bg-slate-100,
+html.dark #addBirthModal .bg-slate-50,
+html.dark #editBirthModal .bg-slate-50 {
+  background-color: #0f172a !important;
+  border-color: #1e293b !important;
+}
+
+html.dark .modal-card label,
+html.dark .modal-card .form-label,
+html.dark #addBirthModal label,
+html.dark #editBirthModal label,
+html.dark #convertModal label {
+  color: #f8fafc !important;
+}
+
+html.dark .modal-card .text-slate-700,
+html.dark .modal-card .text-slate-800,
+html.dark #addBirthModal .text-slate-700,
+html.dark #editBirthModal .text-slate-700 {
+  color: #f1f5f9 !important;
+}
+
+html.dark .modal-card .text-slate-500,
+html.dark .modal-card .text-slate-400,
+html.dark #addBirthModal .text-slate-500,
+html.dark #editBirthModal .text-slate-500 {
+  color: #94a3b8 !important;
+}
+
+html.dark .modal-card .text-blue-950,
+html.dark .modal-card .text-blue-900,
+html.dark .modal-card .text-blue-800,
+html.dark #addBirthModal .text-blue-950,
+html.dark #editBirthModal .text-blue-950 {
+  color: #38bdf8 !important;
+}
+
+html.dark .modal-card .text-blue-700,
+html.dark .modal-card .text-blue-600,
+html.dark #addBirthModal .text-blue-700,
+html.dark #editBirthModal .text-blue-600 {
+  color: #60a5fa !important;
+}
+
+html.dark .modal-card .text-emerald-800,
+html.dark .modal-card .text-emerald-700 {
+  color: #34d399 !important;
+}
+
+html.dark .modal-card .text-purple-800,
+html.dark .modal.card .text-purple-700 {
+  color: #c084fc !important;
+}
+
+html.dark .modal-card .border-blue-200,
+html.dark .modal-card .border-blue-200\/60,
+html.dark .modal-card .border-slate-200 {
+  border-color: #334155 !important;
+}
+
+html.dark .sticky.top-0.bg-white,
+html.dark .sticky.top-0 {
+  background-color: #131f37 !important;
+}
+
 html.dark input,
 html.dark select,
 html.dark textarea {
