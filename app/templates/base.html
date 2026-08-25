@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="km">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}ប្រព័ន្ធគ្រប់គ្រងអ្នកចុះឈ្មោះបោះឆ្នោត - រដ្ឋបាលឃុំនគរភាស{% endblock %}</title>
-    
+
     <!-- Tailwind CSS CDN for utility classes -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -29,26 +30,31 @@
     <!-- Chart.js & HTML5-QRCode -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
-    
+
     {% block extra_head %}{% endblock %}
 </head>
+
 <body class="bg-slate-50 min-h-screen text-slate-800 antialiased m-0 p-0 w-full overflow-x-hidden">
 
     <!-- ========================================================================= -->
     <!-- KHMER DATE FLOATING TOP BANNER (បង្ហាញកាលបរិច្ឆេទខ្មែរ 5 វិនាទី) -->
     <!-- ========================================================================= -->
-    <div id="khmerDateBanner" class="khmer-date-banner no-print">
+    <div id="khmerDateBanner" class="khmer-date-banner hidden-banner no-print">
         <div class="khmer-date-content">
             <div class="flex items-center gap-2 sm:gap-2.5 min-w-0 flex-1">
                 <span class="text-lg sm:text-xl flex-shrink-0">🇰🇭</span>
                 <div class="flex flex-col sm:flex-row sm:items-center sm:gap-1.5 min-w-0 leading-tight">
-                    <span class="font-bold text-amber-300 font-kh-heading text-[11px] sm:text-xs flex-shrink-0">កាលបរិច្ឆេទថ្ងៃនេះ៖</span>
-                    <span id="khmerDateText" class="text-white font-kh-bold text-xs sm:text-sm tracking-wide leading-snug">
+                    <span
+                        class="font-bold text-amber-300 font-kh-heading text-[11px] sm:text-xs flex-shrink-0">កាលបរិច្ឆេទថ្ងៃនេះ៖</span>
+                    <span id="khmerDateText"
+                        class="text-white font-kh-bold text-xs sm:text-sm tracking-wide leading-snug">
                         <!-- Loaded by JS -->
                     </span>
                 </div>
             </div>
-            <button type="button" onclick="dismissKhmerDateBanner()" class="text-white/70 hover:text-white hover:bg-white/15 p-1.5 rounded-xl transition flex-shrink-0 text-sm leading-none ml-1" title="បិទ">
+            <button type="button" onclick="dismissKhmerDateBanner()"
+                class="text-white/70 hover:text-white hover:bg-white/15 p-1.5 rounded-xl transition flex-shrink-0 text-sm leading-none ml-1"
+                title="បិទ">
                 ✕
             </button>
         </div>
@@ -62,7 +68,7 @@
     <div id="sidebarBackdrop" class="sidebar-backdrop no-print" onclick="toggleMobileSidebar()"></div>
 
     <div class="app-layout">
-        
+
         {% if current_user %}
         <!-- ========================================================================= -->
         <!-- LEFT SIDEBAR (របារចំហៀងខាងឆ្វេង) -->
@@ -70,33 +76,45 @@
         <aside id="appSidebar" class="sidebar no-print">
             <!-- Sidebar Header & Commune Title -->
             <div class="p-4 border-b border-white/10 flex items-center gap-3">
-                <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-400 to-amber-200 text-blue-950 flex items-center justify-center font-bold text-xl shadow-md flex-shrink-0 border border-amber-300">
+                <div
+                    class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-400 to-amber-200 text-blue-950 flex items-center justify-center font-bold text-xl shadow-md flex-shrink-0 border border-amber-300">
                     <svg class="w-7 h-7 text-blue-950" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2l-1.8 3.5h3.6L12 2zm-5 4l-1.5 3h3L7 6zm10 0l-1.5 3h3L17 6zM3 10v11h18V10h-2v-1l-1.5-3-1.5 4h-2V8.5L12 5.5 10 8.5H8V10l-1.5-4L5 9v1H3zm2 9v-6h3v6H5zm5 0v-6h4v6h-4zm6 0v-6h3v6h-3z"/>
+                        <path
+                            d="M12 2l-1.8 3.5h3.6L12 2zm-5 4l-1.5 3h3L7 6zm10 0l-1.5 3h3L17 6zM3 10v11h18V10h-2v-1l-1.5-3-1.5 4h-2V8.5L12 5.5 10 8.5H8V10l-1.5-4L5 9v1H3zm2 9v-6h3v6H5zm5 0v-6h4v6h-4zm6 0v-6h3v6h-3z" />
                     </svg>
                 </div>
                 <div class="min-w-0 flex-1">
-                    <h1 class="text-[15px] font-bold text-white font-kh-heading leading-tight tracking-normal truncate">រដ្ឋបាលឃុំនគរភាស</h1>
-                    <p class="text-xs text-amber-300 font-medium leading-normal truncate mt-0.5">ស្រុកអង្គរជុំ ខេត្តសៀមរាប</p>
+                    <h1 class="text-[15px] font-bold text-white font-kh-heading leading-tight tracking-normal truncate">
+                        រដ្ឋបាលឃុំនគរភាស</h1>
+                    <p class="text-xs text-amber-300 font-medium leading-normal truncate mt-0.5">ស្រុកអង្គរជុំ
+                        ខេត្តសៀមរាប</p>
                 </div>
                 <!-- Collapse / Hide Button in Sidebar -->
-                <button type="button" onclick="toggleSidebar()" class="ml-auto text-white/70 hover:text-white hover:bg-white/10 p-1.5 rounded-xl transition flex items-center justify-center" title="លាក់ Sidebar (Hide Sidebar)">
+                <button type="button" onclick="toggleSidebar()"
+                    class="ml-auto text-white/70 hover:text-white hover:bg-white/10 p-1.5 rounded-xl transition flex items-center justify-center"
+                    title="លាក់ Sidebar (Hide Sidebar)">
                     <svg class="w-5 h-5 hidden lg:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
                     </svg>
                     <span class="lg:hidden text-lg leading-none">✕</span>
                 </button>
             </div>
 
             <!-- Current Logged In User Profile Widget -->
-            <a href="/profile" class="block p-3.5 mx-3 my-3 rounded-2xl bg-white/10 hover:bg-white/15 backdrop-blur-md border border-white/15 transition group shadow-sm" title="ចុចដើម្បីមើល ឬកែប្រែ Profile">
+            <a href="/profile"
+                class="block p-3.5 mx-3 my-3 rounded-2xl bg-white/10 hover:bg-white/15 backdrop-blur-md border border-white/15 transition group shadow-sm"
+                title="ចុចដើម្បីមើល ឬកែប្រែ Profile">
                 <div class="flex items-center gap-3">
                     <div class="relative flex-shrink-0">
-                        <img src="{{ current_user.avatar_display }}" class="w-10 h-10 rounded-xl object-cover border-2 border-amber-300 shadow group-hover:scale-105 transition bg-white/10">
-                        <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border border-slate-900"></span>
+                        <img src="{{ current_user.avatar_display }}"
+                            class="w-10 h-10 rounded-xl object-cover border-2 border-amber-300 shadow group-hover:scale-105 transition bg-white/10">
+                        <span
+                            class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border border-slate-900"></span>
                     </div>
                     <div class="min-w-0 flex-1">
-                        <div class="text-xs font-bold text-white truncate group-hover:text-amber-300 transition">{{ current_user.full_name }}</div>
+                        <div class="text-xs font-bold text-white truncate group-hover:text-amber-300 transition">{{
+                            current_user.full_name }}</div>
                         <div class="text-[10px] text-blue-200 font-mono flex items-center justify-between">
                             <span>@{{ current_user.username }}</span>
                             <span class="text-[10px] text-amber-300 opacity-80 group-hover:opacity-100">កែប្រែ ➔</span>
@@ -105,13 +123,16 @@
                 </div>
                 <div class="mt-2.5 pt-2 border-t border-white/10 flex items-center justify-between">
                     {% if current_user.role == 'admin' %}
-                        <span class="badge badge-warning text-[10px]">👑 មេឃុំ / Admin</span>
+                    <span class="badge badge-warning text-[10px]">👑 មេឃុំ / Admin</span>
                     {% elif current_user.role == 'officer' %}
-                        <span class="badge badge-primary text-[10px]">🏢 ការិយាល័យ {{ current_user.station.code if current_user.station else '' }}</span>
+                    <span class="badge badge-primary text-[10px]">🏢 ការិយាល័យ {{ current_user.station.code if
+                        current_user.station else '' }}</span>
                     {% elif current_user.role == 'village_chief' %}
-                        <span class="badge badge-success text-[10px]">🏡 ភូមិ {{ current_user.village.name_kh if current_user.village else '' }}</span>
+                    <span class="badge badge-success text-[10px]">🏡 ភូមិ {{ current_user.village.name_kh if
+                        current_user.village else '' }}</span>
                     {% elif current_user.role == 'viewer' %}
-                        <span class="badge text-[10px] bg-purple-200 text-purple-950 font-bold">🔍 អ្នកពិនិត្យ (Viewer)</span>
+                    <span class="badge text-[10px] bg-purple-200 text-purple-950 font-bold">🔍 អ្នកពិនិត្យ
+                        (Viewer)</span>
                     {% endif %}
                     <span class="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> សកម្ម
@@ -124,7 +145,8 @@
                 <!-- Section 1: Main Operations -->
                 <div class="sidebar-nav-header">មុខងារស្នូលបោះឆ្នោត</div>
 
-                <a href="/dashboard" class="sidebar-nav-link {% if request.url.path == '/dashboard' or request.url.path == '/' %}active{% endif %}">
+                <a href="/dashboard"
+                    class="sidebar-nav-link {% if request.url.path == '/dashboard' or request.url.path == '/' %}active{% endif %}">
                     <span class="text-lg">📊</span>
                     <span>ផ្ទាំងគ្រប់គ្រងស្ថិតិ</span>
                 </a>
@@ -137,15 +159,18 @@
                 </a>
                 {% endif %}
 
-                <a href="/voters" class="sidebar-nav-link {% if '/voters' in request.url.path and '/card' not in request.url.path %}active{% endif %}">
+                <a href="/voters"
+                    class="sidebar-nav-link {% if '/voters' in request.url.path and '/card' not in request.url.path %}active{% endif %}">
                     <span class="text-lg">👥</span>
                     <span>បញ្ជីឈ្មោះអ្នកបោះឆ្នោត</span>
                 </a>
 
-                <a href="/birth-certificates" class="sidebar-nav-link {% if '/birth-certificates' in request.url.path %}active{% endif %}">
+                <a href="/birth-certificates"
+                    class="sidebar-nav-link {% if '/birth-certificates' in request.url.path %}active{% endif %}">
                     <span class="text-lg">📜</span>
-                    <span class="flex-1">សំបុត្រកំណើត & យុវជន</span>
-                    <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 font-bold border border-amber-400/30">18+</span>
+                    <span class="flex-1">សំបុត្រកំណើត</span>
+                    <span
+                        class="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 font-bold border border-amber-400/30">18+</span>
                 </a>
 
                 <!-- Section 2: Geography & Mapping -->
@@ -166,10 +191,12 @@
                 <!-- Section 3: Reports & Settings -->
                 <div class="sidebar-nav-header mt-3">របាយការណ៍ & សុវត្ថិភាព</div>
 
-                <a href="/reports/annual-summary" class="sidebar-nav-link {% if '/reports/annual-summary' in request.url.path %}active{% endif %}">
+                <a href="/reports/annual-summary"
+                    class="sidebar-nav-link {% if '/reports/annual-summary' in request.url.path %}active{% endif %}">
                     <span class="text-lg">📊</span>
                     <span class="flex-1">បូកសរុបប្រចាំឆ្នាំ</span>
-                    <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 font-bold border border-amber-400/30">គ.ជ.ប</span>
+                    <span
+                        class="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 font-bold border border-amber-400/30">គ.ជ.ប</span>
                 </a>
 
                 <a href="/reports" class="sidebar-nav-link {% if request.url.path == '/reports' %}active{% endif %}">
@@ -177,10 +204,12 @@
                     <span>មជ្ឈមណ្ឌលរបាយការណ៍</span>
                 </a>
 
-                <a href="/reports/daily" class="sidebar-nav-link {% if '/reports/daily' in request.url.path %}active{% endif %}">
+                <a href="/reports/daily"
+                    class="sidebar-nav-link {% if '/reports/daily' in request.url.path %}active{% endif %}">
                     <span class="text-lg">📅</span>
                     <span class="flex-1">ចុះឈ្មោះប្រចាំថ្ងៃ</span>
-                    <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-500/30 text-blue-200 font-bold border border-blue-400/30">Daily</span>
+                    <span
+                        class="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-500/30 text-blue-200 font-bold border border-blue-400/30">Daily</span>
                 </a>
 
                 <a href="/profile" class="sidebar-nav-link {% if request.url.path == '/profile' %}active{% endif %}">
@@ -189,7 +218,8 @@
                 </a>
 
                 {% if current_user.role == 'admin' %}
-                <a href="/audit-logs" class="sidebar-nav-link {% if '/audit-logs' in request.url.path %}active{% endif %}">
+                <a href="/audit-logs"
+                    class="sidebar-nav-link {% if '/audit-logs' in request.url.path %}active{% endif %}">
                     <span class="text-lg">📋</span>
                     <span>កំណត់ត្រាសកម្មភាព</span>
                 </a>
@@ -212,7 +242,8 @@
                     <div>ប្រព័ន្ធបោះឆ្នោតជាតិ</div>
                     <div class="font-mono text-white/50">v1.0.0 (FastAPI)</div>
                 </div>
-                <a href="/logout" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-500/20 hover:bg-red-500 text-red-200 hover:text-white border border-red-500/30 text-xs font-bold transition">
+                <a href="/logout"
+                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-500/20 hover:bg-red-500 text-red-200 hover:text-white border border-red-500/30 text-xs font-bold transition">
                     <span>🚪</span>
                     <span>ចាកចេញ</span>
                 </a>
@@ -224,27 +255,36 @@
         <!-- MAIN CONTENT WRAPPER -->
         <!-- ========================================================================= -->
         <div class="content-wrapper">
-            
+
             {% if current_user %}
             <!-- Top App Bar -->
-            <header class="top-bar w-full no-print bg-white/95 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40 px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3 flex items-center justify-between shadow-sm gap-2">
+            <header
+                class="top-bar w-full no-print bg-white/95 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40 px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3 flex items-center justify-between shadow-sm gap-2">
                 <div class="flex items-center gap-2 sm:gap-3 min-w-0">
                     <!-- Sidebar Toggle Button (Desktop & Mobile) -->
-                    <button type="button" onclick="toggleSidebar()" id="sidebarToggleBtn" class="p-1.5 sm:p-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-900 hover:border-blue-300 transition flex items-center justify-center shadow-xs flex-shrink-0" title="លាក់ / បង្ហាញ Sidebar (Toggle Sidebar)">
+                    <button type="button" onclick="toggleSidebar()" id="sidebarToggleBtn"
+                        class="p-1.5 sm:p-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-900 hover:border-blue-300 transition flex items-center justify-center shadow-xs flex-shrink-0"
+                        title="លាក់ / បង្ហាញ Sidebar (Toggle Sidebar)">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 12h16M4 18h7" />
                         </svg>
                     </button>
 
                     <!-- Page Title / Quick Commune indicator (Mobile hides district/province) -->
                     <div class="flex items-center gap-1.5 sm:gap-2 min-w-0">
-                        <span class="text-xs sm:text-sm font-bold text-slate-800 font-kh-heading whitespace-nowrap truncate">រដ្ឋបាលឃុំនគរភាស</span>
+                        <span
+                            class="text-xs sm:text-sm font-bold text-slate-800 font-kh-heading whitespace-nowrap truncate">រដ្ឋបាលឃុំនគរភាស</span>
                         <span class="hidden md:inline text-xs text-slate-400 font-medium">•</span>
-                        <span class="hidden md:inline text-xs font-semibold text-blue-700 whitespace-nowrap">ស្រុកអង្គរជុំ ខេត្តសៀមរាប</span>
+                        <span
+                            class="hidden md:inline text-xs font-semibold text-blue-700 whitespace-nowrap">ស្រុកអង្គរជុំ
+                            ខេត្តសៀមរាប</span>
                     </div>
 
                     <!-- Interactive Khmer Date Badge in Top Bar -->
-                    <button type="button" onclick="showKhmerDateBanner()" class="hidden md:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 text-xs font-semibold shadow-xs transition flex-shrink-0" title="ចុចដើម្បីមើលកាលបរិច្ឆេទខ្មែរពេញលេញ">
+                    <button type="button" onclick="showKhmerDateBanner()"
+                        class="hidden md:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 text-xs font-semibold shadow-xs transition flex-shrink-0"
+                        title="ចុចដើម្បីមើលកាលបរិច្ឆេទខ្មែរពេញលេញ">
                         <span>📅</span>
                         <span id="topBarKhmerDateMini">កាលបរិច្ឆេទខ្មែរ</span>
                     </button>
@@ -253,23 +293,32 @@
                 <!-- Right Quick Action Shortcuts -->
                 <div class="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
                     {% if current_user.role in ['admin', 'officer'] %}
-                    <a href="/checkin" class="btn btn-sm btn-accent shadow-sm font-bold whitespace-nowrap flex items-center gap-1 text-xs sm:text-sm px-2.5 sm:px-3.5 py-1.5 rounded-xl flex-shrink-0" title="Check-in វត្តមានអ្នកបោះឆ្នោត">
+                    <a href="/checkin"
+                        class="btn btn-sm btn-accent shadow-sm font-bold whitespace-nowrap flex items-center gap-1 text-xs sm:text-sm px-2.5 sm:px-3.5 py-1.5 rounded-xl flex-shrink-0"
+                        title="Check-in វត្តមានអ្នកបោះឆ្នោត">
                         <span class="text-xs sm:text-sm">⚡</span>
                         <span>Check-in</span>
                         <span class="hidden sm:inline">វត្តមាន</span>
                     </a>
                     {% endif %}
-                    <a href="/voters" class="btn btn-sm btn-outline hidden sm:inline-flex font-semibold text-xs sm:text-sm py-1.5">
+                    <a href="/voters"
+                        class="btn btn-sm btn-outline hidden sm:inline-flex font-semibold text-xs sm:text-sm py-1.5">
                         🔍 ស្វែងរកឈ្មោះ
                     </a>
-                    <a href="/reports/export/excel" class="btn btn-sm btn-outline text-emerald-700 border-emerald-300 hover:bg-emerald-50 hidden md:inline-flex font-semibold text-xs sm:text-sm py-1.5">
+                    <a href="/reports/export/excel"
+                        class="btn btn-sm btn-outline text-emerald-700 border-emerald-300 hover:bg-emerald-50 hidden md:inline-flex font-semibold text-xs sm:text-sm py-1.5">
                         📥 Export Excel
                     </a>
                     <!-- User Profile Button -->
-                    <a href="/profile" class="flex items-center gap-1.5 p-1 pl-1 pr-1 sm:pl-1.5 sm:pr-2.5 rounded-full bg-slate-100 hover:bg-blue-50 border border-slate-200 hover:border-blue-300 transition shadow-xs group flex-shrink-0" title="ព័ត៌មានគណនី (Profile)">
-                        <img src="{{ current_user.avatar_display }}" class="w-8 h-8 sm:w-7 sm:h-7 rounded-full object-cover border border-amber-400 shadow-xs group-hover:scale-105 transition bg-white flex-shrink-0">
+                    <a href="/profile"
+                        class="flex items-center gap-1.5 p-1 pl-1 pr-1 sm:pl-1.5 sm:pr-2.5 rounded-full bg-slate-100 hover:bg-blue-50 border border-slate-200 hover:border-blue-300 transition shadow-xs group flex-shrink-0"
+                        title="ព័ត៌មានគណនី (Profile)">
+                        <img src="{{ current_user.avatar_display }}"
+                            class="w-8 h-8 sm:w-7 sm:h-7 rounded-full object-cover border border-amber-400 shadow-xs group-hover:scale-105 transition bg-white flex-shrink-0">
                         <div class="hidden lg:flex flex-col text-left leading-none">
-                            <span class="text-[11px] font-bold text-slate-800 group-hover:text-blue-900 truncate max-w-[100px]">{{ current_user.full_name }}</span>
+                            <span
+                                class="text-[11px] font-bold text-slate-800 group-hover:text-blue-900 truncate max-w-[100px]">{{
+                                current_user.full_name }}</span>
                             <span class="text-[9px] text-slate-400 font-mono">@{{ current_user.username }}</span>
                         </div>
                     </a>
@@ -288,7 +337,8 @@
                     <div class="flex items-center gap-1.5 flex-wrap">
                         <strong class="text-slate-800">រដ្ឋបាលឃុំនគរភាស ស្រុកអង្គរជុំ ខេត្តសៀមរាប</strong>
                         <span class="text-slate-400">•</span>
-                        <span class="text-slate-600">ប្រព័ន្ធគ្រប់គ្រងអ្នកចុះឈ្មោះបោះឆ្នោត (១០ ភូមិ • ១៤ ការិយាល័យ)</span>
+                        <span class="text-slate-600">ប្រព័ន្ធគ្រប់គ្រងអ្នកចុះឈ្មោះបោះឆ្នោត (១០ ភូមិ • ១៤
+                            ការិយាល័យ)</span>
                     </div>
                     <div class="text-slate-400 font-medium">
                         គាំទ្រការបោះឆ្នោតជាតិ តម្លាភាព និងសុក្រឹតភាព © 2026
@@ -349,7 +399,7 @@
             const dateNum = toKhmerNum(now.getDate());
             const monthName = months[now.getMonth()];
             const yearNum = toKhmerNum(now.getFullYear());
-            
+
             let hours = now.getHours();
             const rawMinutes = now.getMinutes();
             const minutes = toKhmerNum(String(rawMinutes).padStart(2, '0'));
@@ -396,7 +446,7 @@
         }
 
         // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // Restore saved sidebar state on desktop
             if (window.innerWidth >= 1024 && localStorage.getItem('sidebar_collapsed') === 'true') {
                 const layout = document.querySelector('.app-layout');
@@ -405,14 +455,19 @@
                 }
             }
 
-            // Populate top bar mini date & show 5s top banner
+            // Populate top bar mini date
             const { miniText } = getKhmerDateDetails();
             const miniEl = document.getElementById('topBarKhmerDateMini');
             if (miniEl) miniEl.innerText = miniText;
 
-            showKhmerDateBanner();
+            // Only auto-show 5s top Khmer Date banner on Dashboard (ផ្ទាំងគ្រប់គ្រងស្ថិតិ)
+            const currentPath = window.location.pathname;
+            if (currentPath === '/dashboard' || currentPath === '/' || currentPath === '') {
+                showKhmerDateBanner();
+            }
         });
     </script>
     {% block scripts %}{% endblock %}
 </body>
+
 </html>
