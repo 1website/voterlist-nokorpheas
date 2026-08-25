@@ -1044,13 +1044,50 @@ html.dark .modal-body::-webkit-scrollbar-thumb {
 }
 
 html.dark .badge-secondary {
-  background: #1e293b !important;
-  color: #cbd5e1 !important;
-  border-color: #334155 !important;
+  background: rgba(51, 65, 85, 0.6) !important;
+  color: #f1f5f9 !important;
+  border: 1.5px solid rgba(148, 163, 184, 0.4) !important;
+  font-weight: 700 !important;
+}
+
+html.dark .badge-success {
+  background: rgba(16, 185, 129, 0.22) !important;
+  color: #34d399 !important;
+  border: 1.5px solid rgba(52, 211, 153, 0.5) !important;
+  font-weight: 700 !important;
+}
+
+html.dark .badge-warning {
+  background: rgba(245, 158, 11, 0.22) !important;
+  color: #fbbf24 !important;
+  border: 1.5px solid rgba(251, 191, 36, 0.5) !important;
+  font-weight: 700 !important;
+}
+
+html.dark .badge-danger {
+  background: rgba(239, 68, 68, 0.22) !important;
+  color: #f87171 !important;
+  border: 1.5px solid rgba(248, 113, 113, 0.5) !important;
+  font-weight: 700 !important;
+}
+
+html.dark .badge-primary {
+  background: rgba(59, 130, 246, 0.22) !important;
+  color: #60a5fa !important;
+  border: 1.5px solid rgba(96, 165, 250, 0.5) !important;
+  font-weight: 700 !important;
 }
 
 html.dark .turnout-bar-bg {
   background: #1e293b !important;
+}
+
+/* Polling Station & Village Codes in Tables */
+html.dark .font-bold.text-blue-800,
+html.dark .font-bold.text-blue-900,
+html.dark .font-bold.text-blue-950 {
+  color: #38bdf8 !important;
+  text-shadow: 0 0 8px rgba(56, 189, 248, 0.25) !important;
 }
 
 /* Tailwind utility class dark mode adaptations */
@@ -1084,11 +1121,11 @@ html.dark .text-slate-900 {
 }
 
 html.dark .text-slate-700 {
-  color: #e2e8f0 !important;
+  color: #f1f5f9 !important;
 }
 
 html.dark .text-slate-600 {
-  color: #cbd5e1 !important;
+  color: #e2e8f0 !important;
 }
 
 html.dark .text-slate-500,
@@ -1099,7 +1136,7 @@ html.dark .text-slate-400 {
 html.dark .text-blue-900,
 html.dark .text-blue-950,
 html.dark .text-blue-800 {
-  color: #93c5fd !important;
+  color: #38bdf8 !important;
 }
 
 html.dark .text-blue-700 {
@@ -1118,6 +1155,47 @@ html.dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]),
 html.dark .divide-slate-200\/70 > :not([hidden]) ~ :not([hidden]),
 html.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]) {
   border-color: #1e293b !important;
+}
+
+html.dark .bg-emerald-100 {
+  background-color: rgba(16, 185, 129, 0.2) !important;
+}
+
+html.dark .text-emerald-800,
+html.dark .text-emerald-900,
+html.dark .text-emerald-700 {
+  color: #34d399 !important;
+}
+
+html.dark .border-emerald-300,
+html.dark .border-emerald-200 {
+  border-color: rgba(52, 211, 153, 0.4) !important;
+}
+
+html.dark .bg-purple-100 {
+  background-color: rgba(168, 85, 247, 0.2) !important;
+}
+
+html.dark .text-purple-800,
+html.dark .text-purple-900 {
+  color: #c084fc !important;
+}
+
+html.dark .border-purple-300 {
+  border-color: rgba(192, 132, 252, 0.4) !important;
+}
+
+html.dark .bg-amber-100 {
+  background-color: rgba(245, 158, 11, 0.2) !important;
+}
+
+html.dark .text-amber-800,
+html.dark .text-amber-900 {
+  color: #fcd34d !important;
+}
+
+html.dark .border-amber-300 {
+  border-color: rgba(251, 191, 36, 0.4) !important;
 }
 
 html.dark input,
