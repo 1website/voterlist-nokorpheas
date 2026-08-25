@@ -53,6 +53,13 @@ def ensure_schema_migrations():
                     conn.execute(text("ALTER TABLE users ADD COLUMN photo_url VARCHAR(255)"))
                     conn.commit()
 
+        if "birth_certificates" in tables:
+            bc_columns = [col["name"] for col in inspector.get_columns("birth_certificates")]
+            if "attachment_url" not in bc_columns:
+                with engine.connect() as conn:
+                    conn.execute(text("ALTER TABLE birth_certificates ADD COLUMN attachment_url VARCHAR(255)"))
+                    conn.commit()
+
         # For SQLite only: Apply UTC timezone offset migration for existing legacy records
         if IS_SQLITE and "voters" in tables and "audit_logs" in tables:
             with engine.connect() as conn:

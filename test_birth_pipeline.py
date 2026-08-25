@@ -124,6 +124,73 @@ def test_print_eligible_view():
     assert "បញ្ជីឈ្មោះយុវជនគ្រប់អាយុបោះឆ្នោត" in response.text
     assert "ព្រះរាជាណាចក្រកម្ពុជា" in response.text
 
+def test_birth_certificate_attachments():
+    cookies = get_admin_cookies()
+    db = SessionLocal()
+    village = db.query(Village).first()
+    assert village is not None
+
+    test_cert_img = "ស.ក-TEST-IMG-001"
+    test_cert_pdf = "ស.ក-TEST-PDF-002"
+    db.query(BirthCertificate).filter(BirthCertificate.certificate_no.in_([test_cert_img, test_cert_pdf])).delete()
+    db.commit()
+
+    # 1. Test image upload
+    img_content = b"\xFF\xD8\xFF\xE0\x00\x10JFIF\x00\x01\x01\x01\x00`\x00`\x00\x00\xFF\xDB\x00C\x00"
+    res_img = client.post(
+        "/birth-certificates/create",
+        data={
+            "certificate_no": test_cert_img,
+            "book_no": "០១/២០២៦",
+            "name_kh": "រូបភាព តេស្ត",
+            "name_en": "IMAGE TEST",
+            "gender": "ប្រុស",
+            "dob": "2008-01-01",
+            "village_id": village.id
+        },
+        files={"attachment": ("sample_cert.jpg", img_content, "image/jpeg")},
+        cookies=cookies,
+        follow_redirects=True
+    )
+    assert res_img.status_code == 200
+
+    rec_img = db.query(BirthCertificate).filter(BirthCertificate.certificate_no == test_cert_img).first()
+    assert rec_img is not None
+    assert rec_img.attachment_url is not None
+    assert rec_img.is_image is True
+    assert rec_img.is_pdf is False
+
+    # 2. Test PDF upload
+    pdf_content = b"%PDF-1.4 sample pdf content for testing"
+    res_pdf = client.post(
+        "/birth-certificates/create",
+        data={
+            "certificate_no": test_cert_pdf,
+            "book_no": "០១/២០២៦",
+            "name_kh": "ឯកសារ ភីឌីអេហ្វ",
+            "name_en": "PDF TEST",
+            "gender": "ស្រី",
+            "dob": "2008-02-02",
+            "village_id": village.id
+        },
+        files={"attachment": ("sample_cert.pdf", pdf_content, "application/pdf")},
+        cookies=cookies,
+        follow_redirects=True
+    )
+    assert res_pdf.status_code == 200
+
+    rec_pdf = db.query(BirthCertificate).filter(BirthCertificate.certificate_no == test_cert_pdf).first()
+    assert rec_pdf is not None
+    assert rec_pdf.attachment_url is not None
+    assert rec_pdf.is_pdf is True
+    assert rec_pdf.is_image is False
+
+    # Clean up test records
+    db.delete(rec_img)
+    db.delete(rec_pdf)
+    db.commit()
+    db.close()
+
 if __name__ == "__main__":
     print("Running tests manually...")
     test_birth_certificates_list_page()
@@ -134,8 +201,10 @@ if __name__ == "__main__":
     print("✅ test_youth_pipeline_dashboard passed")
     test_create_and_convert_birth_certificate()
     print("✅ test_create_and_convert_birth_certificate passed")
+    test_birth_certificate_attachments()
+    print("✅ test_birth_certificate_attachments (Image & PDF) passed")
     test_export_excel()
     print("✅ test_export_excel passed")
     test_print_eligible_view()
     print("✅ test_print_eligible_view passed")
-    print("🎉 All 6 tests passed successfully!")
+    print("🎉 All 7 tests passed successfully!")

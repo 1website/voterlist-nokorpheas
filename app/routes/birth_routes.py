@@ -1,8 +1,10 @@
 import os
 import io
 import re
+import uuid
+import shutil
 import datetime
-from fastapi import APIRouter, Request, Depends, HTTPException, Query, Form
+from fastapi import APIRouter, Request, Depends, HTTPException, Query, Form, File, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
@@ -21,6 +23,22 @@ router = APIRouter()
 
 templates_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "templates")
 templates = Jinja2Templates(directory=templates_path)
+
+UPLOAD_DIR_BIRTH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "static", "uploads", "birth_certificates")
+os.makedirs(UPLOAD_DIR_BIRTH, exist_ok=True)
+
+def save_birth_attachment(upload_file: UploadFile) -> str:
+    if not upload_file or not upload_file.filename:
+        return None
+    ext = os.path.splitext(upload_file.filename)[1].lower()
+    allowed_exts = [".jpg", ".jpeg", ".png", ".webp", ".gif", ".pdf"]
+    if ext not in allowed_exts:
+        ext = ".pdf" if "pdf" in (upload_file.content_type or "").lower() else ".jpg"
+    filename = f"birth_{uuid.uuid4().hex[:14]}{ext}"
+    file_path = os.path.join(UPLOAD_DIR_BIRTH, filename)
+    with open(file_path, "wb") as f:
+        shutil.copyfileobj(upload_file.file, f)
+    return f"/static/uploads/birth_certificates/{filename}"
 
 def sanitize_id_backend(raw_id: str) -> str:
     if not raw_id:
@@ -242,6 +260,7 @@ async def create_birth_certificate(
     address: str = Form(""),
     village_id: int = Form(...),
     notes: str = Form(""),
+    attachment: UploadFile = File(None),
     db: Session = Depends(get_db)
 ):
     current_user = get_current_user_optional(request, db)
@@ -263,6 +282,8 @@ async def create_birth_certificate(
         Voter.village_id == village_id
     ).first()
 
+    attachment_url = save_birth_attachment(attachment) if attachment and attachment.filename else None
+
     birth = BirthCertificate(
         certificate_no=cert_clean,
         book_no=book_no.strip() if book_no else None,
@@ -275,6 +296,7 @@ async def create_birth_certificate(
         mother_name=mother_name.strip() if mother_name else None,
         address=address.strip() if address else None,
         village_id=village_id,
+        attachment_url=attachment_url,
         notes=notes.strip() if notes else None,
         is_registered_voter=True if matched_voter else False,
         voter_id=matched_voter.id if matched_voter else None
@@ -287,7 +309,7 @@ async def create_birth_certificate(
         db=db,
         user=current_user,
         action="CREATE_BIRTH_CERT",
-        description=f"បានកត់ត្រាសំបុត្រកំណើតលេខ {birth.certificate_no} ឈ្មោះ {birth.name_kh}",
+        description=f"បានកត់ត្រាសំបុត្រកំណើតលេខ {birth.certificate_no} ឈ្មោះ {birth.name_kh}" + (" (មានឯកសារភ្ជាប់)" if attachment_url else ""),
         target_type="birth_certificate",
         target_id=str(birth.id),
         action_type="success",
@@ -315,6 +337,8 @@ async def edit_birth_certificate(
     address: str = Form(""),
     village_id: int = Form(...),
     notes: str = Form(""),
+    attachment: UploadFile = File(None),
+    remove_attachment: str = Form("0"),
     db: Session = Depends(get_db)
 ):
     current_user = get_current_user_optional(request, db)
@@ -348,6 +372,14 @@ async def edit_birth_certificate(
     birth.address = address.strip() if address else None
     birth.village_id = village_id
     birth.notes = notes.strip() if notes else None
+
+    # Handle attachment updates
+    if remove_attachment == "1":
+        birth.attachment_url = None
+    elif attachment and attachment.filename:
+        new_url = save_birth_attachment(attachment)
+        if new_url:
+            birth.attachment_url = new_url
 
     db.commit()
 

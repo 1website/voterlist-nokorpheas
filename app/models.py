@@ -185,6 +185,7 @@ class BirthCertificate(Base):
     # ភ្ជាប់ជាមួយ Voter ពេលគាត់បានចុះឈ្មោះបោះឆ្នោត
     voter_id = Column(Integer, ForeignKey("voters.id"), nullable=True)
     is_registered_voter = Column(Boolean, default=False)
+    attachment_url = Column(String(255), nullable=True)                          # PDF or Image attachment path
     notes = Column(Text, nullable=True)
     created_at = Column(DateTime, default=get_cambodia_now)
     updated_at = Column(DateTime, default=get_cambodia_now, onupdate=get_cambodia_now)
@@ -192,6 +193,18 @@ class BirthCertificate(Base):
     # Relationships
     village = relationship("Village", back_populates="birth_certificates")
     voter = relationship("Voter", back_populates="birth_certificate", foreign_keys=[voter_id])
+
+    @property
+    def is_pdf(self):
+        if self.attachment_url:
+            return self.attachment_url.lower().endswith(".pdf")
+        return False
+
+    @property
+    def is_image(self):
+        if self.attachment_url:
+            return any(self.attachment_url.lower().endswith(ext) for ext in [".jpg", ".jpeg", ".png", ".webp", ".gif"])
+        return False
 
     @property
     def age(self):
