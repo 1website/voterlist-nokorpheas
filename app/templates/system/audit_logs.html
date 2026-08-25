@@ -9,8 +9,8 @@
     <div class="hero-banner">
         <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div>
-                <div class="flex items-center gap-2 mb-1.5">
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-400 text-blue-950 shadow-sm">
+                <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-400/20 text-amber-300 border border-amber-400/40 backdrop-blur-sm shadow-xs">
                         🛡️ សុវត្ថិភាព & តម្លាភាពរដ្ឋបាល
                     </span>
                     <span class="text-xs text-blue-200/60">•</span>
@@ -40,49 +40,49 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- 1. Total Logs -->
         <div class="stat-card">
-            <div class="stat-icon bg-blue-50 text-blue-800">
+            <div class="stat-icon bg-blue-50 dark:bg-sky-950/60 text-blue-700 dark:text-sky-300 border border-blue-100 dark:border-sky-800/40">
                 📋
             </div>
             <div class="min-w-0 flex-1">
-                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">សរុបសកម្មភាពទាំងអស់</p>
-                <h3 class="text-2xl font-black font-mono text-slate-900 mt-0.5">{{ total_count }} <span class="text-xs font-normal text-slate-400">ជួរ</span></h3>
-                <p class="text-[11px] text-blue-600 font-medium mt-0.5 truncate">កំណត់ត្រាក្នុងប្រព័ន្ធ</p>
+                <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">សរុបសកម្មភាពទាំងអស់</p>
+                <h3 class="text-2xl font-black font-mono text-slate-900 dark:text-slate-100 mt-0.5">{{ total_count }} <span class="text-xs font-normal text-slate-400 dark:text-slate-500 font-sans">ជួរ</span></h3>
+                <p class="text-[11px] text-blue-700 dark:text-sky-300 font-medium mt-0.5 truncate">កំណត់ត្រាក្នុងប្រព័ន្ធ</p>
             </div>
         </div>
 
         <!-- 2. Today Logs -->
         <div class="stat-card">
-            <div class="stat-icon bg-emerald-50 text-emerald-800">
+            <div class="stat-icon bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-800/40">
                 📅
             </div>
             <div class="min-w-0 flex-1">
-                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">សកម្មភាពថ្ងៃនេះ</p>
-                <h3 class="text-2xl font-black font-mono text-emerald-600 mt-0.5">{{ total_today }} <span class="text-xs font-normal text-slate-400">សកម្មភាព</span></h3>
-                <p class="text-[11px] text-emerald-700 font-medium mt-0.5 truncate">សកម្មភាពក្នុងថ្ងៃនេះ</p>
+                <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">សកម្មភាពថ្ងៃនេះ</p>
+                <h3 class="text-2xl font-black font-mono text-emerald-600 dark:text-emerald-400 mt-0.5">{{ total_today }} <span class="text-xs font-normal text-slate-400 dark:text-slate-500 font-sans">សកម្មភាព</span></h3>
+                <p class="text-[11px] text-emerald-700 dark:text-emerald-300 font-medium mt-0.5 truncate">សកម្មភាពក្នុងថ្ងៃនេះ</p>
             </div>
         </div>
 
         <!-- 3. New Registrations -->
         <div class="stat-card">
-            <div class="stat-icon bg-amber-50 text-amber-800">
+            <div class="stat-icon bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-100 dark:border-amber-800/40">
                 ➕
             </div>
             <div class="min-w-0 flex-1">
-                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">ការចុះឈ្មោះថ្មី</p>
-                <h3 class="text-2xl font-black font-mono text-amber-600 mt-0.5">{{ total_creates }} <span class="text-xs font-normal text-slate-400">នាក់</span></h3>
-                <p class="text-[11px] text-amber-700 font-medium mt-0.5 truncate">អ្នកបោះឆ្នោតបានចុះឈ្មោះ</p>
+                <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">ការចុះឈ្មោះថ្មី</p>
+                <h3 class="text-2xl font-black font-mono text-amber-600 dark:text-amber-400 mt-0.5">{{ total_creates }} <span class="text-xs font-normal text-slate-400 dark:text-slate-500 font-sans">នាក់</span></h3>
+                <p class="text-[11px] text-amber-700 dark:text-amber-300 font-medium mt-0.5 truncate">អ្នកបោះឆ្នោតបានចុះឈ្មោះ</p>
             </div>
         </div>
 
         <!-- 4. Checkins -->
         <div class="stat-card">
-            <div class="stat-icon bg-purple-50 text-purple-800">
+            <div class="stat-icon bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-100 dark:border-purple-800/40">
                 ⚡
             </div>
             <div class="min-w-0 flex-1">
-                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">CHECK-IN វត្តមាន</p>
-                <h3 class="text-2xl font-black font-mono text-purple-600 mt-0.5">{{ total_checkins }} <span class="text-xs font-normal text-slate-400">នាក់</span></h3>
-                <p class="text-[11px] text-purple-700 font-medium mt-0.5 truncate">វត្តមានបានកត់ត្រា</p>
+                <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">CHECK-IN វត្តមាន</p>
+                <h3 class="text-2xl font-black font-mono text-purple-600 dark:text-purple-400 mt-0.5">{{ total_checkins }} <span class="text-xs font-normal text-slate-400 dark:text-slate-500 font-sans">នាក់</span></h3>
+                <p class="text-[11px] text-purple-700 dark:text-purple-300 font-medium mt-0.5 truncate">វត្តមានបានកត់ត្រា</p>
             </div>
         </div>
     </div>

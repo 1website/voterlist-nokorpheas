@@ -461,6 +461,25 @@ body {
   border: 1px solid #e2e8f0;
 }
 
+/* Registration Type Badges (ចុះថ្មី, បញ្ជីចាស់, ផ្ទេរចូល) */
+.badge-reg-new {
+  background-color: #ecfdf5 !important;
+  color: #065f46 !important;
+  border: 1px solid #a7f3d0 !important;
+}
+
+.badge-reg-legacy {
+  background-color: #f1f5f9 !important;
+  color: #334155 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+.badge-reg-transferred {
+  background-color: #f5f3ff !important;
+  color: #5b21b6 !important;
+  border: 1px solid #ddd6fe !important;
+}
+
 /* Stat Widgets */
 .stat-card {
   padding: 20px;
@@ -1090,33 +1109,219 @@ html.dark .font-bold.text-blue-950 {
   text-shadow: 0 0 8px rgba(56, 189, 248, 0.25) !important;
 }
 
-/* Tailwind utility class dark mode adaptations */
-html.dark .bg-white {
-  background-color: #131f37 !important;
+/* ========================================================================= */
+/* UNIVERSAL HIGH-CONTRAST COLOR & TYPOGRAPHY ENHANCEMENTS */
+/* ========================================================================= */
+
+/* Khmer typography text rendering */
+body, h1, h2, h3, h4, h5, h6, p, span, a, td, th, label, button, input, select {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
-html.dark .bg-slate-50,
-html.dark .bg-slate-50\/60,
-html.dark .bg-slate-50\/70 {
-  background-color: #0b1329 !important;
+/* Custom Table Stat Number Classes */
+.stat-number-legacy {
+  color: #334155;
+  font-weight: 700;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
-html.dark .bg-slate-100 {
-  background-color: #0f172a !important;
+.stat-number-new {
+  color: #059669;
+  font-weight: 700;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
-html.dark .bg-slate-100\/90 {
-  background-color: #0f172a !important;
+.stat-number-transferred {
+  color: #7c3aed;
+  font-weight: 700;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
-html.dark .border-slate-200,
-html.dark .border-slate-100,
-html.dark .border-slate-300 {
-  border-color: #1e293b !important;
+.stat-number-removed {
+  color: #e11d48;
+  font-weight: 700;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
-html.dark .text-slate-800,
-html.dark .text-slate-900 {
+.stat-number-active {
+  color: #0369a1;
+  font-weight: 800;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* Real-Time Live Badge in Hero Banner */
+.badge-live-realtime {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: rgba(245, 158, 11, 0.16) !important;
+  color: #fbbf24 !important;
+  border: 1.5px solid rgba(251, 191, 36, 0.45) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 2px 10px rgba(245, 158, 11, 0.15);
+}
+
+.badge-live-realtime .live-dot-ping {
+  position: relative;
+  display: flex;
+  height: 8px;
+  width: 8px;
+}
+
+.badge-live-realtime .live-dot-ping .ping {
+  animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+  position: absolute;
+  display: inline-flex;
+  height: 100%;
+  width: 100%;
+  border-radius: 9999px;
+  background-color: #f87171;
+  opacity: 0.75;
+}
+
+.badge-live-realtime .live-dot-ping .dot {
+  position: relative;
+  display: inline-flex;
+  border-radius: 9999px;
+  height: 8px;
+  width: 8px;
+  background-color: #ef4444;
+}
+
+html.dark .badge-live-realtime {
+  background: rgba(245, 158, 11, 0.2) !important;
+  color: #fbbf24 !important;
+  border-color: rgba(251, 191, 36, 0.5) !important;
+}
+
+/* Button Outline Color Variants */
+.btn-outline-amber {
+  color: #92400e !important;
+  border-color: #fcd34d !important;
+  background: transparent !important;
+}
+.btn-outline-amber:hover {
+  background: #fffbeb !important;
+  border-color: #f59e0b !important;
+  color: #78350f !important;
+}
+
+.btn-outline-emerald {
+  color: #065f46 !important;
+  border-color: #a7f3d0 !important;
+  background: transparent !important;
+}
+.btn-outline-emerald:hover {
+  background: #ecfdf5 !important;
+  border-color: #10b981 !important;
+  color: #047857 !important;
+}
+
+.btn-outline-blue {
+  color: #1e40af !important;
+  border-color: #bfdbfe !important;
+  background: transparent !important;
+}
+.btn-outline-blue:hover {
+  background: #eff6ff !important;
+  border-color: #3b82f6 !important;
+  color: #1e3a8a !important;
+}
+
+.btn-outline-indigo {
+  color: #3730a3 !important;
+  border-color: #c7d2fe !important;
+  background: transparent !important;
+}
+.btn-outline-indigo:hover {
+  background: #eef2ff !important;
+  border-color: #6366f1 !important;
+  color: #312e81 !important;
+}
+
+/* ========================================================================= */
+/* COMPREHENSIVE DARK MODE TEXT & CONTRAST OVERRIDES */
+/* ========================================================================= */
+
+html.dark .stat-number-legacy {
+  color: #e2e8f0 !important;
+}
+
+html.dark .stat-number-new {
+  color: #34d399 !important;
+  text-shadow: 0 0 10px rgba(52, 211, 153, 0.25);
+}
+
+html.dark .stat-number-transferred {
+  color: #c084fc !important;
+  text-shadow: 0 0 10px rgba(192, 132, 252, 0.25);
+}
+
+html.dark .stat-number-removed {
+  color: #f87171 !important;
+  text-shadow: 0 0 10px rgba(248, 113, 113, 0.25);
+}
+
+html.dark .stat-number-active {
+  color: #38bdf8 !important;
+  text-shadow: 0 0 10px rgba(56, 189, 248, 0.25);
+}
+
+/* Dark Mode Button Outline Variants */
+html.dark .btn-outline-amber {
+  color: #fbbf24 !important;
+  border-color: rgba(251, 191, 36, 0.5) !important;
+  background: rgba(245, 158, 11, 0.12) !important;
+}
+html.dark .btn-outline-amber:hover {
+  background: rgba(245, 158, 11, 0.25) !important;
+  border-color: #fbbf24 !important;
+  color: #fef3c7 !important;
+}
+
+html.dark .btn-outline-emerald {
+  color: #34d399 !important;
+  border-color: rgba(52, 211, 153, 0.5) !important;
+  background: rgba(16, 185, 129, 0.12) !important;
+}
+html.dark .btn-outline-emerald:hover {
+  background: rgba(16, 185, 129, 0.25) !important;
+  border-color: #34d399 !important;
+  color: #ecfdf5 !important;
+}
+
+html.dark .btn-outline-blue {
+  color: #38bdf8 !important;
+  border-color: rgba(56, 189, 248, 0.5) !important;
+  background: rgba(14, 165, 233, 0.12) !important;
+}
+html.dark .btn-outline-blue:hover {
+  background: rgba(14, 165, 233, 0.25) !important;
+  border-color: #38bdf8 !important;
+  color: #f0f9ff !important;
+}
+
+html.dark .btn-outline-indigo {
+  color: #818cf8 !important;
+  border-color: rgba(129, 140, 248, 0.5) !important;
+  background: rgba(99, 102, 241, 0.12) !important;
+}
+html.dark .btn-outline-indigo:hover {
+  background: rgba(99, 102, 241, 0.25) !important;
+  border-color: #818cf8 !important;
+  color: #e0e7ff !important;
+}
+
+/* Dark Mode Text Colors across All Tailwind Utilities */
+html.dark .text-slate-900,
+html.dark .text-slate-800 {
   color: #f8fafc !important;
 }
 
@@ -1128,361 +1333,295 @@ html.dark .text-slate-600 {
   color: #e2e8f0 !important;
 }
 
-html.dark .text-slate-500,
+html.dark .text-slate-500 {
+  color: #cbd5e1 !important;
+}
+
 html.dark .text-slate-400 {
   color: #94a3b8 !important;
 }
 
-html.dark .text-blue-900,
-html.dark .text-blue-950,
-html.dark .text-blue-800 {
-  color: #38bdf8 !important;
-}
-
-html.dark .text-blue-700 {
-  color: #60a5fa !important;
-}
-
-html.dark .bg-blue-50 {
-  background-color: rgba(30, 58, 138, 0.25) !important;
-}
-
-html.dark .border-blue-200 {
-  border-color: rgba(59, 130, 246, 0.3) !important;
-}
-
-html.dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]),
-html.dark .divide-slate-200\/70 > :not([hidden]) ~ :not([hidden]),
-html.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]) {
-  border-color: #1e293b !important;
-}
-
-html.dark .bg-emerald-100 {
-  background-color: rgba(16, 185, 129, 0.2) !important;
-}
-
-html.dark .text-emerald-800,
+html.dark .text-emerald-950,
 html.dark .text-emerald-900,
-html.dark .text-emerald-700 {
-  color: #34d399 !important;
-}
-
-html.dark .border-emerald-300,
-html.dark .border-emerald-200 {
-  border-color: rgba(52, 211, 153, 0.4) !important;
-}
-
-html.dark .bg-purple-100 {
-  background-color: rgba(168, 85, 247, 0.2) !important;
-}
-
-html.dark .text-purple-800,
-html.dark .text-purple-900 {
-  color: #c084fc !important;
-}
-
-html.dark .border-purple-300 {
-  border-color: rgba(192, 132, 252, 0.4) !important;
-}
-
-html.dark .bg-amber-100 {
-  background-color: rgba(245, 158, 11, 0.2) !important;
-}
-
-html.dark .text-amber-800,
-html.dark .text-amber-900 {
-  color: #fcd34d !important;
-}
-
-html.dark .border-amber-300 {
-  border-color: rgba(251, 191, 36, 0.4) !important;
-}
-
-/* ========================================================================= */
-/* DARK MODE MODAL & INNER CARD STYLING (កែសម្រួលផ្ទៃខាងក្នុង Modal ឱ្យច្បាស់) */
-/* ========================================================================= */
-html.dark .bg-gradient-to-r.from-blue-50\/80.to-indigo-50\/80,
-html.dark .bg-gradient-to-r.from-blue-50.to-indigo-50,
-html.dark .from-blue-50\/80,
-html.dark .to-indigo-50\/80 {
-  background: #0f172a !important;
-  border-color: #334155 !important;
-}
-
-html.dark .modal-card label.bg-white,
-html.dark .modal-card .bg-white,
-html.dark #addBirthModal .bg-white,
-html.dark #editBirthModal .bg-white,
-html.dark #convertModal .bg-white {
-  background-color: #1e293b !important;
-  border-color: #334155 !important;
-}
-
-html.dark .modal-card label.bg-white:hover {
-  background-color: #334155 !important;
-  border-color: #60a5fa !important;
-}
-
-html.dark .modal-card .bg-slate-50,
-html.dark .modal-card .bg-slate-100,
-html.dark #addBirthModal .bg-slate-50,
-html.dark #editBirthModal .bg-slate-50 {
-  background-color: #0f172a !important;
-  border-color: #1e293b !important;
-}
-
-html.dark .modal-card label,
-html.dark .modal-card .form-label,
-html.dark #addBirthModal label,
-html.dark #editBirthModal label,
-html.dark #convertModal label {
-  color: #f8fafc !important;
-}
-
-html.dark .modal-card .text-slate-700,
-html.dark .modal-card .text-slate-800,
-html.dark #addBirthModal .text-slate-700,
-html.dark #editBirthModal .text-slate-700 {
-  color: #f1f5f9 !important;
-}
-
-html.dark .modal-card .text-slate-500,
-html.dark .modal-card .text-slate-400,
-html.dark #addBirthModal .text-slate-500,
-html.dark #editBirthModal .text-slate-500 {
-  color: #94a3b8 !important;
-}
-
-html.dark .modal-card .text-blue-950,
-html.dark .modal-card .text-blue-900,
-html.dark .modal-card .text-blue-800,
-html.dark #addBirthModal .text-blue-950,
-html.dark #editBirthModal .text-blue-950 {
-  color: #38bdf8 !important;
-}
-
-html.dark .modal-card .text-blue-700,
-html.dark .modal-card .text-blue-600,
-html.dark #addBirthModal .text-blue-700,
-html.dark #editBirthModal .text-blue-600 {
-  color: #60a5fa !important;
-}
-
-html.dark .modal-card .text-emerald-800,
-html.dark .modal-card .text-emerald-700 {
-  color: #34d399 !important;
-}
-
-html.dark .modal-card .text-purple-800,
-html.dark .modal-card .text-purple-700 {
-  color: #c084fc !important;
-}
-
-html.dark .modal-card .border-blue-200,
-html.dark .modal-card .border-blue-200\/60,
-html.dark .modal-card .border-slate-200 {
-  border-color: #334155 !important;
-}
-
-html.dark .sticky.top-0.bg-white,
-html.dark .sticky.top-0 {
-  background-color: #131f37 !important;
-}
-
-/* ========================================================================= */
-/* DARK MODE VILLAGE & POLLING STATION CARDS (កែលម្អកាតភូមិ និងការិយាល័យ) */
-/* ========================================================================= */
-html.dark .bg-blue-50\/60,
-html.dark .bg-blue-50\/70,
-html.dark .bg-blue-50\/80,
-html.dark .bg-blue-50 {
-  background-color: rgba(14, 165, 233, 0.14) !important;
-  border-color: rgba(56, 189, 248, 0.35) !important;
-}
-
-html.dark .border-blue-100,
-html.dark .border-blue-200 {
-  border-color: rgba(56, 189, 248, 0.3) !important;
-}
-
-html.dark .bg-blue-50\/60 .text-slate-500,
-html.dark .bg-emerald-50\/60 .text-slate-500,
-html.dark .bg-blue-50 .text-slate-500,
-html.dark .bg-emerald-50 .text-slate-500 {
-  color: #cbd5e1 !important;
-  font-weight: 600 !important;
-}
-
-html.dark .bg-blue-50\/60 .text-blue-900,
-html.dark .bg-blue-50 .text-blue-900,
-html.dark .text-blue-900 {
-  color: #38bdf8 !important;
-}
-
-html.dark .bg-emerald-50\/60,
-html.dark .bg-emerald-50\/70,
-html.dark .bg-emerald-50\/80,
-html.dark .bg-emerald-50 {
-  background-color: rgba(16, 185, 129, 0.14) !important;
-  border-color: rgba(52, 211, 153, 0.35) !important;
-}
-
-html.dark .border-emerald-100,
-html.dark .border-emerald-200 {
-  border-color: rgba(52, 211, 153, 0.3) !important;
-}
-
-html.dark .bg-emerald-50\/60 .text-emerald-700,
-html.dark .bg-emerald-50 .text-emerald-700,
+html.dark .text-emerald-800,
 html.dark .text-emerald-700,
 html.dark .text-emerald-600 {
   color: #34d399 !important;
 }
 
-html.dark .bg-emerald-100.text-emerald-900 {
-  background-color: rgba(16, 185, 129, 0.22) !important;
-  color: #34d399 !important;
-  border: 1px solid rgba(52, 211, 153, 0.4) !important;
+html.dark .text-purple-950,
+html.dark .text-purple-900,
+html.dark .text-purple-800,
+html.dark .text-purple-700,
+html.dark .text-purple-600 {
+  color: #c084fc !important;
 }
 
-html.dark .glass-card .bg-slate-50,
-html.dark .glass-card .bg-slate-100 {
-  background-color: #0f172a !important;
-  border-color: #1e293b !important;
-  color: #cbd5e1 !important;
+html.dark .text-rose-950,
+html.dark .text-rose-900,
+html.dark .text-rose-800,
+html.dark .text-rose-700,
+html.dark .text-rose-600,
+html.dark .text-rose-500 {
+  color: #f87171 !important;
 }
 
-html.dark .glass-card .bg-slate-50 strong.text-slate-800,
-html.dark .glass-card .bg-slate-100 strong.text-slate-800 {
-  color: #f8fafc !important;
+html.dark .text-amber-950,
+html.dark .text-amber-900,
+html.dark .text-amber-800,
+html.dark .text-amber-700,
+html.dark .text-amber-600 {
+  color: #fbbf24 !important;
 }
 
-html.dark .glass-card a.text-blue-700 {
+html.dark .text-blue-950,
+html.dark .text-blue-900,
+html.dark .text-blue-800 {
+  color: #38bdf8 !important;
+}
+
+html.dark .text-blue-700,
+html.dark .text-blue-600 {
   color: #60a5fa !important;
-  font-weight: 700 !important;
 }
 
-html.dark .glass-card a.text-blue-700:hover {
-  color: #93c5fd !important;
+html.dark .text-indigo-950,
+html.dark .text-indigo-900,
+html.dark .text-indigo-800,
+html.dark .text-indigo-700,
+html.dark .text-indigo-600 {
+  color: #818cf8 !important;
 }
 
-html.dark .border-t-emerald-700 {
-  border-top-color: #10b981 !important;
+/* Background Card Overrides in Dark Mode */
+html.dark .bg-white {
+  background-color: #131f37 !important;
 }
 
-html.dark .border-t-blue-700 {
-  border-top-color: #3b82f6 !important;
-}
-
-/* ========================================================================= */
-/* DARK MODE BIRTH CERTIFICATES & YOUTH PIPELINE STYLING */
-/* ========================================================================= */
+html.dark .bg-slate-50,
+html.dark .bg-slate-50\/30,
+html.dark .bg-slate-50\/40,
+html.dark .bg-slate-50\/60,
+html.dark .bg-slate-50\/70,
 html.dark .bg-slate-50\/80,
 html.dark .bg-slate-50\/90 {
   background-color: #0f172a !important;
-  border-color: #1e293b !important;
 }
 
-html.dark .glass-card .bg-slate-50\/80 span.text-slate-700,
-html.dark .glass-card .bg-slate-50\/80 .text-slate-700 {
-  color: #f8fafc !important;
-  font-weight: 700 !important;
-}
-
-html.dark .glass-card .bg-slate-50\/80 .text-slate-500,
-html.dark .glass-card .bg-slate-50\/80 span.text-slate-500 {
-  color: #94a3b8 !important;
-}
-
-html.dark .glass-card .bg-slate-50\/80 strong.text-slate-800 {
-  color: #f8fafc !important;
-}
-
-/* KPI Cards on Birth Certificates Page */
-html.dark .border-l-4.border-blue-600 .bg-blue-50 {
-  background-color: rgba(56, 189, 248, 0.15) !important;
-  color: #38bdf8 !important;
-}
-
-html.dark .border-l-4.border-amber-500 .bg-amber-50 {
-  background-color: rgba(245, 158, 11, 0.15) !important;
-  color: #fbbf24 !important;
-}
-
-html.dark .border-l-4.border-amber-500 .text-amber-700 {
-  color: #fbbf24 !important;
-}
-
-html.dark .border-l-4.border-amber-500 .text-amber-600 {
-  color: #fcd34d !important;
-}
-
-html.dark .border-l-4.border-rose-500.bg-rose-50\/20,
-html.dark .border-l-4.border-rose-500 {
-  background-color: rgba(239, 68, 68, 0.08) !important;
-}
-
-html.dark .border-l-4.border-rose-500 .bg-rose-100 {
-  background-color: rgba(239, 68, 68, 0.22) !important;
-  color: #f87171 !important;
-}
-
-html.dark .border-l-4.border-rose-500 .text-rose-700 {
-  color: #f87171 !important;
-  font-weight: 700 !important;
-}
-
-html.dark .border-l-4.border-rose-500 .text-rose-600 {
-  color: #fca5a5 !important;
-}
-
-html.dark .border-l-4.border-emerald-500 .bg-emerald-50 {
-  background-color: rgba(16, 185, 129, 0.15) !important;
-  color: #34d399 !important;
-}
-
-html.dark .border-l-4.border-emerald-500 .text-emerald-700 {
-  color: #34d399 !important;
-}
-
-/* Main Table Elements in Birth Certificates */
-html.dark tr.bg-slate-100\/90,
+html.dark .bg-slate-100,
+html.dark .bg-slate-100\/80,
 html.dark .bg-slate-100\/90 {
-  background-color: #0f172a !important;
-  color: #e2e8f0 !important;
-  border-bottom: 2px solid #334155 !important;
+  background-color: #131f37 !important;
 }
 
-html.dark tr.bg-slate-100\/90 th {
-  color: #e2e8f0 !important;
+html.dark .bg-blue-50,
+html.dark .bg-blue-50\/30,
+html.dark .bg-blue-50\/40,
+html.dark .bg-blue-50\/60,
+html.dark .bg-blue-50\/70 {
+  background-color: rgba(14, 165, 233, 0.14) !important;
+}
+
+html.dark .bg-emerald-50,
+html.dark .bg-emerald-50\/30,
+html.dark .bg-emerald-50\/40,
+html.dark .bg-emerald-50\/60,
+html.dark .bg-emerald-50\/70 {
+  background-color: rgba(16, 185, 129, 0.14) !important;
+}
+
+html.dark .bg-purple-50,
+html.dark .bg-purple-50\/30,
+html.dark .bg-purple-50\/40,
+html.dark .bg-purple-50\/60 {
+  background-color: rgba(168, 85, 247, 0.14) !important;
+}
+
+html.dark .bg-indigo-50,
+html.dark .bg-indigo-50\/30,
+html.dark .bg-indigo-50\/40,
+html.dark .bg-indigo-50\/60 {
+  background-color: rgba(99, 102, 241, 0.14) !important;
+}
+
+html.dark .bg-slate-50,
+html.dark .bg-slate-50\/30,
+html.dark .bg-slate-50\/50,
+html.dark .bg-slate-50\/80 {
+  background-color: rgba(30, 41, 59, 0.65) !important;
+}
+
+html.dark .bg-rose-50,
+html.dark .bg-rose-50\/20,
+html.dark .bg-rose-50\/30,
+html.dark .bg-rose-50\/40 {
+  background-color: rgba(244, 63, 94, 0.14) !important;
+}
+
+html.dark .bg-amber-50,
+html.dark .bg-amber-50\/20,
+html.dark .bg-amber-50\/30,
+html.dark .bg-amber-50\/70 {
+  background-color: rgba(245, 158, 11, 0.14) !important;
+}
+
+/* Border Overrides in Dark Mode */
+html.dark .border-slate-100,
+html.dark .border-slate-200,
+html.dark .border-slate-300 {
+  border-color: #24344d !important;
+}
+
+html.dark .border-blue-100,
+html.dark .border-blue-200,
+html.dark .border-blue-300 {
+  border-color: rgba(96, 165, 250, 0.35) !important;
+}
+
+html.dark .border-indigo-100,
+html.dark .border-indigo-200,
+html.dark .border-indigo-300 {
+  border-color: rgba(129, 140, 248, 0.35) !important;
+}
+
+html.dark .border-blue-100,
+html.dark .border-blue-200,
+html.dark .border-blue-300 {
+  border-color: rgba(56, 189, 248, 0.35) !important;
+}
+
+html.dark .border-emerald-100,
+html.dark .border-emerald-200,
+html.dark .border-emerald-300 {
+  border-color: rgba(52, 211, 153, 0.35) !important;
+}
+
+html.dark .border-purple-100,
+html.dark .border-purple-200,
+html.dark .border-purple-300 {
+  border-color: rgba(192, 132, 252, 0.35) !important;
+}
+
+html.dark .border-rose-100,
+html.dark .border-rose-200,
+html.dark .border-rose-300 {
+  border-color: rgba(248, 113, 113, 0.35) !important;
+}
+
+html.dark .border-amber-100,
+html.dark .border-amber-200,
+html.dark .border-amber-300 {
+  border-color: rgba(251, 191, 36, 0.35) !important;
+}
+
+html.dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]),
+html.dark .divide-slate-200\/70 > :not([hidden]) ~ :not([hidden]),
+html.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #24344d !important;
+}
+
+/* Table Dark Mode Polishing */
+html.dark table thead tr {
+  background-color: #0b1329 !important;
+  border-bottom: 2px solid #24344d !important;
+}
+
+html.dark table thead th {
+  color: #f1f5f9 !important;
   font-weight: 700 !important;
 }
 
-html.dark tr.hover\:bg-blue-50\/40:hover {
+html.dark table tbody tr:hover {
   background-color: rgba(30, 41, 59, 0.6) !important;
 }
 
-html.dark .bg-pink-50 {
-  background-color: rgba(236, 72, 153, 0.2) !important;
+html.dark table tfoot tr {
+  background-color: #0b1329 !important;
+  color: #f8fafc !important;
+  border-top: 2px solid #334155 !important;
 }
 
-html.dark .text-pink-700,
-html.dark .text-pink-800 {
-  color: #f472b6 !important;
+/* Modals & Inputs Dark Mode */
+html.dark .modal-card {
+  background-color: #131f37 !important;
+  border: 1px solid #334155 !important;
 }
 
-html.dark .border-pink-200 {
-  border-color: rgba(244, 114, 182, 0.4) !important;
+html.dark .modal-header {
+  border-bottom: 1px solid #1e293b !important;
 }
 
-html.dark .bg-blue-100.text-blue-900 {
-  background-color: rgba(30, 58, 138, 0.3) !important;
-  color: #38bdf8 !important;
-  border-color: rgba(56, 189, 248, 0.3) !important;
+html.dark .modal-footer {
+  background-color: #0b1329 !important;
+  border-top: 1px solid #1e293b !important;
 }
 
 html.dark input,
 html.dark select,
 html.dark textarea {
   color-scheme: dark;
+}
+
+/* ========================================================================= */
+/* DARK MODE BADGE & REGISTRATION TYPE HARMONIZATION */
+/* ========================================================================= */
+html.dark .badge-reg-new,
+html.dark .bg-emerald-100 {
+  background-color: rgba(6, 78, 59, 0.4) !important;
+  color: #6ee7b7 !important;
+  border-color: rgba(52, 211, 153, 0.35) !important;
+  box-shadow: 0 1px 4px rgba(6, 78, 59, 0.25) !important;
+}
+
+html.dark .badge-reg-transferred,
+html.dark .bg-purple-100 {
+  background-color: rgba(88, 28, 135, 0.38) !important;
+  color: #d8b4fe !important;
+  border-color: rgba(192, 132, 252, 0.35) !important;
+  box-shadow: 0 1px 4px rgba(88, 28, 135, 0.25) !important;
+}
+
+html.dark .badge-reg-legacy,
+html.dark .bg-slate-100 {
+  background-color: rgba(30, 41, 59, 0.65) !important;
+  color: #cbd5e1 !important;
+  border-color: rgba(100, 116, 139, 0.4) !important;
+}
+
+html.dark .badge-success {
+  background-color: rgba(6, 78, 59, 0.4) !important;
+  color: #6ee7b7 !important;
+  border-color: rgba(52, 211, 153, 0.35) !important;
+}
+
+html.dark .badge-warning {
+  background-color: rgba(120, 53, 15, 0.35) !important;
+  color: #fcd34d !important;
+  border-color: rgba(245, 158, 11, 0.35) !important;
+}
+
+html.dark .badge-danger {
+  background-color: rgba(127, 29, 29, 0.4) !important;
+  color: #fca5a5 !important;
+  border-color: rgba(248, 113, 113, 0.35) !important;
+}
+
+html.dark .badge-primary {
+  background-color: rgba(30, 58, 138, 0.4) !important;
+  color: #93c5fd !important;
+  border-color: rgba(96, 165, 250, 0.35) !important;
+}
+
+html.dark .badge-secondary {
+  background-color: rgba(30, 41, 59, 0.65) !important;
+  color: #94a3b8 !important;
+  border-color: rgba(71, 85, 105, 0.45) !important;
+}
+
+html.dark .bg-blue-100 {
+  background-color: rgba(30, 58, 138, 0.4) !important;
+}
+
+html.dark .bg-amber-100 {
+  background-color: rgba(120, 53, 15, 0.35) !important;
 }

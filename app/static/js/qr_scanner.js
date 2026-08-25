@@ -77,53 +77,53 @@ function displayVoterResult(voter, autoCheckin = false) {
         : `<span class="badge badge-warning text-xs font-bold">⏳ មិនទាន់បោះឆ្នោត (មានសិទ្ធិបោះឆ្នោត)</span>`;
 
     const docTypeLabel = (voter.national_id && voter.national_id.length === 7)
-        ? `<span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 font-bold">📄 ឯ.អ (៧ ខ្ទង់)</span>`
-        : `<span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-900 font-bold">🪪 អត្តសញ្ញាណប័ណ្ណ (៩ ខ្ទង់)</span>`;
+        ? `<span class="text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-900 dark:text-emerald-300 font-bold border border-emerald-200 dark:border-emerald-700/60">📄 ឯ.អ (៧ ខ្ទង់)</span>`
+        : `<span class="text-[10px] px-2.5 py-0.5 rounded-full bg-blue-100 dark:bg-sky-950/60 text-blue-900 dark:text-sky-300 font-bold border border-blue-200 dark:border-sky-700/60">🪪 អត្តសញ្ញាណប័ណ្ណ (៩ ខ្ទង់)</span>`;
 
     resultCard.innerHTML = `
-        <div class="p-6 bg-white rounded-3xl border-2 border-blue-600 shadow-2xl animate-fade-in relative overflow-hidden">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b pb-4 mb-4 gap-3">
+        <div class="p-6 bg-white dark:bg-[#131f37] rounded-3xl border-2 border-blue-600 dark:border-blue-500/60 shadow-2xl animate-fade-in relative overflow-hidden">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4 mb-4 gap-3">
                 <div class="flex items-center gap-3.5">
-                    <img src="${voter.photo_url || '/static/images/avatars/male_1.jpg'}" alt="${voter.name_kh}" class="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl object-cover border-2 border-blue-500 shadow-md bg-white flex-shrink-0">
+                    <img src="${voter.photo_url || '/static/images/avatars/male_1.jpg'}" alt="${voter.name_kh}" class="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl object-cover border-2 border-blue-500 shadow-md bg-white dark:bg-slate-800 flex-shrink-0">
                     <div class="min-w-0">
                         <div class="flex items-center gap-1.5 flex-wrap">
-                            <span class="text-xs uppercase font-mono font-bold text-blue-700 bg-blue-100 px-2.5 py-0.5 rounded-full border border-blue-200">
+                            <span class="text-xs uppercase font-mono font-bold text-blue-700 dark:text-sky-300 bg-blue-100 dark:bg-sky-950/60 px-2.5 py-0.5 rounded-full border border-blue-200 dark:border-sky-700/60">
                                 ${voter.voter_code}
                             </span>
                             ${docTypeLabel}
                         </div>
-                        <h3 class="text-xl sm:text-2xl font-bold text-slate-800 mt-1 font-kh-heading">${voter.name_kh}</h3>
-                        <p class="text-xs uppercase font-semibold text-slate-500 tracking-wider font-mono">${voter.name_en}</p>
+                        <h3 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1 font-kh-heading">${voter.name_kh}</h3>
+                        <p class="text-xs uppercase font-semibold text-slate-500 dark:text-slate-400 tracking-wider font-mono">${voter.name_en}</p>
                     </div>
                 </div>
                 <div class="text-left sm:text-right">
-                    <span class="text-[11px] text-slate-400 font-bold uppercase">លេខរៀងក្នុងបញ្ជី</span>
-                    <div class="text-2xl sm:text-3xl font-black text-amber-600 font-mono">#${voter.list_no}</div>
+                    <span class="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase">លេខរៀងក្នុងបញ្ជី</span>
+                    <div class="text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400 font-mono">#${voter.list_no}</div>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs mb-4">
-                <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
-                    <span class="text-slate-500 font-medium block">លេខអត្តសញ្ញាណប័ណ្ណ / ឯកសារបញ្ជាក់៖</span>
-                    <strong class="font-mono text-sm text-slate-900 font-bold">${voter.national_id}</strong>
+                <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700">
+                    <span class="text-slate-500 dark:text-slate-400 font-medium block">លេខអត្តសញ្ញាណប័ណ្ណ / ឯកសារបញ្ជាក់៖</span>
+                    <strong class="font-mono text-sm text-slate-900 dark:text-slate-100 font-bold">${voter.national_id}</strong>
                 </div>
-                <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
-                    <span class="text-slate-500 font-medium block">ភេទ / ថ្ងៃខែឆ្នាំកំណើត៖</span>
-                    <strong class="text-sm text-slate-900 font-bold">${voter.gender} (${voter.dob})</strong>
+                <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700">
+                    <span class="text-slate-500 dark:text-slate-400 font-medium block">ភេទ / ថ្ងៃខែឆ្នាំកំណើត៖</span>
+                    <strong class="text-sm text-slate-900 dark:text-slate-100 font-bold">${voter.gender} (${voter.dob})</strong>
                 </div>
-                <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
-                    <span class="text-slate-500 font-medium block">ភូមិ (ទីលំនៅ)៖</span>
-                    <strong class="text-sm text-slate-900 font-bold">${voter.village_name}</strong>
+                <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700">
+                    <span class="text-slate-500 dark:text-slate-400 font-medium block">ភូមិ (ទីលំនៅ)៖</span>
+                    <strong class="text-sm text-slate-900 dark:text-slate-100 font-bold">${voter.village_name}</strong>
                 </div>
-                <div class="p-2.5 rounded-xl bg-blue-50/70 border border-blue-200">
-                    <span class="text-slate-500 font-medium block">ការិយាល័យបោះឆ្នោត៖</span>
-                    <strong class="text-sm text-blue-900 font-bold">${voter.station_code} - ${voter.station_name}</strong>
-                    <div class="text-[11px] text-slate-500 mt-0.5">📍 ${voter.station_location}</div>
+                <div class="p-2.5 rounded-xl bg-blue-50/70 dark:bg-sky-950/40 border border-blue-200 dark:border-sky-800/60">
+                    <span class="text-slate-500 dark:text-slate-400 font-medium block">ការិយាល័យបោះឆ្នោត៖</span>
+                    <strong class="text-sm text-blue-900 dark:text-sky-300 font-bold">${voter.station_code} - ${voter.station_name}</strong>
+                    <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">📍 ${voter.station_location}</div>
                 </div>
             </div>
 
             <!-- Verification Link Banner -->
-            <div class="p-3 bg-slate-900 text-white rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-2 mb-4 text-xs shadow-inner">
+            <div class="p-3 bg-slate-900 dark:bg-slate-950 text-white rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-2 mb-4 text-xs shadow-inner border border-slate-700">
                 <div class="flex items-center gap-2 min-w-0 flex-1">
                     <span class="text-base">🔗</span>
                     <div class="min-w-0 flex-1 truncate">
@@ -136,7 +136,7 @@ function displayVoterResult(voter, autoCheckin = false) {
                 </a>
             </div>
 
-            <div class="flex flex-col sm:flex-row items-center justify-between pt-3 border-t border-slate-100 gap-3">
+            <div class="flex flex-col sm:flex-row items-center justify-between pt-3 border-t border-slate-200 dark:border-slate-800 gap-3">
                 <div id="voter-status-${voter.id}">${statusBadge}</div>
                 <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
                     <button onclick="toggleCheckin(${voter.id}, this)" class="btn ${voter.has_voted ? 'btn-outline text-red-600' : 'btn-success px-5 py-2 font-bold text-sm'}">

@@ -15,9 +15,12 @@
             <!-- Left Info Block -->
             <div class="min-w-0 flex-1">
                 <div class="flex flex-wrap items-center gap-2 mb-2.5">
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-400 text-blue-950 shadow-sm">
-                        <span class="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
-                        ផ្សាយផ្ទាល់ Real-Time
+                    <span class="badge-live-realtime">
+                        <span class="live-dot-ping">
+                            <span class="ping"></span>
+                            <span class="dot"></span>
+                        </span>
+                        <span>ផ្សាយផ្ទាល់ Real-Time</span>
                     </span>
                     <span class="text-xs font-medium text-blue-200/90 bg-white/10 px-3 py-1 rounded-full backdrop-blur-sm border border-white/10">
                         🗓️ ថ្ងៃបោះឆ្នោតជាតិ ឆ្នាំ២០២៦
@@ -77,49 +80,49 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- 1. Total Registered -->
         <div class="stat-card">
-            <div class="stat-icon bg-blue-50 text-blue-700">
+            <div class="stat-icon bg-blue-50 dark:bg-sky-950/60 text-blue-700 dark:text-sky-300 border border-blue-100 dark:border-sky-800/40">
                 👥
             </div>
             <div>
-                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">អ្នកចុះឈ្មោះសកម្ម</p>
-                <h3 class="text-2xl font-black text-slate-800">{{ total_active_voters }} <span class="text-xs font-normal text-slate-400">នាក់</span></h3>
-                <p class="text-[11px] text-blue-600 font-semibold mt-0.5">ស្រី {{ female_count }} | ប្រុស {{ male_count }}</p>
+                <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">អ្នកចុះឈ្មោះសកម្ម</p>
+                <h3 class="text-2xl font-black text-slate-900 dark:text-slate-100 font-mono">{{ total_active_voters }} <span class="text-xs font-normal text-slate-400 dark:text-slate-500 font-sans">នាក់</span></h3>
+                <p class="text-[11px] text-blue-700 dark:text-sky-300 font-semibold mt-0.5">ស្រី {{ female_count }} | ប្រុស {{ male_count }}</p>
             </div>
         </div>
 
         <!-- 2. Total Voted -->
         <div class="stat-card">
-            <div class="stat-icon bg-emerald-50 text-emerald-700">
+            <div class="stat-icon bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-800/40">
                 ✓
             </div>
             <div>
-                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">បានបោះឆ្នោតរួច</p>
-                <h3 class="text-2xl font-black text-emerald-600">{{ total_voted }} <span class="text-xs font-normal text-slate-400">នាក់</span></h3>
-                <p class="text-[11px] text-emerald-700 font-semibold mt-0.5">ស្រី {{ female_voted }} | ប្រុស {{ male_voted }}</p>
+                <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">បានបោះឆ្នោតរួច</p>
+                <h3 class="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono">{{ total_voted }} <span class="text-xs font-normal text-slate-400 dark:text-slate-500 font-sans">នាក់</span></h3>
+                <p class="text-[11px] text-emerald-700 dark:text-emerald-300 font-semibold mt-0.5">ស្រី {{ female_voted }} | ប្រុស {{ male_voted }}</p>
             </div>
         </div>
 
         <!-- 3. Total Pending -->
         <div class="stat-card">
-            <div class="stat-icon bg-amber-50 text-amber-700">
+            <div class="stat-icon bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-100 dark:border-amber-800/40">
                 ⏳
             </div>
             <div>
-                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">មិនទាន់បានបោះ</p>
-                <h3 class="text-2xl font-black text-amber-600">{{ total_not_voted }} <span class="text-xs font-normal text-slate-400">នាក់</span></h3>
-                <p class="text-[11px] text-amber-700 font-semibold mt-0.5">នៅសល់ {{ 100 - turnout_pct }}%</p>
+                <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">មិនទាន់បានបោះ</p>
+                <h3 class="text-2xl font-black text-amber-600 dark:text-amber-400 font-mono">{{ total_not_voted }} <span class="text-xs font-normal text-slate-400 dark:text-slate-500 font-sans">នាក់</span></h3>
+                <p class="text-[11px] text-amber-700 dark:text-amber-300 font-semibold mt-0.5">នៅសល់ {{ 100 - turnout_pct }}%</p>
             </div>
         </div>
 
         <!-- 4. Stations / Villages count -->
         <div class="stat-card">
-            <div class="stat-icon bg-purple-50 text-purple-700">
+            <div class="stat-icon bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-100 dark:border-purple-800/40">
                 🏛️
             </div>
             <div>
-                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">ភូមិសាស្ត្របោះឆ្នោត</p>
-                <h3 class="text-2xl font-black text-slate-800">{{ total_stations }} <span class="text-xs font-normal text-slate-400">ការិយាល័យ</span></h3>
-                <p class="text-[11px] text-purple-700 font-semibold mt-0.5">{{ total_villages }} ភូមិ ក្នុងឃុំនគរភាស</p>
+                <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">ភូមិសាស្ត្របោះឆ្នោត</p>
+                <h3 class="text-2xl font-black text-slate-900 dark:text-slate-100 font-mono">{{ total_stations }} <span class="text-xs font-normal text-slate-400 dark:text-slate-500 font-sans">ការិយាល័យ</span></h3>
+                <p class="text-[11px] text-purple-700 dark:text-purple-300 font-semibold mt-0.5">{{ total_villages }} ភូមិ ក្នុងឃុំនគរភាស</p>
             </div>
         </div>
     </div>
@@ -128,11 +131,11 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- 1. Station Turnout Chart -->
         <div class="glass-card p-6">
-            <div class="flex items-center justify-between mb-4 border-b pb-3">
-                <h3 class="font-bold text-slate-800 flex items-center gap-2">
+            <div class="flex items-center justify-between mb-4 border-b border-slate-200 dark:border-slate-800 pb-3">
+                <h3 class="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                     <span>🏢</span> ស្ថិតិតាមការិយាល័យទាំង ១៤ (Station Turnout)
                 </h3>
-                <span class="text-xs text-slate-400">បច្ចុប្បន្នភាព</span>
+                <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">បច្ចុប្បន្នភាព</span>
             </div>
             <div class="h-72">
                 <canvas id="stationChart"></canvas>
@@ -141,11 +144,11 @@
 
         <!-- 2. Village Turnout Chart -->
         <div class="glass-card p-6">
-            <div class="flex items-center justify-between mb-4 border-b pb-3">
-                <h3 class="font-bold text-slate-800 flex items-center gap-2">
+            <div class="flex items-center justify-between mb-4 border-b border-slate-200 dark:border-slate-800 pb-3">
+                <h3 class="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                     <span>🏡</span> ស្ថិតិតាមភូមិទាំង ១០ (Village Turnout)
                 </h3>
-                <span class="text-xs text-slate-400">បច្ចុប្បន្នភាព</span>
+                <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">បច្ចុប្បន្នភាព</span>
             </div>
             <div class="h-72">
                 <canvas id="villageChart"></canvas>
@@ -205,27 +208,41 @@
 
         <!-- Right: Real-time Live Check-in Feed (1 Col) -->
         <div class="glass-card p-6">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="font-bold text-slate-800 flex items-center gap-2">
-                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span>វត្តមានបោះឆ្នោតថ្មីៗ</span>
+            <div class="flex items-center justify-between mb-4 border-b border-slate-200 dark:border-slate-800 pb-3">
+                <h3 class="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                    <span class="relative flex h-2.5 w-2.5">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                    </span>
+                    <span>វត្តមានបោះឆ្នោតថ្មីៗ (Live Feed)</span>
                 </h3>
-                <span class="text-xs text-slate-400">Live Feed</span>
+                <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">បច្ចុប្បន្នភាព</span>
             </div>
 
-            <div class="space-y-3 max-h-[420px] overflow-y-auto pr-1">
+            <div class="space-y-2.5 max-h-[420px] overflow-y-auto pr-1">
                 {% if recent_checkins %}
                     {% for r in recent_checkins %}
-                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs hover:bg-slate-100 transition">
-                        <div>
-                            <div class="font-bold text-slate-800">{{ r.name_kh }}</div>
-                            <div class="text-slate-500">{{ r.national_id }} • {{ r.station.code if r.station else '' }}</div>
+                    <div class="p-3 bg-white dark:bg-slate-800/70 rounded-2xl border border-slate-200 dark:border-slate-700/80 flex items-center justify-between text-xs hover:border-emerald-400/50 dark:hover:border-emerald-500/40 hover:bg-slate-50/90 dark:hover:bg-slate-800 transition duration-200 shadow-xs">
+                        <div class="flex items-center gap-3 min-w-0 flex-1">
+                            <div class="relative flex-shrink-0">
+                                <img src="{{ r.photo_display }}" alt="{{ r.name_kh }}" 
+                                     class="w-9 h-9 rounded-xl object-cover border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800"
+                                     onerror="this.onerror=null; this.src='/static/images/avatars/{{ 'female_1.jpg' if r.gender == 'ស្រី' else 'male_1.jpg' }}';">
+                                <span class="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[8px] font-bold border-2 border-white dark:border-slate-900">✓</span>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <div class="font-bold text-slate-900 dark:text-slate-100 truncate">{{ r.name_kh }}</div>
+                                <div class="text-[11px] text-slate-500 dark:text-slate-400 font-mono mt-0.5 truncate font-medium">
+                                    <span class="text-blue-700 dark:text-amber-300 font-bold">{{ r.national_id }}</span> • {{ r.station.code if r.station else '' }}
+                                </div>
+                            </div>
                         </div>
-                        <div class="text-right">
-                            <span class="badge badge-success">
-                                ✓ {{ r.voted_at.strftime('%H:%M:%S') if r.voted_at else '' }}
+                        <div class="text-right flex-shrink-0 ml-2">
+                            <span class="font-mono text-[11px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-700/60 inline-flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                <span>{{ r.voted_at.strftime('%H:%M:%S') if r.voted_at else '' }}</span>
                             </span>
-                            <div class="text-[10px] text-slate-400 mt-0.5">លេខរៀង #{{ r.list_no }}</div>
+                            <div class="text-[10px] text-slate-400 dark:text-slate-500 font-mono mt-0.5">#{{ r.list_no }}</div>
                         </div>
                     </div>
                     {% endfor %}

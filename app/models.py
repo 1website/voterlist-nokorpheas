@@ -117,7 +117,7 @@ class Voter(Base):
             return {
                 "text": f"បញ្ជីចាស់ ({yr})",
                 "icon": "📋",
-                "class": "bg-slate-100 text-slate-700 border-slate-300",
+                "class": "badge-reg-legacy bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700",
                 "type": "legacy",
                 "year": yr
             }
@@ -125,7 +125,7 @@ class Voter(Base):
             return {
                 "text": f"ផ្ទេរចូល {yr}",
                 "icon": "📦",
-                "class": "bg-purple-100 text-purple-800 border-purple-300",
+                "class": "badge-reg-transferred bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 border-purple-300 dark:border-purple-700/60",
                 "type": "transferred",
                 "year": yr
             }
@@ -133,7 +133,7 @@ class Voter(Base):
             return {
                 "text": f"ចុះថ្មី {yr}",
                 "icon": "✨",
-                "class": "bg-emerald-100 text-emerald-800 border-emerald-300",
+                "class": "badge-reg-new bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700/60",
                 "type": "new",
                 "year": yr
             }

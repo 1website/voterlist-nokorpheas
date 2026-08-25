@@ -9,8 +9,8 @@
     <div class="hero-banner">
         <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div>
-                <div class="flex items-center gap-2 mb-1.5">
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-400 text-blue-950 shadow-sm">
+                <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-400/20 text-amber-300 border border-amber-400/40 backdrop-blur-sm shadow-xs">
                         🛡️ សុវត្ថិភាពទិន្នន័យ & Disaster Recovery
                     </span>
                     <span class="text-xs text-blue-200/60">•</span>
@@ -26,7 +26,7 @@
                 </p>
             </div>
             <div class="flex items-center gap-2.5 flex-wrap sm:flex-nowrap flex-shrink-0">
-                <button type="button" onclick="createSnapshot()" class="btn bg-gradient-to-r from-amber-400 to-amber-300 hover:from-amber-300 hover:to-amber-200 text-blue-950 font-bold text-xs sm:text-sm h-10 px-4 shadow-lg border border-amber-300/40 flex items-center justify-center gap-2 whitespace-nowrap transition">
+                <button type="button" onclick="createSnapshot()" class="btn btn-warning text-xs sm:text-sm h-10 px-4 shadow-lg flex items-center justify-center gap-2 whitespace-nowrap transition">
                     <span>⚡</span> បង្កើត Snapshot ក្នុងម៉ាស៊ីន
                 </button>
                 <button type="button" onclick="openModal('restoreModal')" class="btn bg-white/15 hover:bg-white/25 text-white border border-white/20 text-xs sm:text-sm font-semibold backdrop-blur-sm h-10 px-4 shadow-sm flex items-center justify-center gap-2 whitespace-nowrap transition">
@@ -40,68 +40,68 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         <!-- 1. Database Size & Engine Type -->
         <div class="stat-card">
-            <div class="stat-icon bg-blue-50 text-blue-800">
+            <div class="stat-icon bg-blue-50 dark:bg-sky-950/60 text-blue-700 dark:text-sky-300 border border-blue-100 dark:border-sky-800/40">
                 🗄️
             </div>
             <div class="min-w-0 flex-1">
                 <div class="flex items-center justify-between gap-1">
-                    <p class="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">DATABASE</p>
+                    <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">DATABASE</p>
                     {% if is_sqlite %}
-                    <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700">SQLite</span>
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200">SQLite</span>
                     {% else %}
-                    <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">Postgres</span>
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700/60">Postgres</span>
                     {% endif %}
                 </div>
-                <h3 class="text-2xl font-black font-mono text-slate-900 mt-0.5">{{ db_size_kb }} <span class="text-xs font-normal text-slate-400">{% if is_sqlite %}KB{% else %}Cloud{% endif %}</span></h3>
-                <p class="text-[11px] {% if is_sqlite %}text-blue-600{% else %}text-emerald-700 font-bold{% endif %} font-medium mt-0.5 truncate">{{ db_type_name }}</p>
+                <h3 class="text-2xl font-black font-mono text-slate-900 dark:text-slate-100 mt-0.5">{{ db_size_kb }} <span class="text-xs font-normal text-slate-400 dark:text-slate-500 font-sans">{% if is_sqlite %}KB{% else %}Cloud{% endif %}</span></h3>
+                <p class="text-[11px] {% if is_sqlite %}text-blue-700 dark:text-sky-300{% else %}text-emerald-700 dark:text-emerald-300 font-bold{% endif %} font-medium mt-0.5 truncate">{{ db_type_name }}</p>
             </div>
         </div>
 
         <!-- 2. Voters -->
         <div class="stat-card">
-            <div class="stat-icon bg-emerald-50 text-emerald-800">
+            <div class="stat-icon bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-800/40">
                 👥
             </div>
             <div class="min-w-0 flex-1">
-                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">អ្នកបោះឆ្នោត</p>
-                <h3 class="text-2xl font-black font-mono text-emerald-600 mt-0.5">{{ total_voters }} <span class="text-xs font-normal text-slate-400">នាក់</span></h3>
-                <p class="text-[11px] text-emerald-700 font-medium mt-0.5 truncate">កំណត់ត្រាក្នុងបញ្ជី</p>
+                <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">អ្នកបោះឆ្នោត</p>
+                <h3 class="text-2xl font-black font-mono text-emerald-600 dark:text-emerald-400 mt-0.5">{{ total_voters }} <span class="text-xs font-normal text-slate-400 dark:text-slate-500 font-sans">នាក់</span></h3>
+                <p class="text-[11px] text-emerald-700 dark:text-emerald-300 font-medium mt-0.5 truncate">កំណត់ត្រាក្នុងបញ្ជី</p>
             </div>
         </div>
 
         <!-- 3. Structure -->
         <div class="stat-card">
-            <div class="stat-icon bg-amber-50 text-amber-800">
+            <div class="stat-icon bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-100 dark:border-amber-800/40">
                 🏢
             </div>
             <div class="min-w-0 flex-1">
-                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">ការិយាល័យ & ភូមិ</p>
-                <h3 class="text-2xl font-black font-mono text-amber-600 mt-0.5">{{ total_stations }} <span class="text-xs font-normal text-slate-400">/ {{ total_villages }} ភូមិ</span></h3>
-                <p class="text-[11px] text-amber-700 font-medium mt-0.5 truncate">១៤ ការិយាល័យ • ១០ ភូមិ</p>
+                <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">ការិយាល័យ & ភូមិ</p>
+                <h3 class="text-2xl font-black font-mono text-amber-600 dark:text-amber-400 mt-0.5">{{ total_stations }} <span class="text-xs font-normal text-slate-400 dark:text-slate-500 font-sans">/ {{ total_villages }} ភូមិ</span></h3>
+                <p class="text-[11px] text-amber-700 dark:text-amber-300 font-medium mt-0.5 truncate">១៤ ការិយាល័យ • ១០ ភូមិ</p>
             </div>
         </div>
 
         <!-- 4. Staff Users -->
         <div class="stat-card">
-            <div class="stat-icon bg-purple-50 text-purple-800">
+            <div class="stat-icon bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-100 dark:border-purple-800/40">
                 👑
             </div>
             <div class="min-w-0 flex-1">
-                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">គណនីមន្ត្រី</p>
-                <h3 class="text-2xl font-black font-mono text-purple-600 mt-0.5">{{ total_users }} <span class="text-xs font-normal text-slate-400">គណនី</span></h3>
-                <p class="text-[11px] text-purple-700 font-medium mt-0.5 truncate">Admin, Officers, Chiefs</p>
+                <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">គណនីមន្ត្រី</p>
+                <h3 class="text-2xl font-black font-mono text-purple-600 dark:text-purple-400 mt-0.5">{{ total_users }} <span class="text-xs font-normal text-slate-400 dark:text-slate-500 font-sans">គណនី</span></h3>
+                <p class="text-[11px] text-purple-700 dark:text-purple-300 font-medium mt-0.5 truncate">Admin, Officers, Chiefs</p>
             </div>
         </div>
 
         <!-- 5. Audit Logs -->
         <div class="stat-card">
-            <div class="stat-icon bg-teal-50 text-teal-800">
+            <div class="stat-icon bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 border border-teal-100 dark:border-teal-800/40">
                 📋
             </div>
             <div class="min-w-0 flex-1">
-                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">AUDIT LOGS</p>
-                <h3 class="text-2xl font-black font-mono text-teal-600 mt-0.5">{{ total_logs }} <span class="text-xs font-normal text-slate-400">ជួរ</span></h3>
-                <p class="text-[11px] text-teal-700 font-medium mt-0.5 truncate">កំណត់ត្រាសកម្មភាព</p>
+                <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">AUDIT LOGS</p>
+                <h3 class="text-2xl font-black font-mono text-teal-600 dark:text-teal-400 mt-0.5">{{ total_logs }} <span class="text-xs font-normal text-slate-400 dark:text-slate-500 font-sans">ជួរ</span></h3>
+                <p class="text-[11px] text-teal-700 dark:text-teal-300 font-medium mt-0.5 truncate">កំណត់ត្រាសកម្មភាព</p>
             </div>
         </div>
     </div>

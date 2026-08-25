@@ -86,35 +86,49 @@
 
             <!-- Live Stream of Recent Check-ins -->
             <div class="glass-card p-6">
-                <div class="flex items-center justify-between mb-4 border-b pb-3">
-                    <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
-                        <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+                <div class="flex items-center justify-between mb-4 border-b border-slate-200 dark:border-slate-800 pb-3">
+                    <h3 class="font-bold text-slate-900 dark:text-slate-100 text-base flex items-center gap-2">
+                        <span class="relative flex h-2.5 w-2.5">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                        </span>
                         <span>បញ្ជីវត្តមានទើប Check-in ថ្មីៗ (Live Timeline)</span>
                     </h3>
-                    <span class="text-xs text-slate-400 font-semibold">ថ្ងៃបោះឆ្នោត</span>
+                    <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">ថ្ងៃបោះឆ្នោត</span>
                 </div>
 
                 <div class="space-y-2.5 max-h-[460px] overflow-y-auto pr-1">
                     {% if recent_checkins %}
                         {% for r in recent_checkins %}
-                        <div class="p-3.5 bg-white rounded-xl border border-slate-200 flex items-center justify-between hover:shadow-sm transition">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-800 font-black flex items-center justify-center text-sm">
-                                    ✓
+                        <div class="p-3 sm:p-3.5 bg-white dark:bg-slate-800/70 rounded-2xl border border-slate-200 dark:border-slate-700/80 flex items-center justify-between hover:border-emerald-400/50 dark:hover:border-emerald-500/40 hover:bg-slate-50/90 dark:hover:bg-slate-800 transition duration-200 shadow-xs group">
+                            <div class="flex items-center gap-3 min-w-0 flex-1">
+                                <!-- Sleek Avatar with Live Checkmark Badge -->
+                                <div class="relative flex-shrink-0">
+                                    <img src="{{ r.photo_display }}" alt="{{ r.name_kh }}" 
+                                         class="w-10 h-10 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shadow-xs bg-slate-100 dark:bg-slate-800"
+                                         onerror="this.onerror=null; this.src='/static/images/avatars/{{ 'female_1.jpg' if r.gender == 'ស្រី' else 'male_1.jpg' }}';">
+                                    <span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[9px] font-bold border-2 border-white dark:border-slate-900 shadow-xs">✓</span>
                                 </div>
-                                <div>
-                                    <div class="font-bold text-slate-900 text-sm">{{ r.name_kh }} <span class="text-xs font-normal text-slate-400">({{ r.name_en }})</span></div>
-                                    <div class="text-xs text-slate-500 font-mono">
-                                        ID: {{ r.national_id }} • ភូមិ: {{ r.village.name_kh if r.village else '' }}
+                                <div class="min-w-0 flex-1">
+                                    <div class="font-bold text-slate-900 dark:text-slate-100 text-sm truncate flex items-center gap-1.5">
+                                        <span>{{ r.name_kh }}</span>
+                                        <span class="text-xs font-normal text-slate-500 dark:text-slate-400 truncate">({{ r.name_en }})</span>
+                                    </div>
+                                    <div class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate font-medium">
+                                        ID: <span class="font-mono font-bold text-blue-700 dark:text-amber-300">{{ r.national_id }}</span>
+                                        <span class="mx-1 text-slate-300 dark:text-slate-600">•</span>
+                                        ភូមិ៖ <span class="text-slate-700 dark:text-slate-200">{{ r.village.name_kh if r.village else '' }}</span>
                                     </div>
                                 </div>
                             </div>
-                            <div class="text-right">
-                                <span class="font-mono text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                                    {{ r.voted_at.strftime('%H:%M:%S') if r.voted_at else '' }}
+                            <div class="text-right flex-shrink-0 ml-3">
+                                <span class="font-mono text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-700/60 shadow-xs inline-flex items-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                    <span>{{ r.voted_at.strftime('%H:%M:%S') if r.voted_at else '' }}</span>
                                 </span>
-                                <div class="text-[11px] text-blue-900 font-bold mt-1">
-                                    {{ r.station.code if r.station else '' }} (#{{ r.list_no }})
+                                <div class="text-[11px] font-mono mt-1 flex items-center justify-end gap-1">
+                                    <span class="font-bold text-blue-900 dark:text-sky-300 bg-blue-50 dark:bg-sky-950/60 px-1.5 py-0.5 rounded border border-blue-200 dark:border-sky-800/60 text-[10px]">{{ r.station.code if r.station else '' }}</span>
+                                    <span class="text-slate-400 dark:text-slate-500 font-medium">#{{ r.list_no }}</span>
                                 </div>
                             </div>
                         </div>

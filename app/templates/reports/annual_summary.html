@@ -10,20 +10,20 @@
         <div>
             <div class="flex items-center gap-2">
                 <span class="text-2xl sm:text-3xl">📊</span>
-                <h2 class="text-2xl font-bold text-slate-800 font-kh-bold">
+                <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 font-kh-bold tracking-tight">
                     របាយការណ៍បូកសរុបអ្នកចុះឈ្មោះថ្មី & ទិន្នន័យចាស់ក្នុងបញ្ជី
                 </h2>
             </div>
-            <p class="text-xs sm:text-sm text-slate-500 mt-1">
+            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-1 font-medium">
                 រដ្ឋបាលឃុំនគរភាស • ស្ថិតិបូកសរុបលទ្ធផលនៃការពិនិត្យបញ្ជីឈ្មោះ និងការចុះឈ្មោះបោះឆ្នោតប្រចាំឆ្នាំ {{ year }}
             </p>
         </div>
 
-        <div class="flex flex-wrap items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2.5">
             <!-- Year Selector Form -->
-            <form method="GET" action="/reports/annual-summary" class="flex items-center gap-1.5 bg-white p-1 rounded-xl border border-slate-200 shadow-xs">
-                <label class="text-xs font-bold text-slate-500 pl-2">ឆ្នាំ៖</label>
-                <select name="year" onchange="this.form.submit()" class="form-control text-xs py-1 px-2 border-0 font-mono font-bold text-blue-900 bg-transparent focus:ring-0">
+            <form method="GET" action="/reports/annual-summary" class="flex items-center gap-1.5 bg-white dark:bg-slate-800 p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs">
+                <label class="text-xs font-bold text-slate-600 dark:text-slate-300 pl-2">ឆ្នាំ៖</label>
+                <select name="year" onchange="this.form.submit()" class="form-control text-xs py-1 px-2 border-0 font-mono font-bold text-blue-900 dark:text-sky-300 bg-transparent focus:ring-0 cursor-pointer">
                     <option value="2026" {% if year == 2026 %}selected{% endif %}>២០២៦ (ឆ្នាំនេះ)</option>
                     <option value="2025" {% if year == 2025 %}selected{% endif %}>២០២៥</option>
                     <option value="2024" {% if year == 2024 %}selected{% endif %}>២០២៤</option>
@@ -31,18 +31,19 @@
                 </select>
             </form>
 
-            <a href="/reports/print/annual-summary?year={{ year }}" target="_blank" class="btn btn-outline text-amber-900 border-amber-300 hover:bg-amber-50 text-sm font-bold flex items-center gap-1.5">
+            <a href="/reports/print/annual-summary?year={{ year }}" target="_blank" class="btn btn-outline-amber text-sm font-bold flex items-center gap-1.5 shadow-xs">
                 <span>🖨️</span>
                 <span>បោះពុម្ព (Print A4)</span>
             </a>
 
-            <a href="/reports/export/annual-summary-excel?year={{ year }}" class="btn btn-outline text-emerald-900 border-emerald-300 hover:bg-emerald-50 text-sm font-bold flex items-center gap-1.5">
+            <a href="/reports/export/annual-summary-excel?year={{ year }}" class="btn btn-outline-emerald text-sm font-bold flex items-center gap-1.5 shadow-xs">
                 <span>📥</span>
                 <span>Export Excel</span>
             </a>
             
-            <a href="/voters" class="btn btn-outline text-sm">
-                <span>👥</span> បញ្ជីអ្នកបោះឆ្នោត
+            <a href="/voters" class="btn btn-outline text-sm font-semibold flex items-center gap-1.5">
+                <span>👥</span>
+                <span>បញ្ជីអ្នកបោះឆ្នោត</span>
             </a>
         </div>
     </div>
@@ -50,109 +51,109 @@
     <!-- KPI Summary Stat Cards Block (The Math Formula A + B + C - D = Total) -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <!-- 1. Legacy Voter List (A) -->
-        <div class="glass-card p-4 border-l-4 border-slate-500 bg-slate-50/40">
+        <div class="glass-card p-4 border-l-4 border-slate-400 dark:border-slate-500 bg-slate-50/80 dark:bg-slate-800/80">
             <div class="flex items-center justify-between">
-                <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">១. បញ្ជីចាស់ (A)</span>
+                <span class="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">១. បញ្ជីចាស់ (A)</span>
                 <span class="text-xl">📋</span>
             </div>
-            <div class="text-2xl font-bold text-slate-800 font-mono mt-1">{{ legacy_count }}</div>
-            <div class="text-[11px] text-slate-400 mt-0.5">ទិន្នន័យមានស្រាប់មុន {{ year }}</div>
+            <div class="text-2xl lg:text-3xl font-bold stat-number-legacy mt-1">{{ legacy_count }}</div>
+            <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">ទិន្នន័យមានស្រាប់មុន {{ year }}</div>
         </div>
 
         <!-- 2. New Registrations (B) -->
-        <div class="glass-card p-4 border-l-4 border-emerald-500 bg-emerald-50/30">
+        <div class="glass-card p-4 border-l-4 border-emerald-500 bg-emerald-50/60 dark:bg-emerald-950/40">
             <div class="flex items-center justify-between">
-                <span class="text-[11px] font-bold text-emerald-700 uppercase tracking-wider">២. ចុះថ្មី {{ year }} (B)</span>
+                <span class="text-[11px] font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">២. ចុះថ្មី {{ year }} (B)</span>
                 <span class="text-xl">✨</span>
             </div>
-            <div class="text-2xl font-bold text-emerald-700 font-mono mt-1">+{{ new_count }}</div>
-            <div class="text-[11px] text-emerald-600 mt-0.5">យុវជន ១៨+ និងអ្នកទើបចុះ</div>
+            <div class="text-2xl lg:text-3xl font-bold stat-number-new mt-1">+{{ new_count }}</div>
+            <div class="text-[11px] text-emerald-700 dark:text-emerald-300 font-medium mt-0.5">យុវជន ១៨+ និងអ្នកទើបចុះ</div>
         </div>
 
         <!-- 3. Transferred In (C) -->
-        <div class="glass-card p-4 border-l-4 border-purple-500 bg-purple-50/30">
+        <div class="glass-card p-4 border-l-4 border-purple-500 bg-purple-50/60 dark:bg-purple-950/40">
             <div class="flex items-center justify-between">
-                <span class="text-[11px] font-bold text-purple-700 uppercase tracking-wider">៣. ផ្ទេរចូល (C)</span>
+                <span class="text-[11px] font-bold text-purple-700 dark:text-purple-300 uppercase tracking-wider">៣. ផ្ទេរចូល (C)</span>
                 <span class="text-xl">📦</span>
             </div>
-            <div class="text-2xl font-bold text-purple-700 font-mono mt-1">+{{ transferred_count }}</div>
-            <div class="text-[11px] text-purple-600 mt-0.5">ពលរដ្ឋផ្លាស់ទីលំនៅចូល</div>
+            <div class="text-2xl lg:text-3xl font-bold stat-number-transferred mt-1">+{{ transferred_count }}</div>
+            <div class="text-[11px] text-purple-700 dark:text-purple-300 font-medium mt-0.5">ពលរដ្ឋផ្លាស់ទីលំនៅចូល</div>
         </div>
 
         <!-- 4. Removed Out / Deceased (D) -->
-        <div class="glass-card p-4 border-l-4 border-rose-500 bg-rose-50/30">
+        <div class="glass-card p-4 border-l-4 border-rose-500 bg-rose-50/60 dark:bg-rose-950/40">
             <div class="flex items-center justify-between">
-                <span class="text-[11px] font-bold text-rose-700 uppercase tracking-wider">៤. លុបចេញ (D)</span>
+                <span class="text-[11px] font-bold text-rose-700 dark:text-rose-300 uppercase tracking-wider">៤. លុបចេញ (D)</span>
                 <span class="text-xl">🗑️</span>
             </div>
-            <div class="text-2xl font-bold text-rose-600 font-mono mt-1">-{{ removed_count }}</div>
-            <div class="text-[11px] text-rose-500 mt-0.5">មរណភាព / ផ្លាស់ចេញ / ផ្អាក</div>
+            <div class="text-2xl lg:text-3xl font-bold stat-number-removed mt-1">-{{ removed_count }}</div>
+            <div class="text-[11px] text-rose-700 dark:text-rose-300 font-medium mt-0.5">មរណភាព / ផ្លាស់ចេញ / ផ្អាក</div>
         </div>
 
         <!-- 5. Total Active Official List (A + B + C - D) -->
-        <div class="glass-card p-4 border-l-4 border-blue-600 bg-blue-50/40">
+        <div class="glass-card p-4 border-l-4 border-sky-500 bg-sky-50/60 dark:bg-sky-950/40">
             <div class="flex items-center justify-between">
-                <span class="text-[11px] font-bold text-blue-900 uppercase tracking-wider">បញ្ជីផ្លូវការ (A+B+C-D)</span>
+                <span class="text-[11px] font-bold text-sky-800 dark:text-sky-300 uppercase tracking-wider">បញ្ជីផ្លូវការ (A+B+C-D)</span>
                 <span class="text-xl">🎯</span>
             </div>
-            <div class="text-2xl font-bold text-blue-950 font-mono mt-1">{{ total_active }}</div>
-            <div class="text-[11px] text-blue-700 font-semibold mt-0.5">កំណើនសុទ្ធ៖ {% if net_growth >= 0 %}+{% endif %}{{ net_growth }} នាក់</div>
+            <div class="text-2xl lg:text-3xl font-bold stat-number-active mt-1">{{ total_active }}</div>
+            <div class="text-[11px] text-sky-700 dark:text-sky-300 font-bold mt-0.5">កំណើនសុទ្ធ៖ {% if net_growth >= 0 %}+{% endif %}{{ net_growth }} នាក់</div>
         </div>
     </div>
 
     <!-- Breakdown Table 1: 10 Villages -->
     <div class="glass-card overflow-hidden">
-        <div class="p-4 bg-slate-50/90 border-b border-slate-200 flex items-center justify-between">
+        <div class="p-4 bg-slate-50/90 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
             <div class="flex items-center gap-2">
                 <span class="text-lg">🏡</span>
-                <h3 class="text-base font-bold text-slate-800 font-kh-bold">
+                <h3 class="text-base font-bold text-slate-900 dark:text-slate-100 font-kh-bold">
                     ស្ថិតិបំបែកតាមភូមិទាំង ១០ ក្នុងឃុំនគរភាស
                 </h3>
             </div>
-            <span class="text-xs font-bold text-blue-800 bg-blue-100 px-2.5 py-1 rounded-full">១០ ភូមិ</span>
+            <span class="text-xs font-bold text-blue-900 dark:text-sky-300 bg-blue-100 dark:bg-sky-900/60 border border-blue-200 dark:border-sky-700/60 px-3 py-1 rounded-full">១០ ភូមិ</span>
         </div>
 
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
-                    <tr class="bg-slate-100/80 text-slate-700 text-xs uppercase border-b border-slate-200 font-kh-heading">
-                        <th class="py-3 px-3 text-center w-12">ល.រ</th>
-                        <th class="py-3 px-3">កូដភូមិ</th>
-                        <th class="py-3 px-3">ឈ្មោះភូមិ</th>
-                        <th class="py-3 px-3 text-center">បញ្ជីចាស់ (A)</th>
-                        <th class="py-3 px-3 text-center text-emerald-700">ចុះថ្មី (B)</th>
-                        <th class="py-3 px-3 text-center text-purple-700">ផ្ទេរចូល (C)</th>
-                        <th class="py-3 px-3 text-center text-rose-700">លុបចេញ (D)</th>
-                        <th class="py-3 px-3 text-center font-bold text-blue-900">បញ្ជីផ្លូវការ (A+B+C-D)</th>
-                        <th class="py-3 px-3 text-center">វត្តមានបោះឆ្នោត</th>
-                        <th class="py-3 px-3 text-right">សកម្មភាព</th>
+                    <tr class="bg-slate-100/90 dark:bg-slate-900 text-slate-800 dark:text-slate-200 text-xs uppercase border-b border-slate-200 dark:border-slate-800 font-kh-heading">
+                        <th class="py-3.5 px-3 text-center w-12">ល.រ</th>
+                        <th class="py-3.5 px-3">កូដភូមិ</th>
+                        <th class="py-3.5 px-3">ឈ្មោះភូមិ</th>
+                        <th class="py-3.5 px-3 text-center">បញ្ជីចាស់ (A)</th>
+                        <th class="py-3.5 px-3 text-center text-emerald-700 dark:text-emerald-400 font-bold">ចុះថ្មី (B)</th>
+                        <th class="py-3.5 px-3 text-center text-purple-700 dark:text-purple-400 font-bold">ផ្ទេរចូល (C)</th>
+                        <th class="py-3.5 px-3 text-center text-rose-700 dark:text-rose-400 font-bold">លុបចេញ (D)</th>
+                        <th class="py-3.5 px-3 text-center font-bold text-sky-900 dark:text-sky-300">បញ្ជីផ្លូវការ (A+B+C-D)</th>
+                        <th class="py-3.5 px-3 text-center">វត្តមានបោះឆ្នោត</th>
+                        <th class="py-3.5 px-3 text-right">សកម្មភាព</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-200/70 text-sm">
+                <tbody class="divide-y divide-slate-200 dark:divide-slate-800/80 text-sm">
                     {% for vs in village_stats %}
-                    <tr class="hover:bg-blue-50/30 transition">
-                        <td class="py-3 px-3 text-center text-xs font-mono text-slate-400">{{ loop.index }}</td>
-                        <td class="py-3 px-3 font-mono text-xs font-bold text-slate-600">{{ vs.code }}</td>
-                        <td class="py-3 px-3 font-bold text-slate-800">{{ vs.name_kh }}</td>
-                        <td class="py-3 px-3 text-center font-mono font-semibold text-slate-700">{{ vs.legacy }}</td>
-                        <td class="py-3 px-3 text-center font-mono font-bold text-emerald-700">
+                    <tr class="hover:bg-blue-50/40 dark:hover:bg-slate-800/60 transition">
+                        <td class="py-3 px-3 text-center text-xs font-mono text-slate-500 dark:text-slate-400">{{ loop.index }}</td>
+                        <td class="py-3 px-3 font-mono text-xs font-bold text-blue-900 dark:text-amber-300">{{ vs.code }}</td>
+                        <td class="py-3 px-3 font-bold text-slate-800 dark:text-slate-100">{{ vs.name_kh }}</td>
+                        <td class="py-3 px-3 text-center stat-number-legacy">{{ vs.legacy }}</td>
+                        <td class="py-3 px-3 text-center stat-number-new">
                             {% if vs.new > 0 %}+{{ vs.new }}{% else %}0{% endif %}
                         </td>
-                        <td class="py-3 px-3 text-center font-mono font-semibold text-purple-700">
+                        <td class="py-3 px-3 text-center stat-number-transferred">
                             {% if vs.transferred > 0 %}+{{ vs.transferred }}{% else %}0{% endif %}
                         </td>
-                        <td class="py-3 px-3 text-center font-mono font-semibold text-rose-600">
+                        <td class="py-3 px-3 text-center stat-number-removed">
                             {% if vs.removed > 0 %}-{{ vs.removed }}{% else %}0{% endif %}
                         </td>
-                        <td class="py-3 px-3 text-center font-mono font-bold text-blue-950 bg-blue-50/40">
+                        <td class="py-3 px-3 text-center stat-number-active bg-sky-50/70 dark:bg-sky-950/50">
                             {{ vs.active }}
                         </td>
                         <td class="py-3 px-3 text-center">
-                            <span class="text-xs font-mono font-bold text-slate-700">{{ vs.voted }}</span>
-                            <span class="text-[11px] text-slate-400 font-mono">({{ vs.turnout_rate }}%)</span>
+                            <span class="text-xs font-mono font-bold text-slate-800 dark:text-slate-100">{{ vs.voted }}</span>
+                            <span class="text-[11px] text-slate-500 dark:text-slate-400 font-mono">({{ vs.turnout_rate }}%)</span>
                         </td>
                         <td class="py-3 px-3 text-right">
-                            <a href="/voters?village_id={{ vs.id }}" class="btn btn-sm btn-outline text-xs py-1 px-2">
+                            <a href="/voters?village_id={{ vs.id }}" class="btn btn-sm btn-outline-blue text-xs py-1 px-2.5">
                                 មើលឈ្មោះ ➔
                             </a>
                         </td>
@@ -160,13 +161,13 @@
                     {% endfor %}
                 </tbody>
                 <tfoot>
-                    <tr class="bg-slate-100/90 font-bold text-slate-900 border-t-2 border-slate-300 text-sm">
-                        <td colspan="3" class="py-3 px-3 text-center">សរុបទាំង ១០ ភូមិ</td>
-                        <td class="py-3 px-3 text-center font-mono text-slate-800">{{ legacy_count }}</td>
-                        <td class="py-3 px-3 text-center font-mono text-emerald-700">+{{ new_count }}</td>
-                        <td class="py-3 px-3 text-center font-mono text-purple-700">+{{ transferred_count }}</td>
-                        <td class="py-3 px-3 text-center font-mono text-rose-600">-{{ removed_count }}</td>
-                        <td class="py-3 px-3 text-center font-mono text-blue-950 text-base bg-amber-50/70">{{ total_active }}</td>
+                    <tr class="bg-slate-100/90 dark:bg-slate-900 font-bold text-slate-900 dark:text-white border-t-2 border-slate-300 dark:border-slate-700 text-sm">
+                        <td colspan="3" class="py-3.5 px-3 text-center">សរុបទាំង ១០ ភូមិ</td>
+                        <td class="py-3.5 px-3 text-center stat-number-legacy">{{ legacy_count }}</td>
+                        <td class="py-3.5 px-3 text-center stat-number-new">+{{ new_count }}</td>
+                        <td class="py-3.5 px-3 text-center stat-number-transferred">+{{ transferred_count }}</td>
+                        <td class="py-3.5 px-3 text-center stat-number-removed">-{{ removed_count }}</td>
+                        <td class="py-3.5 px-3 text-center stat-number-active text-base bg-amber-50 dark:bg-amber-950/50">{{ total_active }}</td>
                         <td colspan="2"></td>
                     </tr>
                 </tfoot>
@@ -176,57 +177,57 @@
 
     <!-- Breakdown Table 2: 14 Polling Stations -->
     <div class="glass-card overflow-hidden">
-        <div class="p-4 bg-slate-50/90 border-b border-slate-200 flex items-center justify-between">
+        <div class="p-4 bg-slate-50/90 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
             <div class="flex items-center gap-2">
                 <span class="text-lg">🗳️</span>
-                <h3 class="text-base font-bold text-slate-800 font-kh-bold">
+                <h3 class="text-base font-bold text-slate-900 dark:text-slate-100 font-kh-bold">
                     ស្ថិតិបំបែកតាមការិយាល័យបោះឆ្នោតទាំង ១៤
                 </h3>
             </div>
-            <span class="text-xs font-bold text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-full">១៤ ការិយាល័យ</span>
+            <span class="text-xs font-bold text-emerald-900 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-700/60 px-3 py-1 rounded-full">១៤ ការិយាល័យ</span>
         </div>
 
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
-                    <tr class="bg-slate-100/80 text-slate-700 text-xs uppercase border-b border-slate-200 font-kh-heading">
-                        <th class="py-3 px-3 text-center w-12">ល.រ</th>
-                        <th class="py-3 px-3">លេខកូដ</th>
-                        <th class="py-3 px-3">ឈ្មោះការិយាល័យ & ទីតាំង</th>
-                        <th class="py-3 px-3">ភូមិ</th>
-                        <th class="py-3 px-3 text-center">បញ្ជីចាស់</th>
-                        <th class="py-3 px-3 text-center text-emerald-700">ចុះថ្មី</th>
-                        <th class="py-3 px-3 text-center text-purple-700">ផ្ទេរចូល</th>
-                        <th class="py-3 px-3 text-center text-rose-700">លុបចេញ</th>
-                        <th class="py-3 px-3 text-center font-bold text-blue-900">សរុបផ្លូវការ</th>
-                        <th class="py-3 px-3 text-right">សកម្មភាព</th>
+                    <tr class="bg-slate-100/90 dark:bg-slate-900 text-slate-800 dark:text-slate-200 text-xs uppercase border-b border-slate-200 dark:border-slate-800 font-kh-heading">
+                        <th class="py-3.5 px-3 text-center w-12">ល.រ</th>
+                        <th class="py-3.5 px-3">លេខកូដ</th>
+                        <th class="py-3.5 px-3">ឈ្មោះការិយាល័យ & ទីតាំង</th>
+                        <th class="py-3.5 px-3">ភូមិ</th>
+                        <th class="py-3.5 px-3 text-center">បញ្ជីចាស់</th>
+                        <th class="py-3.5 px-3 text-center text-emerald-700 dark:text-emerald-400 font-bold">ចុះថ្មី</th>
+                        <th class="py-3.5 px-3 text-center text-purple-700 dark:text-purple-400 font-bold">ផ្ទេរចូល</th>
+                        <th class="py-3.5 px-3 text-center text-rose-700 dark:text-rose-400 font-bold">លុបចេញ</th>
+                        <th class="py-3.5 px-3 text-center font-bold text-sky-900 dark:text-sky-300">សរុបផ្លូវការ</th>
+                        <th class="py-3.5 px-3 text-right">សកម្មភាព</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-200/70 text-sm">
+                <tbody class="divide-y divide-slate-200 dark:divide-slate-800/80 text-sm">
                     {% for ss in station_stats %}
-                    <tr class="hover:bg-blue-50/30 transition">
-                        <td class="py-3 px-3 text-center text-xs font-mono text-slate-400">{{ loop.index }}</td>
-                        <td class="py-3 px-3 font-mono text-xs font-bold text-blue-900">{{ ss.code }}</td>
+                    <tr class="hover:bg-blue-50/40 dark:hover:bg-slate-800/60 transition">
+                        <td class="py-3 px-3 text-center text-xs font-mono text-slate-500 dark:text-slate-400">{{ loop.index }}</td>
+                        <td class="py-3 px-3 font-mono text-xs font-bold text-blue-900 dark:text-amber-300">{{ ss.code }}</td>
                         <td class="py-3 px-3">
-                            <div class="font-bold text-slate-800">{{ ss.name }}</div>
-                            <div class="text-xs text-slate-400">{{ ss.location }}</div>
+                            <div class="font-bold text-slate-800 dark:text-slate-100">{{ ss.name }}</div>
+                            <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">{{ ss.location }}</div>
                         </td>
-                        <td class="py-3 px-3 text-xs text-slate-600">{{ ss.village_name }}</td>
-                        <td class="py-3 px-3 text-center font-mono font-semibold text-slate-700">{{ ss.legacy }}</td>
-                        <td class="py-3 px-3 text-center font-mono font-bold text-emerald-700">
+                        <td class="py-3 px-3 text-xs text-slate-600 dark:text-slate-300 font-medium">{{ ss.village_name }}</td>
+                        <td class="py-3 px-3 text-center stat-number-legacy">{{ ss.legacy }}</td>
+                        <td class="py-3 px-3 text-center stat-number-new">
                             {% if ss.new > 0 %}+{{ ss.new }}{% else %}0{% endif %}
                         </td>
-                        <td class="py-3 px-3 text-center font-mono font-semibold text-purple-700">
+                        <td class="py-3 px-3 text-center stat-number-transferred">
                             {% if ss.transferred > 0 %}+{{ ss.transferred }}{% else %}0{% endif %}
                         </td>
-                        <td class="py-3 px-3 text-center font-mono font-semibold text-rose-600">
+                        <td class="py-3 px-3 text-center stat-number-removed">
                             {% if ss.removed > 0 %}-{{ ss.removed }}{% else %}0{% endif %}
                         </td>
-                        <td class="py-3 px-3 text-center font-mono font-bold text-blue-950 bg-blue-50/40">
+                        <td class="py-3 px-3 text-center stat-number-active bg-sky-50/70 dark:bg-sky-950/50">
                             {{ ss.active }}
                         </td>
                         <td class="py-3 px-3 text-right">
-                            <a href="/voters?station_id={{ ss.id }}" class="btn btn-sm btn-outline text-xs py-1 px-2">
+                            <a href="/voters?station_id={{ ss.id }}" class="btn btn-sm btn-outline-blue text-xs py-1 px-2.5">
                                 មើលបញ្ជី ➔
                             </a>
                         </td>
@@ -239,3 +240,4 @@
 
 </div>
 {% endblock %}
+

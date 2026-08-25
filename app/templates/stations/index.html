@@ -28,42 +28,42 @@
     <!-- Stations Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {% for s in stations %}
-        <div class="glass-card p-6 flex flex-col justify-between relative overflow-hidden border-t-4 border-t-blue-800">
+        <div class="glass-card p-6 flex flex-col justify-between relative overflow-hidden border-t-4 border-t-blue-700">
             <div>
                 <div class="flex items-start justify-between">
                     <div>
-                        <span class="font-mono text-xs font-black bg-blue-100 text-blue-900 px-2.5 py-1 rounded-lg">
+                        <span class="font-mono text-xs font-black bg-blue-100 dark:bg-sky-950/60 text-blue-900 dark:text-sky-300 border border-blue-200 dark:border-sky-700/60 px-2.5 py-1 rounded-lg">
                             កូដ៖ {{ s.code }}
                         </span>
-                        <h3 class="text-lg font-bold text-slate-900 mt-2 font-kh-bold">{{ s.name }}</h3>
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100 mt-2.5 font-kh-bold">{{ s.name }}</h3>
                     </div>
                     <div class="text-right">
-                        <span class="badge badge-primary text-xs">
+                        <span class="badge badge-primary text-xs shadow-xs">
                             {{ s.turnout_percentage }}%
                         </span>
                     </div>
                 </div>
 
-                <div class="mt-3 space-y-2 text-xs text-slate-600">
+                <div class="mt-4 space-y-2 text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/70 p-3 rounded-xl border border-slate-200 dark:border-slate-700">
                     <p class="flex items-start gap-1.5">
                         <span class="text-slate-400">📍</span>
-                        <span class="font-semibold text-slate-800">{{ s.location }}</span>
+                        <span class="font-semibold text-slate-900 dark:text-slate-100">{{ s.location }}</span>
                     </p>
                     <p class="flex items-center gap-1.5">
                         <span class="text-slate-400">🏡</span>
-                        <span>ភូមិគោលដៅ៖ <strong class="text-slate-800">{{ s.village.name_kh if s.village else 'មិនទាន់កំណត់' }}</strong></span>
+                        <span>ភូមិគោលដៅ៖ <strong class="text-slate-900 dark:text-slate-100">{{ s.village.name_kh if s.village else 'មិនទាន់កំណត់' }}</strong></span>
                     </p>
                     <p class="flex items-center gap-1.5">
                         <span class="text-slate-400">👤</span>
-                        <span>មន្ត្រីទទួលខុសត្រូវ៖ <strong class="text-slate-800">{{ s.officer_name or 'មិនទាន់កំណត់' }}</strong> ({{ s.officer_phone or '' }})</span>
+                        <span>មន្ត្រីទទួលខុសត្រូវ៖ <strong class="text-slate-900 dark:text-slate-100">{{ s.officer_name or 'មិនទាន់កំណត់' }}</strong> ({{ s.officer_phone or '' }})</span>
                     </p>
                 </div>
 
                 <!-- Capacity & Turnout Meters -->
-                <div class="mt-4 pt-4 border-t border-slate-100 space-y-2">
+                <div class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800 space-y-2.5">
                     <div class="flex justify-between text-[11px]">
-                        <span class="text-slate-500">អ្នកចុះឈ្មោះ / កម្រិតផ្ទុក៖</span>
-                        <span class="font-bold text-slate-800">{{ s.registered_count }} / {{ s.capacity }} នាក់</span>
+                        <span class="text-slate-600 dark:text-slate-300 font-medium">អ្នកចុះឈ្មោះ / កម្រិតផ្ទុក៖</span>
+                        <span class="font-bold text-slate-900 dark:text-slate-100">{{ s.registered_count }} / {{ s.capacity }} នាក់</span>
                     </div>
                     <div class="turnout-bar-bg">
                         {% set cap_pct = (s.registered_count / s.capacity * 100) if s.capacity > 0 else 0 %}
@@ -71,8 +71,8 @@
                     </div>
 
                     <div class="flex justify-between text-[11px] pt-1">
-                        <span class="text-slate-500">បោះឆ្នោតរួច៖</span>
-                        <span class="font-bold text-emerald-600">{{ s.voted_count }} នាក់ ({{ s.turnout_percentage }}%)</span>
+                        <span class="text-slate-600 dark:text-slate-300 font-medium">បោះឆ្នោតរួច៖</span>
+                        <span class="font-bold text-emerald-700 dark:text-emerald-400">{{ s.voted_count }} នាក់ ({{ s.turnout_percentage }}%)</span>
                     </div>
                     <div class="turnout-bar-bg">
                         <div class="h-full bg-emerald-500 rounded-full" style="width: {{ s.turnout_percentage }}%;"></div>
@@ -81,17 +81,17 @@
             </div>
 
             <!-- Actions Footer -->
-            <div class="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
-                <a href="/voters?station_id={{ s.id }}" class="text-xs text-blue-700 hover:underline font-bold">
+            <div class="mt-5 pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                <a href="/voters?station_id={{ s.id }}" class="text-xs text-blue-700 dark:text-sky-400 hover:underline font-bold">
                     👥 មើលអ្នកបោះឆ្នោត ({{ s.registered_count }}) →
                 </a>
 
                 {% if current_user.role == 'admin' %}
                 <div class="flex gap-1">
-                    <button onclick="openEditStationModal({{ s.id }}, '{{ s.code }}', '{{ s.name }}', '{{ s.location }}', {{ s.capacity }}, {{ s.village_id or 0 }}, '{{ s.officer_name or '' }}', '{{ s.officer_phone or '' }}')" class="btn btn-sm btn-outline text-blue-600">
+                    <button onclick="openEditStationModal({{ s.id }}, '{{ s.code }}', '{{ s.name }}', '{{ s.location }}', {{ s.capacity }}, {{ s.village_id or 0 }}, '{{ s.officer_name or '' }}', '{{ s.officer_phone or '' }}')" class="btn btn-sm btn-outline text-blue-600 dark:text-sky-300">
                         ✏️
                     </button>
-                    <button onclick="deleteStation({{ s.id }}, '{{ s.name }}')" class="btn btn-sm btn-outline text-red-600">
+                    <button onclick="deleteStation({{ s.id }}, '{{ s.name }}')" class="btn btn-sm btn-outline text-red-600 dark:text-rose-400">
                         🗑️
                     </button>
                 </div>

@@ -28,63 +28,63 @@
     <!-- Villages Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {% for v in villages %}
-        <div class="glass-card p-6 flex flex-col justify-between border-t-4 border-t-emerald-700">
+        <div class="glass-card p-6 flex flex-col justify-between border-t-4 border-t-emerald-600">
             <div>
                 <div class="flex items-start justify-between">
                     <div>
-                        <span class="font-mono text-xs font-black bg-emerald-100 text-emerald-900 px-2.5 py-1 rounded-lg">
+                        <span class="font-mono text-xs font-black bg-emerald-100 dark:bg-emerald-950/60 text-emerald-900 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700/60 px-2.5 py-1 rounded-lg">
                             កូដ៖ {{ v.code }}
                         </span>
-                        <h3 class="text-xl font-bold text-slate-900 mt-2 font-kh-bold">{{ v.name_kh }}</h3>
-                        <p class="text-xs uppercase font-bold text-slate-400 tracking-wider">{{ v.name_en }} Village</p>
+                        <h3 class="text-xl font-bold text-slate-900 dark:text-slate-100 mt-2.5 font-kh-bold">{{ v.name_kh }}</h3>
+                        <p class="text-xs uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">{{ v.name_en }} Village</p>
                     </div>
                     <div class="text-right">
-                        <span class="badge badge-success text-xs">
+                        <span class="badge badge-success text-xs shadow-xs">
                             {{ v.total_households }} ខ្នងផ្ទះ
                         </span>
                     </div>
                 </div>
 
-                <div class="mt-4 space-y-2 text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                <div class="mt-4 space-y-2 text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/70 p-3 rounded-xl border border-slate-200 dark:border-slate-700">
                     <p class="flex items-center gap-1.5">
                         <span class="text-slate-400">👤</span>
-                        <span>មេភូមិ៖ <strong class="text-slate-800">{{ v.chief_name or 'មិនទាន់កំណត់' }}</strong></span>
+                        <span>មេភូមិ៖ <strong class="text-slate-900 dark:text-slate-100">{{ v.chief_name or 'មិនទាន់កំណត់' }}</strong></span>
                     </p>
                     <p class="flex items-center gap-1.5">
                         <span class="text-slate-400">📞</span>
-                        <span>ទូរស័ព្ទ៖ <strong class="text-slate-800 font-mono">{{ v.chief_phone or '---' }}</strong></span>
+                        <span>ទូរស័ព្ទ៖ <strong class="text-slate-900 dark:text-slate-100 font-mono">{{ v.chief_phone or '---' }}</strong></span>
                     </p>
                     <p class="flex items-center gap-1.5">
                         <span class="text-slate-400">🏢</span>
-                        <span>ការិយាល័យបម្រើ៖ <strong class="text-blue-800">{{ v.stations|length }} ការិយាល័យ</strong></span>
+                        <span>ការិយាល័យបម្រើ៖ <strong class="text-blue-900 dark:text-sky-300">{{ v.stations|length }} ការិយាល័យ</strong></span>
                     </p>
                 </div>
 
                 <!-- Voter Stats for this village -->
                 <div class="mt-4 grid grid-cols-2 gap-2 text-center text-xs">
-                    <div class="p-2.5 bg-blue-50/60 rounded-xl border border-blue-100">
-                        <span class="text-slate-500 block text-[10px]">អ្នកចុះឈ្មោះ</span>
-                        <span class="text-base font-black text-blue-900">{{ v.total_voters }} នាក់</span>
+                    <div class="p-2.5 bg-blue-50/70 dark:bg-sky-950/40 rounded-xl border border-blue-100 dark:border-sky-700/40">
+                        <span class="text-slate-500 dark:text-slate-400 block text-[10px] font-bold">អ្នកចុះឈ្មោះ</span>
+                        <span class="text-base font-black text-blue-950 dark:text-sky-300">{{ v.total_voters }} នាក់</span>
                     </div>
-                    <div class="p-2.5 bg-emerald-50/60 rounded-xl border border-emerald-100">
-                        <span class="text-slate-500 block text-[10px]">បោះឆ្នោតរួច</span>
-                        <span class="text-base font-black text-emerald-700">{{ v.total_voted }} នាក់</span>
+                    <div class="p-2.5 bg-emerald-50/70 dark:bg-emerald-950/40 rounded-xl border border-emerald-100 dark:border-emerald-700/40">
+                        <span class="text-slate-500 dark:text-slate-400 block text-[10px] font-bold">បោះឆ្នោតរួច</span>
+                        <span class="text-base font-black text-emerald-700 dark:text-emerald-400">{{ v.total_voted }} នាក់</span>
                     </div>
                 </div>
             </div>
 
             <!-- Actions Footer -->
-            <div class="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
-                <a href="/voters?village_id={{ v.id }}" class="text-xs text-blue-700 hover:underline font-bold">
+            <div class="mt-5 pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                <a href="/voters?village_id={{ v.id }}" class="text-xs text-blue-700 dark:text-sky-400 hover:underline font-bold">
                     👥 បញ្ជីឈ្មោះអ្នកបោះឆ្នោត ({{ v.total_voters }}) →
                 </a>
 
                 {% if current_user.role == 'admin' %}
                 <div class="flex gap-1">
-                    <button onclick="openEditVillageModal({{ v.id }}, '{{ v.code }}', '{{ v.name_kh }}', '{{ v.name_en }}', '{{ v.chief_name or '' }}', '{{ v.chief_phone or '' }}', {{ v.total_households }})" class="btn btn-sm btn-outline text-blue-600">
+                    <button onclick="openEditVillageModal({{ v.id }}, '{{ v.code }}', '{{ v.name_kh }}', '{{ v.name_en }}', '{{ v.chief_name or '' }}', '{{ v.chief_phone or '' }}', {{ v.total_households }})" class="btn btn-sm btn-outline text-blue-600 dark:text-sky-300">
                         ✏️
                     </button>
-                    <button onclick="deleteVillage({{ v.id }}, '{{ v.name_kh }}')" class="btn btn-sm btn-outline text-red-600">
+                    <button onclick="deleteVillage({{ v.id }}, '{{ v.name_kh }}')" class="btn btn-sm btn-outline text-red-600 dark:text-rose-400">
                         🗑️
                     </button>
                 </div>
