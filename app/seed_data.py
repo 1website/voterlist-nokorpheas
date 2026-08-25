@@ -339,6 +339,21 @@ def seed_database(db: Session):
                 random_min = random.randint(0, 59)
                 voted_at = datetime.datetime.now().replace(hour=random_hour, minute=random_min, second=random.randint(0, 59))
 
+            # Registration Type and Year Distribution
+            # ~70% legacy (2025/2024), ~22% new 2026, ~8% transferred 2026
+            if voter_idx % 5 == 0:
+                reg_type = "new"
+                reg_year = 2026
+                reg_reason = "first_time_18" if birth_year >= 2005 else "never_registered"
+            elif voter_idx % 11 == 0:
+                reg_type = "transferred"
+                reg_year = 2026
+                reg_reason = "relocated"
+            else:
+                reg_type = "legacy"
+                reg_year = 2025 if voter_idx % 2 == 0 else 2024
+                reg_reason = "legacy"
+
             v_village_name = village_objs[s_obj.village_id].name_kh if s_obj.village_id in village_objs else ""
             address_str = f"ក្រុមទី {random.randint(1, 15)} {v_village_name}"
             photo_url = f"/static/images/avatars/female_{(voter_idx % 3) + 1}.jpg" if is_female else f"/static/images/avatars/male_{(voter_idx % 4) + 1}.jpg"
@@ -354,6 +369,9 @@ def seed_database(db: Session):
                 village_id=s_obj.village_id,
                 station_id=s_obj.id,
                 status=status,
+                reg_type=reg_type,
+                reg_year=reg_year,
+                reg_reason=reg_reason,
                 photo_url=photo_url,
                 has_voted=has_voted,
                 voted_at=voted_at,

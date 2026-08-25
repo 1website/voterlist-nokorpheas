@@ -16,16 +16,22 @@
             </p>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2">
             {% if current_user.role in ['admin', 'officer'] %}
-            <button onclick="openAddVoterModal()" class="btn btn-primary text-sm shadow-md">
+            <button onclick="openAddVoterModal()" class="btn btn-primary text-sm shadow-md flex items-center gap-1.5">
                 <span>➕</span> ចុះឈ្មោះអ្នកបោះឆ្នោតថ្មី
             </button>
             {% endif %}
-            <a href="/reports/daily" class="btn btn-outline text-indigo-800 border-indigo-300 hover:bg-indigo-50 text-sm font-bold">
+
+            <a href="/reports/annual-summary" class="btn btn-outline text-amber-900 border-amber-300 hover:bg-amber-50 text-sm font-bold flex items-center gap-1.5">
+                <span>📊</span> របាយការណ៍បូកសរុប
+            </a>
+
+            <a href="/reports/daily" class="btn btn-outline text-indigo-800 border-indigo-300 hover:bg-indigo-50 text-sm font-bold flex items-center gap-1.5">
                 <span>📅</span> របាយការណ៍ប្រចាំថ្ងៃ
             </a>
-            <a href="/reports/export/excel?station_id={{ station_id }}&village_id={{ village_id }}&status_filter={{ status_filter }}" class="btn btn-outline text-sm">
+            
+            <a href="/reports/export/excel?station_id={{ station_id }}&village_id={{ village_id }}&status_filter={{ status_filter }}&reg_type={{ reg_type_filter }}&reg_year={{ reg_year_filter }}" class="btn btn-outline text-sm flex items-center gap-1.5">
                 <span>📥</span> Export Excel
             </a>
         </div>
@@ -33,7 +39,7 @@
 
     <!-- Search & Multi-Filter Filter Bar -->
     <div class="glass-card p-5">
-        <form method="GET" action="/voters" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3">
+        <form method="GET" action="/voters" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-8 gap-3">
             <!-- Keyword Search -->
             <div class="lg:col-span-2">
                 <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ស្វែងរក (ឈ្មោះ / ID / កូដ)</label>
@@ -62,10 +68,26 @@
                 </select>
             </div>
 
-            <!-- Registration Date Filter -->
+            <!-- Registration Type Filter -->
             <div>
-                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ថ្ងៃចុះឈ្មោះ</label>
-                <input type="date" name="date_created" value="{{ date_created }}" class="form-control text-sm py-2 font-mono">
+                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ប្រភេទបញ្ជី</label>
+                <select name="reg_type_filter" class="form-control text-sm py-2">
+                    <option value="">-- គ្រប់ប្រភេទ --</option>
+                    <option value="new" {% if reg_type_filter == 'new' %}selected{% endif %}>✨ ចុះថ្មី (New)</option>
+                    <option value="legacy" {% if reg_type_filter == 'legacy' %}selected{% endif %}>📋 បញ្ជីចាស់ (Legacy)</option>
+                    <option value="transferred" {% if reg_type_filter == 'transferred' %}selected{% endif %}>📦 ផ្ទេរចូល (Transferred)</option>
+                </select>
+            </div>
+
+            <!-- Registration Year Filter -->
+            <div>
+                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ឆ្នាំចុះឈ្មោះ</label>
+                <select name="reg_year_filter" class="form-control text-sm py-2 font-mono">
+                    <option value="">-- គ្រប់ឆ្នាំ --</option>
+                    {% for yr in available_years %}
+                    <option value="{{ yr }}" {% if reg_year_filter == yr|string %}selected{% endif %}>{{ yr }}</option>
+                    {% endfor %}
+                </select>
             </div>
 
             <!-- Status Filter -->
@@ -93,6 +115,9 @@
                 <button type="submit" class="btn btn-primary py-2 px-3 text-sm" title="ស្វែងរក">
                     🔍
                 </button>
+                <a href="/voters" class="btn btn-outline py-2 px-2.5 text-sm hover:bg-slate-100" title="សម្អាតតម្រង">
+                    🔄
+                </a>
             </div>
         </form>
     </div>
@@ -107,6 +132,7 @@
                     <th class="col-national-id">លេខអត្តសញ្ញាណប័ណ្ណ</th>
                     <th>រូបថត និង គោត្តនាម-នាម</th>
                     <th>ភេទ / ថ្ងៃកំណើត</th>
+                    <th>ប្រភេទបញ្ជី</th>
                     <th>ភូមិ</th>
                     <th>ការិយាល័យ</th>
                     <th>ស្ថានភាព</th>
@@ -146,13 +172,20 @@
                         </td>
                         <td>
                             <span class="font-semibold text-slate-700">{{ v.gender }}</span>
-                            <span class="text-xs text-slate-400 block">{{ v.dob }}</span>
+                            <span class="text-xs text-slate-400 block font-mono">{{ v.dob }}</span>
+                        </td>
+                        <!-- Registration Type & Year Badge -->
+                        <td>
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold border {{ v.reg_type_badge.class }}">
+                                <span>{{ v.reg_type_badge.icon }}</span>
+                                <span>{{ v.reg_type_badge.text }}</span>
+                            </span>
                         </td>
                         <td>
                             <span class="text-slate-700 font-medium">{{ v.village.name_kh if v.village else '' }}</span>
                         </td>
                         <td>
-                            <span class="font-bold text-blue-800">{{ v.station.code if v.station else '' }}</span>
+                            <span class="font-bold text-blue-800 font-mono">{{ v.station.code if v.station else '' }}</span>
                             <span class="text-[11px] text-slate-400 block truncate max-w-[140px]">{{ v.station.location if v.station else '' }}</span>
                         </td>
                         <td>
@@ -170,7 +203,7 @@
                             <div id="voter-status-{{ v.id }}">
                                 {% if v.has_voted %}
                                     <span class="badge badge-success">✓ បោះរួច ({{ v.voted_at.strftime('%H:%M') if v.voted_at else '' }})</span>
-                                								{% else %}
+                                {% else %}
                                     <span class="badge badge-secondary">⏳ មិនទាន់បោះ</span>
                                 {% endif %}
                             </div>
@@ -207,8 +240,10 @@
                     {% endfor %}
                 {% else %}
                     <tr>
-                        <td colspan="10" class="text-center py-12 text-slate-400">
-                            រកមិនឃើញទិន្នន័យអ្នកបោះឆ្នោតស្របតាមលក្ខខណ្ឌស្វែងរកនេះឡើយ
+                        <td colspan="11" class="text-center py-12 text-slate-400">
+                            <div class="text-4xl mb-2">🔍</div>
+                            <div class="text-base font-bold text-slate-600">មិនមានទិន្នន័យអ្នកបោះឆ្នោតឡើយ</div>
+                            <p class="text-xs text-slate-400 mt-1">សូមសាកល្បងផ្លាស់ប្តូរពាក្យស្វែងរក ឬបន្ថែមអ្នកបោះឆ្នោតថ្មី</p>
                         </td>
                     </tr>
                 {% endif %}
@@ -218,21 +253,19 @@
 
     <!-- Pagination -->
     {% if total_pages > 1 %}
-    <div class="flex items-center justify-between py-4">
-        <div class="text-xs text-slate-500">
-            ទំព័រទី <span class="font-bold text-slate-800">{{ page }}</span> នៃ <span class="font-bold text-slate-800">{{ total_pages }}</span>
+    <div class="flex items-center justify-between border-t border-slate-200 pt-4 text-xs text-slate-500">
+        <div>
+            បង្ហាញពី <span class="font-bold">{{ (page - 1) * limit + 1 }}</span> ដល់ <span class="font-bold">{{ [page * limit, total_count]|min }}</span> នៃ <span class="font-bold">{{ total_count }}</span>
         </div>
         <div class="flex items-center gap-1">
             {% if page > 1 %}
-            <a href="?page={{ page - 1 }}&q={{ q }}&village_id={{ village_id }}&station_id={{ station_id }}&status_filter={{ status_filter }}&gender_filter={{ gender_filter }}&voted_filter={{ voted_filter }}" class="btn btn-sm btn-outline">
-                ← ថយក្រោយ
-            </a>
+            <a href="/voters?page={{ page - 1 }}&q={{ q }}&village_id={{ village_id }}&station_id={{ station_id }}&status_filter={{ status_filter }}&gender_filter={{ gender_filter }}&voted_filter={{ voted_filter }}&date_created={{ date_created }}&reg_type_filter={{ reg_type_filter }}&reg_year_filter={{ reg_year_filter }}" class="btn btn-sm btn-outline">⬅️ ថយក្រោយ</a>
             {% endif %}
 
+            <span class="px-3 py-1 bg-white border border-slate-200 rounded-md font-mono font-bold">{{ page }} / {{ total_pages }}</span>
+
             {% if page < total_pages %}
-            <a href="?page={{ page + 1 }}&q={{ q }}&village_id={{ village_id }}&station_id={{ station_id }}&status_filter={{ status_filter }}&gender_filter={{ gender_filter }}&voted_filter={{ voted_filter }}" class="btn btn-sm btn-outline">
-                បន្ទាប់ →
-            </a>
+            <a href="/voters?page={{ page + 1 }}&q={{ q }}&village_id={{ village_id }}&station_id={{ station_id }}&status_filter={{ status_filter }}&gender_filter={{ gender_filter }}&voted_filter={{ voted_filter }}&date_created={{ date_created }}&reg_type_filter={{ reg_type_filter }}&reg_year_filter={{ reg_year_filter }}" class="btn btn-sm btn-outline">បន្ទាប់ ➡️</a>
             {% endif %}
         </div>
     </div>
@@ -240,19 +273,81 @@
 
 </div>
 
-<!-- Modal: Add New Voter -->
+<!-- ========================================================================= -->
+<!-- MODAL: ADD VOTER -->
+<!-- ========================================================================= -->
 <div id="addVoterModal" class="modal-overlay">
     <div class="modal-card max-w-2xl">
         <div class="modal-header">
             <h3 class="font-bold text-base sm:text-lg font-kh-bold flex items-center gap-2">
-                <span>📝</span> ចុះឈ្មោះអ្នកបោះឆ្នោតថ្មី (ឃុំនគរភាស)
+                <span>➕</span> ចុះឈ្មោះអ្នកបោះឆ្នោតថ្មី
             </h3>
             <button type="button" onclick="closeModal('addVoterModal')" class="text-white/80 hover:text-white text-xl p-1 leading-none">✕</button>
         </div>
         <form id="addVoterForm" onsubmit="submitAddVoter(event)" enctype="multipart/form-data">
             <div class="modal-body space-y-4">
-                
-                <!-- Profile Photo Picker Section -->
+
+                <!-- Registration Type Selector Box (New vs Legacy vs Transferred) -->
+                <div class="p-3.5 bg-gradient-to-r from-blue-50/80 to-indigo-50/80 rounded-2xl border border-blue-200">
+                    <label class="block text-xs font-bold text-blue-950 mb-2 font-kh-bold flex items-center justify-between">
+                        <span class="flex items-center gap-1.5">
+                            <span>🏷️</span> <span>ប្រភេទនៃការចុះឈ្មោះ / ប្រភពទិន្នន័យ *</span>
+                        </span>
+                        <span class="text-[11px] text-blue-700 font-normal">ជ្រើសរើសដើម្បីញែករបាយការណ៍</span>
+                    </label>
+
+                    <!-- Quick Segmented Type Selector -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
+                        <label class="flex items-center gap-2 p-2.5 bg-white rounded-xl border border-blue-200 hover:border-blue-500 cursor-pointer transition shadow-xs">
+                            <input type="radio" name="reg_type" value="new" checked onchange="onRegTypeChange('add', this.value)" class="text-blue-600 focus:ring-blue-500">
+                            <div>
+                                <div class="text-xs font-bold text-emerald-800 flex items-center gap-1">
+                                    <span>✨</span> <span>ចុះឈ្មោះថ្មី (New)</span>
+                                </div>
+                                <div class="text-[10px] text-slate-500">យុវជន ១៨+ / អ្នកចុះថ្មីឆ្នាំនេះ</div>
+                            </div>
+                        </label>
+
+                        <label class="flex items-center gap-2 p-2.5 bg-white rounded-xl border border-slate-200 hover:border-blue-500 cursor-pointer transition shadow-xs">
+                            <input type="radio" name="reg_type" value="legacy" onchange="onRegTypeChange('add', this.value)" class="text-blue-600 focus:ring-blue-500">
+                            <div>
+                                <div class="text-xs font-bold text-slate-800 flex items-center gap-1">
+                                    <span>📋</span> <span>ទិន្នន័យចាស់ (Legacy)</span>
+                                </div>
+                                <div class="text-[10px] text-slate-500">មានឈ្មោះស្រាប់ពីឆ្នាំមុនៗ</div>
+                            </div>
+                        </label>
+
+                        <label class="flex items-center gap-2 p-2.5 bg-white rounded-xl border border-slate-200 hover:border-blue-500 cursor-pointer transition shadow-xs">
+                            <input type="radio" name="reg_type" value="transferred" onchange="onRegTypeChange('add', this.value)" class="text-blue-600 focus:ring-blue-500">
+                            <div>
+                                <div class="text-xs font-bold text-purple-800 flex items-center gap-1">
+                                    <span>📦</span> <span>ផ្ទេរចូល (Transferred)</span>
+                                </div>
+                                <div class="text-[10px] text-slate-500">ផ្លាស់មកពីឃុំ/ស្រុកផ្សេង</div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Year & Reason Row -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-blue-200/60">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">ឆ្នាំចុះឈ្មោះ (Year) *</label>
+                            <input type="number" name="reg_year" id="addRegYear" value="2026" min="1993" max="2050" required class="form-control text-sm font-mono font-bold text-blue-900">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">មូលហេតុនៃការចុះឈ្មោះ (Reason)</label>
+                            <select name="reg_reason" id="addRegReason" class="form-control text-sm">
+                                <option value="first_time_18">យុវជនទើបគ្រប់អាយុ ១៨ ឆ្នាំ (First-Time 18+)</option>
+                                <option value="never_registered">ពលរដ្ឋមិនធ្លាប់ចុះឈ្មោះពីមុន (Never Registered)</option>
+                                <option value="relocated">ផ្លាស់ប្តូរទីលំនៅចូលឃុំ (Relocated into Commune)</option>
+                                <option value="legacy">ទិន្នន័យបញ្ជីចាស់ដែលមានស្រាប់ (Existing Legacy List)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile Photo Picker Section in Add -->
                 <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200">
                     <label class="block text-xs font-bold text-slate-700 mb-2">📸 រូបថតអ្នកបោះឆ្នោត (Profile Photo)</label>
                     <div class="flex flex-col sm:flex-row items-center gap-4">
@@ -262,18 +357,15 @@
                         <div class="flex-1 space-y-2 w-full">
                             <div class="flex gap-2">
                                 <label class="btn btn-outline text-xs py-1.5 px-3 cursor-pointer flex items-center gap-1">
-                                    <span>📁 ជ្រើសរើសរូបពីម៉ាស៊ីន</span>
+                                    <span>📁 ជ្រើសរើសរូបថតផ្ទាល់ខ្លួន (Upload)</span>
                                     <input type="file" name="photo" id="addPhotoInput" accept="image/*" class="hidden" onchange="handleFileSelect(this, 'addPhotoPreview', 'addPresetInput')">
                                 </label>
-                                <button type="button" onclick="clearSelectedPhoto('addPhotoPreview', 'addPresetInput', 'addGenderSelect')" class="btn btn-sm btn-outline text-slate-500 text-xs">
-                                    ↺ កំណត់ឡើងវិញ
-                                </button>
                             </div>
                             <input type="hidden" name="photo_preset" id="addPresetInput" value="/static/images/avatars/male_1.jpg">
                             
                             <!-- Avatar Preset Quick Chips -->
                             <div>
-                                <span class="text-[11px] text-slate-500 font-semibold block mb-1">ឬជ្រើសរើសគំរូរូបថត (Realistic Avatars)៖</span>
+                                <span class="text-[11px] text-slate-500 font-semibold block mb-1">ឬជ្រើសរើសគំរូរូបថត (Presets)៖</span>
                                 <div class="flex flex-wrap gap-1.5">
                                     <button type="button" onclick="selectPreset('/static/images/avatars/male_1.jpg', 'addPhotoPreview', 'addPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 hover:border-blue-600 focus:ring-2 focus:ring-blue-400"><img src="/static/images/avatars/male_1.jpg" class="w-full h-full object-cover"></button>
                                     <button type="button" onclick="selectPreset('/static/images/avatars/male_2.jpg', 'addPhotoPreview', 'addPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 hover:border-blue-600 focus:ring-2 focus:ring-blue-400"><img src="/static/images/avatars/male_2.jpg" class="w-full h-full object-cover"></button>
@@ -378,7 +470,9 @@
     </div>
 </div>
 
-<!-- Modal: Edit Voter -->
+<!-- ========================================================================= -->
+<!-- MODAL: EDIT VOTER -->
+<!-- ========================================================================= -->
 <div id="editVoterModal" class="modal-overlay">
     <div class="modal-card max-w-2xl">
         <div class="modal-header">
@@ -390,6 +484,47 @@
         <form id="editVoterForm" onsubmit="submitEditVoter(event)" enctype="multipart/form-data">
             <input type="hidden" name="voter_id" id="editVoterId">
             <div class="modal-body space-y-4">
+
+                <!-- Registration Type Selector Box in Edit -->
+                <div class="p-3.5 bg-gradient-to-r from-blue-50/80 to-indigo-50/80 rounded-2xl border border-blue-200">
+                    <label class="block text-xs font-bold text-blue-950 mb-2 font-kh-bold flex items-center justify-between">
+                        <span class="flex items-center gap-1.5">
+                            <span>🏷️</span> <span>ប្រភេទនៃការចុះឈ្មោះ / ប្រភពទិន្នន័យ *</span>
+                        </span>
+                        <span class="text-[11px] text-blue-700 font-normal">ញែកតាមបញ្ជី និងឆ្នាំ</span>
+                    </label>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
+                        <label class="flex items-center gap-2 p-2 bg-white rounded-xl border border-blue-200 cursor-pointer">
+                            <input type="radio" name="reg_type" id="editRegType_new" value="new" onchange="onRegTypeChange('edit', this.value)" class="text-blue-600">
+                            <div class="text-xs font-bold text-emerald-800">✨ ចុះថ្មី (New)</div>
+                        </label>
+                        <label class="flex items-center gap-2 p-2 bg-white rounded-xl border border-slate-200 cursor-pointer">
+                            <input type="radio" name="reg_type" id="editRegType_legacy" value="legacy" onchange="onRegTypeChange('edit', this.value)" class="text-blue-600">
+                            <div class="text-xs font-bold text-slate-800">📋 បញ្ជីចាស់ (Legacy)</div>
+                        </label>
+                        <label class="flex items-center gap-2 p-2 bg-white rounded-xl border border-slate-200 cursor-pointer">
+                            <input type="radio" name="reg_type" id="editRegType_transferred" value="transferred" onchange="onRegTypeChange('edit', this.value)" class="text-blue-600">
+                            <div class="text-xs font-bold text-purple-800">📦 ផ្ទេរចូល (Transferred)</div>
+                        </label>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-blue-200/60">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">ឆ្នាំចុះឈ្មោះ (Year) *</label>
+                            <input type="number" name="reg_year" id="editRegYear" min="1993" max="2050" required class="form-control text-sm font-mono font-bold text-blue-900">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">មូលហេតុនៃការចុះឈ្មោះ (Reason)</label>
+                            <select name="reg_reason" id="editRegReason" class="form-control text-sm">
+                                <option value="first_time_18">យុវជនទើបគ្រប់អាយុ ១៨ ឆ្នាំ (First-Time 18+)</option>
+                                <option value="never_registered">ពលរដ្ឋមិនធ្លាប់ចុះឈ្មោះពីមុន (Never Registered)</option>
+                                <option value="relocated">ផ្លាស់ប្តូរទីលំនៅចូលឃុំ (Relocated into Commune)</option>
+                                <option value="legacy">ទិន្នន័យបញ្ជីចាស់ដែលមានស្រាប់ (Existing Legacy List)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Profile Photo Picker Section in Edit -->
                 <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200">
@@ -614,9 +749,21 @@
         selectPreset(defaultPhoto, previewId, presetInputId);
     }
 
-    function clearSelectedPhoto(previewId, presetInputId, genderSelectId) {
-        const gender = document.getElementById(genderSelectId).value;
-        onGenderChange(gender, previewId, presetInputId);
+    function onRegTypeChange(prefix, type) {
+        const yearInput = document.getElementById(`${prefix}RegYear`);
+        const reasonSelect = document.getElementById(`${prefix}RegReason`);
+        const currentYear = new Date().getFullYear();
+
+        if (type === 'new') {
+            if (yearInput) yearInput.value = currentYear;
+            if (reasonSelect) reasonSelect.value = 'first_time_18';
+        } else if (type === 'legacy') {
+            if (yearInput) yearInput.value = currentYear - 1;
+            if (reasonSelect) reasonSelect.value = 'legacy';
+        } else if (type === 'transferred') {
+            if (yearInput) yearInput.value = currentYear;
+            if (reasonSelect) reasonSelect.value = 'relocated';
+        }
     }
 
     function previewLargePhoto(photoUrl, nameKh, voterCode) {
@@ -711,6 +858,8 @@
         document.getElementById('idCheckFeedback').innerHTML = '';
         document.getElementById('addPhotoPreview').src = '/static/images/avatars/male_1.jpg';
         document.getElementById('addPresetInput').value = '/static/images/avatars/male_1.jpg';
+        document.getElementById('addRegYear').value = new Date().getFullYear();
+        document.getElementById('addRegReason').value = 'first_time_18';
         filterStationsByVillage('addVillageSelect', 'addStationSelect');
         checkVoterAge(document.getElementById('addDobInput'), 'addDobFeedback', 'addVoterSubmitBtn');
         openModal('addVoterModal');
@@ -763,6 +912,15 @@
                 document.getElementById('editPhotoPreview').src = data.photo_url || '/static/images/avatars/male_1.jpg';
                 document.getElementById('editPresetInput').value = '';
                 document.getElementById('editPhotoInput').value = '';
+                
+                // Set reg_type radio button
+                const regType = data.reg_type || 'new';
+                const radioEl = document.getElementById(`editRegType_${regType}`);
+                if (radioEl) radioEl.checked = true;
+                
+                document.getElementById('editRegYear').value = data.reg_year || 2026;
+                document.getElementById('editRegReason').value = data.reg_reason || 'first_time_18';
+
                 if (document.getElementById('editIdCheckFeedback')) {
                     document.getElementById('editIdCheckFeedback').innerHTML = '';
                 }

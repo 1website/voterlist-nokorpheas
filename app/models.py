@@ -92,6 +92,9 @@ class Voter(Base):
     village_id = Column(Integer, ForeignKey("villages.id"), nullable=False)
     station_id = Column(Integer, ForeignKey("polling_stations.id"), nullable=False)
     status = Column(String(30), default="active")                            # active, moved, deceased, suspended
+    reg_type = Column(String(30), default="new")                              # new (ចុះថ្មី), legacy (បញ្ជីចាស់), transferred (ផ្ទេរចូល)
+    reg_year = Column(Integer, default=2026)                                  # ឆ្នាំចុះឈ្មោះ (2026, 2025, 2024...)
+    reg_reason = Column(String(100), nullable=True)                           # first_time_18, never_registered, relocated, legacy
     photo_url = Column(String(255), nullable=True)                          # Profile photo path
     has_voted = Column(Boolean, default=False)
     voted_at = Column(DateTime, nullable=True)
@@ -105,6 +108,35 @@ class Voter(Base):
     station = relationship("PollingStation", back_populates="voters")
     voted_by_user = relationship("User", foreign_keys=[voted_by_user_id])
     birth_certificate = relationship("BirthCertificate", back_populates="voter", uselist=False)
+
+    @property
+    def reg_type_badge(self):
+        yr = self.reg_year or 2026
+        t = (self.reg_type or "new").lower()
+        if t == "legacy":
+            return {
+                "text": f"បញ្ជីចាស់ ({yr})",
+                "icon": "📋",
+                "class": "bg-slate-100 text-slate-700 border-slate-300",
+                "type": "legacy",
+                "year": yr
+            }
+        elif t == "transferred":
+            return {
+                "text": f"ផ្ទេរចូល {yr}",
+                "icon": "📦",
+                "class": "bg-purple-100 text-purple-800 border-purple-300",
+                "type": "transferred",
+                "year": yr
+            }
+        else:
+            return {
+                "text": f"ចុះថ្មី {yr}",
+                "icon": "✨",
+                "class": "bg-emerald-100 text-emerald-800 border-emerald-300",
+                "type": "new",
+                "year": yr
+            }
 
     @property
     def photo_display(self):

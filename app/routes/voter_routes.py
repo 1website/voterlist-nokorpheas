@@ -66,6 +66,8 @@ def voter_list_page(
     gender_filter: str = Query("", description="Gender filter"),
     voted_filter: str = Query("", description="Voted filter (all, voted, not_voted)"),
     date_created: str = Query("", description="Registration date filter YYYY-MM-DD"),
+    reg_type_filter: str = Query("", description="Registration type filter (new, legacy, transferred)"),
+    reg_year_filter: str = Query("", description="Registration year filter"),
     page: int = Query(1, ge=1),
     limit: int = Query(25, ge=1, le=200),
     db: Session = Depends(get_db)
@@ -122,6 +124,14 @@ def voter_list_page(
     if date_created and date_created.strip():
         query = query.filter(func.date(Voter.created_at) == date_created.strip())
 
+    # Registration Type filter (new, legacy, transferred)
+    if reg_type_filter and reg_type_filter.strip():
+        query = query.filter(Voter.reg_type == reg_type_filter.strip())
+
+    # Registration Year filter
+    if reg_year_filter and reg_year_filter.isdigit():
+        query = query.filter(Voter.reg_year == int(reg_year_filter))
+
     total_count = query.count()
     total_pages = (total_count + limit - 1) // limit if total_count > 0 else 1
 
@@ -135,6 +145,12 @@ def voter_list_page(
 
     villages = db.query(Village).order_by(Village.code).all()
     stations = db.query(PollingStation).order_by(PollingStation.code).all()
+
+    # Distinct registration years for filter
+    years_raw = db.query(Voter.reg_year).distinct().order_by(Voter.reg_year.desc()).all()
+    available_years = [y[0] for y in years_raw if y[0]]
+    if 2026 not in available_years:
+        available_years.insert(0, 2026)
 
     return templates.TemplateResponse(request=request, name="voters/list.html", context={
         "current_user": current_user,
@@ -150,6 +166,9 @@ def voter_list_page(
         "gender_filter": gender_filter,
         "voted_filter": voted_filter,
         "date_created": date_created,
+        "reg_type_filter": reg_type_filter,
+        "reg_year_filter": reg_year_filter,
+        "available_years": available_years,
         "villages": villages,
         "stations": stations
     })
@@ -241,6 +260,9 @@ def create_voter(
     national_id: str = Form(...),
     village_id: int = Form(...),
     station_id: int = Form(...),
+    reg_type: str = Form("new"),
+    reg_year: int = Form(2026),
+    reg_reason: str = Form(""),
     address: str = Form(""),
     notes: str = Form(""),
     photo_preset: str = Form(None),
@@ -295,6 +317,9 @@ def create_voter(
         village_id=village_id,
         station_id=station_id,
         status="active",
+        reg_type=reg_type.strip() if reg_type else "new",
+        reg_year=reg_year if reg_year else 2026,
+        reg_reason=reg_reason.strip() if reg_reason else None,
         photo_url=photo_url,
         has_voted=False,
         notes=notes.strip(),
@@ -307,7 +332,7 @@ def create_voter(
 
     log_activity(
         db, current_user, "CREATE_VOTER",
-        f"បានចុះឈ្មោះអ្នកបោះឆ្នោតថ្មី៖ '{new_voter.name_kh}' (កូដ: {new_voter.voter_code} | អត្តសញ្ញាណប័ណ្ណ: {new_voter.national_id})",
+        f"បានចុះឈ្មោះអ្នកបោះឆ្នោត ({new_voter.reg_type_badge['text']})៖ '{new_voter.name_kh}' (កូដ: {new_voter.voter_code} | អត្តសញ្ញាណប័ណ្ណ: {new_voter.national_id})",
         "voter", str(new_voter.id), "success", request=request
     )
 
@@ -407,6 +432,10 @@ def get_voter_detail(voter_id: int, db: Session = Depends(get_db)):
         "station_name": voter.station.name if voter.station else "",
         "station_location": voter.station.location if voter.station else "",
         "status": voter.status,
+        "reg_type": voter.reg_type or "new",
+        "reg_year": voter.reg_year or 2026,
+        "reg_reason": voter.reg_reason or "",
+        "reg_type_badge": voter.reg_type_badge,
         "has_voted": voter.has_voted,
         "voted_at": voter.voted_at.strftime("%Y-%m-%d %H:%M:%S") if voter.voted_at else None,
         "notes": voter.notes or ""
@@ -459,6 +488,9 @@ def update_voter(
     village_id: int = Form(...),
     station_id: int = Form(...),
     status: str = Form("active"),
+    reg_type: str = Form("new"),
+    reg_year: int = Form(2026),
+    reg_reason: str = Form(""),
     address: str = Form(""),
     notes: str = Form(""),
     photo_preset: str = Form(None),
@@ -498,6 +530,9 @@ def update_voter(
     voter.village_id = village_id
     voter.station_id = station_id
     voter.status = status.strip()
+    voter.reg_type = reg_type.strip() if reg_type else "new"
+    voter.reg_year = reg_year if reg_year else 2026
+    voter.reg_reason = reg_reason.strip() if reg_reason else None
     voter.address = address.strip()
     voter.notes = notes.strip()
     voter.updated_at = get_cambodia_now()

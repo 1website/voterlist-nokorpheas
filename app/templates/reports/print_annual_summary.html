@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>របាយការណ៍បូកសរុបលទ្ធផលចុះឈ្មោះបោះឆ្នោតប្រចាំឆ្នាំ {{ year }} - រដ្ឋបាលឃុំនគរភាស</title>
+    <link rel="stylesheet" href="/static/css/style.css?v=4.0">
+    <link rel="stylesheet" href="/static/css/print.css?v=4.0" media="print">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Kantumruy+Pro:wght@400;500;600;700&family=Moul&family=Siemreap&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #e2e8f0;
+            font-family: 'Kantumruy Pro', 'Siemreap', 'Battambang', sans-serif;
+            color: #0f172a;
+            padding: 24px;
+            line-height: 1.4;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .font-kh-moul {
+            font-family: 'Moul', 'Khmer OS Muol Light', serif;
+        }
+
+        .print-toolbar {
+            max-width: 210mm;
+            margin: 0 auto 16px auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .sheet {
+            background: white;
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            padding: 15mm 15mm;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+            border-radius: 6px;
+        }
+
+        .official-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            margin-top: 10px;
+        }
+
+        .official-table th, .official-table td {
+            border: 1px solid #334155;
+            padding: 5px 6px;
+        }
+
+        .official-table th {
+            background-color: #f1f5f9;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        @media print {
+            body {
+                background: white !important;
+                padding: 0 !important;
+            }
+            .print-toolbar {
+                display: none !important;
+            }
+            .sheet {
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 10mm !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+            }
+            @page {
+                size: A4 portrait;
+                margin: 8mm;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Printable Toolbar -->
+    <div class="print-toolbar">
+        <div class="flex items-center gap-2">
+            <span class="text-xl">🖨️</span>
+            <div>
+                <div class="font-bold text-sm text-slate-800">ទម្រង់បោះពុម្ពរបាយការណ៍បូកសរុប (A4)</div>
+                <div class="text-xs text-slate-500">គណៈកម្មាធិការជាតិរៀបចំការបោះឆ្នោត • រដ្ឋបាលឃុំនគរភាស</div>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <button onclick="window.print()" class="btn btn-primary text-xs py-1.5 px-4 flex items-center gap-1 shadow-md">
+                <span>🖨️</span> បោះពុម្ពឥឡូវនេះ (Print)
+            </button>
+            <button onclick="window.close()" class="btn btn-outline text-xs py-1.5 px-3">
+                បិទ
+            </button>
+        </div>
+    </div>
+
+    <!-- Official A4 Sheet -->
+    <div class="sheet">
+
+        <!-- National Header -->
+        <div class="flex justify-between items-start mb-4">
+            <div class="text-left text-xs space-y-0.5">
+                <div class="font-bold text-slate-800">ខេត្តសៀមរាប</div>
+                <div class="font-bold text-slate-800">រដ្ឋបាលស្រុកអង្គរជុំ</div>
+                <div class="font-bold text-blue-900 font-kh-moul text-sm">រដ្ឋបាលឃុំនគរភាស</div>
+                <div class="text-[10px] text-slate-500">លេខកូដឃុំ៖ ០៧០១</div>
+            </div>
+            <div class="text-center text-xs">
+                <div class="font-bold font-kh-moul text-xs text-slate-900">ព្រះរាជាណាចក្រកម្ពុជា</div>
+                <div class="font-bold text-slate-800 text-[11px]">ជាតិ សាសនា ព្រះមហាក្សត្រ</div>
+                <div class="text-xs font-serif tracking-widest text-slate-500 mt-0.5">***</div>
+            </div>
+        </div>
+
+        <!-- Document Title -->
+        <div class="text-center my-4">
+            <h1 class="font-kh-moul text-sm text-blue-950 leading-relaxed">
+                របាយការណ៍បូកសរុបលទ្ធផលនៃការពិនិត្យបញ្ជីឈ្មោះ និងការចុះឈ្មោះបោះឆ្នោតប្រចាំឆ្នាំ {{ year }}
+            </h1>
+            <p class="text-xs text-slate-600 font-bold mt-1">
+                (ស្រង់ចេញពីប្រព័ន្ធគ្រប់គ្រងទិន្នន័យអ្នកបោះឆ្នោត រដ្ឋបាលឃុំនគរភាស)
+            </p>
+        </div>
+
+        <!-- Section 1: KPI Summary Box -->
+        <div class="mb-4">
+            <div class="text-xs font-bold text-slate-800 mb-1">១. តារាងសង្ខេបស្ថិតិរួមទូទាំងឃុំ៖</div>
+            <table class="official-table text-center">
+                <thead>
+                    <tr>
+                        <th class="w-1/5">បញ្ជីចាស់ (A)</th>
+                        <th class="w-1/5 text-emerald-800">ចុះថ្មី {{ year }} (B)</th>
+                        <th class="w-1/5 text-purple-800">ផ្ទេរចូល {{ year }} (C)</th>
+                        <th class="w-1/5 text-rose-800">លុបចេញ (D)</th>
+                        <th class="w-1/5 bg-amber-100 font-bold text-blue-950">បញ្ជីផ្លូវការ (A+B+C-D)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="font-mono text-sm font-bold">
+                        <td>{{ legacy_count }}</td>
+                        <td class="text-emerald-700">+{{ new_count }}</td>
+                        <td class="text-purple-700">+{{ transferred_count }}</td>
+                        <td class="text-rose-600">-{{ removed_count }}</td>
+                        <td class="bg-amber-50 text-blue-950 text-base">{{ total_active }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Section 2: 10 Villages Breakdown -->
+        <div class="mb-5">
+            <div class="text-xs font-bold text-slate-800 mb-1">២. ស្ថិតិបំបែកតាមភូមិទាំង ១០ ក្នុងឃុំ៖</div>
+            <table class="official-table">
+                <thead>
+                    <tr>
+                        <th class="w-8">ល.រ</th>
+                        <th>កូដ</th>
+                        <th>ឈ្មោះភូមិ</th>
+                        <th class="text-center">បញ្ជីចាស់</th>
+                        <th class="text-center text-emerald-800">ចុះថ្មី</th>
+                        <th class="text-center text-purple-800">ផ្ទេរចូល</th>
+                        <th class="text-center text-rose-800">លុបចេញ</th>
+                        <th class="text-center font-bold text-blue-950 bg-slate-200">សរុបផ្លូវការ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for vs in village_stats %}
+                    <tr>
+                        <td class="text-center font-mono">{{ loop.index }}</td>
+                        <td class="text-center font-mono">{{ vs.code }}</td>
+                        <td class="font-bold">{{ vs.name_kh }}</td>
+                        <td class="text-center font-mono">{{ vs.legacy }}</td>
+                        <td class="text-center font-mono font-bold text-emerald-700">{% if vs.new > 0 %}+{{ vs.new }}{% else %}0{% endif %}</td>
+                        <td class="text-center font-mono font-semibold text-purple-700">{% if vs.transferred > 0 %}+{{ vs.transferred }}{% else %}0{% endif %}</td>
+                        <td class="text-center font-mono font-semibold text-rose-600">{% if vs.removed > 0 %}-{{ vs.removed }}{% else %}0{% endif %}</td>
+                        <td class="text-center font-mono font-bold text-blue-950 bg-slate-50">{{ vs.active }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="bg-slate-100 font-bold border-t-2 border-slate-400">
+                        <td colspan="3" class="text-center font-bold">សរុបទាំង ១០ ភូមិ</td>
+                        <td class="text-center font-mono">{{ legacy_count }}</td>
+                        <td class="text-center font-mono text-emerald-700">+{{ new_count }}</td>
+                        <td class="text-center font-mono text-purple-700">+{{ transferred_count }}</td>
+                        <td class="text-center font-mono text-rose-600">-{{ removed_count }}</td>
+                        <td class="text-center font-mono text-blue-950 text-sm bg-amber-100">{{ total_active }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Official Signatures Block -->
+        <div class="mt-8 grid grid-cols-2 text-center text-xs">
+            <div>
+                <p class="font-bold text-slate-700">បានឃើញ និងពិនិត្យត្រឹមត្រូវ</p>
+                <p class="font-bold font-kh-moul text-xs text-slate-900 mt-1">មេឃុំនគរភាស</p>
+                <div class="h-20"></div>
+                <p class="font-bold text-slate-800">ស៊ឹម វណ្ណា</p>
+            </div>
+
+            <div>
+                <p class="text-slate-600">ឃុំនគរភាស ថ្ងៃទី {{ now.strftime('%d') }} ខែ {{ now.strftime('%m') }} ឆ្នាំ {{ now.strftime('%Y') }}</p>
+                <p class="font-bold font-kh-moul text-xs text-slate-900 mt-1">ស្មៀនឃុំ / មន្ត្រីចុះបញ្ជី</p>
+                <div class="h-20"></div>
+                <p class="font-bold text-slate-800">{{ current_user.full_name }}</p>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>

@@ -559,3 +559,300 @@ def batch_printable_cards(
         "current_user": current_user,
         "voters": voters
     })
+
+@router.get("/reports/annual-summary", response_class=HTMLResponse)
+def annual_summary_report(
+    request: Request,
+    year: int = Query(2026, description="Registration year"),
+    db: Session = Depends(get_db)
+):
+    current_user = get_current_user_optional(request, db)
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=302)
+
+    all_voters = db.query(Voter).all()
+    villages = db.query(Village).order_by(Village.code).all()
+    stations = db.query(PollingStation).order_by(PollingStation.code).all()
+
+    # KPI stats
+    legacy_count = len([v for v in all_voters if v.status == "active" and (v.reg_type == "legacy" or (v.reg_year and v.reg_year < year))])
+    new_count = len([v for v in all_voters if v.status == "active" and v.reg_type == "new" and (v.reg_year == year or not v.reg_year)])
+    transferred_count = len([v for v in all_voters if v.status == "active" and v.reg_type == "transferred" and v.reg_year == year])
+    removed_count = len([v for v in all_voters if v.status in ["moved", "deceased", "suspended"]])
+    total_active = legacy_count + new_count + transferred_count
+    net_growth = (new_count + transferred_count) - removed_count
+
+    # Village Breakdown
+    village_stats = []
+    for v in villages:
+        v_voters = [vt for vt in all_voters if vt.village_id == v.id]
+        v_legacy = len([vt for vt in v_voters if vt.status == "active" and (vt.reg_type == "legacy" or (vt.reg_year and vt.reg_year < year))])
+        v_new = len([vt for vt in v_voters if vt.status == "active" and vt.reg_type == "new" and (vt.reg_year == year or not vt.reg_year)])
+        v_transferred = len([vt for vt in v_voters if vt.status == "active" and vt.reg_type == "transferred" and vt.reg_year == year])
+        v_removed = len([vt for vt in v_voters if vt.status in ["moved", "deceased", "suspended"]])
+        v_active = v_legacy + v_new + v_transferred
+        v_voted = len([vt for vt in v_voters if vt.status == "active" and vt.has_voted])
+        v_rate = round((v_voted / v_active * 100), 1) if v_active > 0 else 0.0
+
+        village_stats.append({
+            "id": v.id,
+            "code": v.code,
+            "name_kh": v.name_kh,
+            "legacy": v_legacy,
+            "new": v_new,
+            "transferred": v_transferred,
+            "removed": v_removed,
+            "active": v_active,
+            "voted": v_voted,
+            "turnout_rate": v_rate
+        })
+
+    # Polling Station Breakdown
+    station_stats = []
+    for s in stations:
+        s_voters = [vt for vt in all_voters if vt.station_id == s.id]
+        s_legacy = len([vt for vt in s_voters if vt.status == "active" and (vt.reg_type == "legacy" or (vt.reg_year and vt.reg_year < year))])
+        s_new = len([vt for vt in s_voters if vt.status == "active" and vt.reg_type == "new" and (vt.reg_year == year or not vt.reg_year)])
+        s_transferred = len([vt for vt in s_voters if vt.status == "active" and vt.reg_type == "transferred" and vt.reg_year == year])
+        s_removed = len([vt for vt in s_voters if vt.status in ["moved", "deceased", "suspended"]])
+        s_active = s_legacy + s_new + s_transferred
+        s_voted = len([vt for vt in s_voters if vt.status == "active" and vt.has_voted])
+        s_rate = round((s_voted / s_active * 100), 1) if s_active > 0 else 0.0
+
+        station_stats.append({
+            "id": s.id,
+            "code": s.code,
+            "name": s.name,
+            "location": s.location,
+            "village_name": s.village.name_kh if s.village else "",
+            "legacy": s_legacy,
+            "new": s_new,
+            "transferred": s_transferred,
+            "removed": s_removed,
+            "active": s_active,
+            "voted": s_voted,
+            "turnout_rate": s_rate
+        })
+
+    return templates.TemplateResponse(request=request, name="reports/annual_summary.html", context={
+        "current_user": current_user,
+        "year": year,
+        "legacy_count": legacy_count,
+        "new_count": new_count,
+        "transferred_count": transferred_count,
+        "removed_count": removed_count,
+        "total_active": total_active,
+        "net_growth": net_growth,
+        "village_stats": village_stats,
+        "station_stats": station_stats
+    })
+
+@router.get("/reports/print/annual-summary", response_class=HTMLResponse)
+def print_annual_summary(
+    request: Request,
+    year: int = Query(2026, description="Registration year"),
+    db: Session = Depends(get_db)
+):
+    current_user = get_current_user_optional(request, db)
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=302)
+
+    all_voters = db.query(Voter).all()
+    villages = db.query(Village).order_by(Village.code).all()
+    stations = db.query(PollingStation).order_by(PollingStation.code).all()
+
+    legacy_count = len([v for v in all_voters if v.status == "active" and (v.reg_type == "legacy" or (v.reg_year and v.reg_year < year))])
+    new_count = len([v for v in all_voters if v.status == "active" and v.reg_type == "new" and (v.reg_year == year or not v.reg_year)])
+    transferred_count = len([v for v in all_voters if v.status == "active" and v.reg_type == "transferred" and v.reg_year == year])
+    removed_count = len([v for v in all_voters if v.status in ["moved", "deceased", "suspended"]])
+    total_active = legacy_count + new_count + transferred_count
+    net_growth = (new_count + transferred_count) - removed_count
+
+    village_stats = []
+    for v in villages:
+        v_voters = [vt for vt in all_voters if vt.village_id == v.id]
+        v_legacy = len([vt for vt in v_voters if vt.status == "active" and (vt.reg_type == "legacy" or (vt.reg_year and vt.reg_year < year))])
+        v_new = len([vt for vt in v_voters if vt.status == "active" and vt.reg_type == "new" and (vt.reg_year == year or not vt.reg_year)])
+        v_transferred = len([vt for vt in v_voters if vt.status == "active" and vt.reg_type == "transferred" and vt.reg_year == year])
+        v_removed = len([vt for vt in v_voters if vt.status in ["moved", "deceased", "suspended"]])
+        v_active = v_legacy + v_new + v_transferred
+        village_stats.append({
+            "code": v.code,
+            "name_kh": v.name_kh,
+            "legacy": v_legacy,
+            "new": v_new,
+            "transferred": v_transferred,
+            "removed": v_removed,
+            "active": v_active
+        })
+
+    station_stats = []
+    for s in stations:
+        s_voters = [vt for vt in all_voters if vt.station_id == s.id]
+        s_legacy = len([vt for vt in s_voters if vt.status == "active" and (vt.reg_type == "legacy" or (vt.reg_year and vt.reg_year < year))])
+        s_new = len([vt for vt in s_voters if vt.status == "active" and vt.reg_type == "new" and (vt.reg_year == year or not vt.reg_year)])
+        s_transferred = len([vt for vt in s_voters if vt.status == "active" and vt.reg_type == "transferred" and vt.reg_year == year])
+        s_removed = len([vt for vt in s_voters if vt.status in ["moved", "deceased", "suspended"]])
+        s_active = s_legacy + s_new + s_transferred
+        station_stats.append({
+            "code": s.code,
+            "name": s.name,
+            "location": s.location,
+            "village_name": s.village.name_kh if s.village else "",
+            "legacy": s_legacy,
+            "new": s_new,
+            "transferred": s_transferred,
+            "removed": s_removed,
+            "active": s_active
+        })
+
+    return templates.TemplateResponse(request=request, name="reports/print_annual_summary.html", context={
+        "current_user": current_user,
+        "year": year,
+        "legacy_count": legacy_count,
+        "new_count": new_count,
+        "transferred_count": transferred_count,
+        "removed_count": removed_count,
+        "total_active": total_active,
+        "net_growth": net_growth,
+        "village_stats": village_stats,
+        "station_stats": station_stats,
+        "now": get_cambodia_now()
+    })
+
+@router.get("/reports/export/annual-summary-excel")
+def export_annual_summary_excel(
+    year: int = Query(2026, description="Registration year"),
+    db: Session = Depends(get_db)
+):
+    all_voters = db.query(Voter).all()
+    villages = db.query(Village).order_by(Village.code).all()
+    stations = db.query(PollingStation).order_by(PollingStation.code).all()
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = f"របាយការណ៍បូកសរុប {year}"
+
+    # Styles
+    font_title = Font(name="Khmer OS Muol Light", size=14, bold=True, color="001A4E")
+    font_subtitle = Font(name="Khmer OS Siemreap", size=11, bold=True, color="333333")
+    font_header = Font(name="Khmer OS Siemreap", size=10, bold=True, color="FFFFFF")
+    font_data = Font(name="Khmer OS Siemreap", size=10)
+    font_bold = Font(name="Khmer OS Siemreap", size=10, bold=True)
+    font_mono = Font(name="Consolas", size=10, bold=True)
+
+    fill_header = PatternFill(start_color="1E3A8A", end_color="1E3A8A", fill_type="solid")
+    fill_sub = PatternFill(start_color="E0E7FF", end_color="E0E7FF", fill_type="solid")
+    fill_total = PatternFill(start_color="FEF3C7", end_color="FEF3C7", fill_type="solid")
+
+    thin_border = Border(
+        left=Side(style='thin', color='CBD5E1'),
+        right=Side(style='thin', color='CBD5E1'),
+        top=Side(style='thin', color='CBD5E1'),
+        bottom=Side(style='thin', color='CBD5E1')
+    )
+
+    # Title
+    ws.merge_cells("A1:G1")
+    ws["A1"] = "ព្រះរាជាណាចក្រកម្ពុជា • ជាតិ សាសនា ព្រះមហាក្សត្រ"
+    ws["A1"].font = font_subtitle
+    ws["A1"].alignment = Alignment(horizontal="center", vertical="center")
+
+    ws.merge_cells("A2:G2")
+    ws["A2"] = f"របាយការណ៍បូកសរុបលទ្ធផលនៃការពិនិត្យបញ្ជីឈ្មោះ និងការចុះឈ្មោះបោះឆ្នោតប្រចាំឆ្នាំ {year}"
+    ws["A2"].font = font_title
+    ws["A2"].alignment = Alignment(horizontal="center", vertical="center")
+
+    ws.merge_cells("A3:G3")
+    ws["A3"] = "រដ្ឋបាលឃុំនគរភាស ស្រុកអង្គរជុំ ខេត្តសៀមរាប"
+    ws["A3"].font = font_subtitle
+    ws["A3"].alignment = Alignment(horizontal="center", vertical="center")
+
+    # Table 1: Summary KPI Block
+    legacy_count = len([v for v in all_voters if v.status == "active" and (v.reg_type == "legacy" or (v.reg_year and v.reg_year < year))])
+    new_count = len([v for v in all_voters if v.status == "active" and v.reg_type == "new" and (v.reg_year == year or not v.reg_year)])
+    transferred_count = len([v for v in all_voters if v.status == "active" and v.reg_type == "transferred" and v.reg_year == year])
+    removed_count = len([v for v in all_voters if v.status in ["moved", "deceased", "suspended"]])
+    total_active = legacy_count + new_count + transferred_count
+
+    ws.append([])
+    ws.append(["១. តារាងសង្ខេបស្ថិតិរួមទូទាំងឃុំ", "", "", "", "", "", ""])
+    ws.merge_cells("A5:G5")
+    ws["A5"].font = font_subtitle
+
+    headers_kpi = ["បញ្ជីចាស់ (A)", f"ចុះថ្មី {year} (B)", f"ផ្ទេរចូល {year} (C)", "លុបចេញ (មរណភាព/ផ្លាស់ចេញ) (D)", "បញ្ជីផ្លូវការចុងក្រោយ (A+B+C-D)", "កំណើនសុទ្ធ (B+C-D)", "អត្រាកំណើន (%)"]
+    ws.append(headers_kpi)
+    for col_idx in range(1, 8):
+        cell = ws.cell(row=6, column=col_idx)
+        cell.font = font_header
+        cell.fill = fill_header
+        cell.alignment = Alignment(horizontal="center", vertical="center")
+        cell.border = thin_border
+
+    growth_rate = round(((new_count + transferred_count) / legacy_count * 100), 2) if legacy_count > 0 else 0.0
+    kpi_row = [legacy_count, new_count, transferred_count, removed_count, total_active, (new_count + transferred_count - removed_count), f"+{growth_rate}%"]
+    ws.append(kpi_row)
+    for col_idx in range(1, 8):
+        cell = ws.cell(row=7, column=col_idx)
+        cell.font = font_mono
+        cell.alignment = Alignment(horizontal="center", vertical="center")
+        cell.fill = fill_total
+        cell.border = thin_border
+
+    # Table 2: 10 Villages Breakdown
+    ws.append([])
+    ws.append(["២. ស្ថិតិបំបែកតាមភូមិទាំង ១០", "", "", "", "", "", ""])
+    ws["A9"].font = font_subtitle
+
+    v_headers = ["ល.រ", "កូដភូមិ", "ឈ្មោះភូមិ", "បញ្ជីចាស់", f"ចុះថ្មី {year}", "ផ្ទេរចូល", "លុបចេញ", "បញ្ជីផ្លូវការចុងក្រោយ"]
+    ws.append(v_headers)
+    for col_idx in range(1, 9):
+        cell = ws.cell(row=10, column=col_idx)
+        cell.font = font_header
+        cell.fill = fill_header
+        cell.alignment = Alignment(horizontal="center", vertical="center")
+        cell.border = thin_border
+
+    curr_row = 11
+    for idx, v in enumerate(villages, 1):
+        v_voters = [vt for vt in all_voters if vt.village_id == v.id]
+        v_leg = len([vt for vt in v_voters if vt.status == "active" and (vt.reg_type == "legacy" or (vt.reg_year and vt.reg_year < year))])
+        v_nw = len([vt for vt in v_voters if vt.status == "active" and vt.reg_type == "new" and (vt.reg_year == year or not vt.reg_year)])
+        v_tr = len([vt for vt in v_voters if vt.status == "active" and vt.reg_type == "transferred" and vt.reg_year == year])
+        v_rm = len([vt for vt in v_voters if vt.status in ["moved", "deceased", "suspended"]])
+        v_tot = v_leg + v_nw + v_tr
+
+        row_data = [idx, v.code, v.name_kh, v_leg, v_nw, v_tr, v_rm, v_tot]
+        ws.append(row_data)
+        for col_idx in range(1, 9):
+            c = ws.cell(row=curr_row, column=col_idx)
+            c.font = font_mono if col_idx in [1, 2, 4, 5, 6, 7, 8] else font_data
+            c.alignment = Alignment(horizontal="center" if col_idx in [1, 2, 4, 5, 6, 7, 8] else "left", vertical="center")
+            c.border = thin_border
+        curr_row += 1
+
+    # Total row for villages
+    ws.append(["", "សរុប", "១០ ភូមិ", legacy_count, new_count, transferred_count, removed_count, total_active])
+    for col_idx in range(1, 9):
+        c = ws.cell(row=curr_row, column=col_idx)
+        c.font = font_bold
+        c.fill = fill_sub
+        c.alignment = Alignment(horizontal="center", vertical="center")
+        c.border = thin_border
+
+    # Adjust widths
+    for col in ws.columns:
+        max_len = max(len(str(cell.value or '')) for cell in col)
+        col_letter = get_column_letter(col[0].column)
+        ws.column_dimensions[col_letter].width = max(max_len + 4, 12)
+
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    filename = f"Annual_Voter_Summary_Nokor_Pheas_{year}.xlsx"
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )

@@ -166,6 +166,12 @@
                 <!-- Section 3: Reports & Settings -->
                 <div class="sidebar-nav-header mt-3">របាយការណ៍ & សុវត្ថិភាព</div>
 
+                <a href="/reports/annual-summary" class="sidebar-nav-link {% if '/reports/annual-summary' in request.url.path %}active{% endif %}">
+                    <span class="text-lg">📊</span>
+                    <span class="flex-1">បូកសរុបប្រចាំឆ្នាំ</span>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 font-bold border border-amber-400/30">គ.ជ.ប</span>
+                </a>
+
                 <a href="/reports" class="sidebar-nav-link {% if request.url.path == '/reports' %}active{% endif %}">
                     <span class="text-lg">📑</span>
                     <span>មជ្ឈមណ្ឌលរបាយការណ៍</span>

@@ -53,6 +53,17 @@ def ensure_schema_migrations():
                     conn.execute(text("ALTER TABLE users ADD COLUMN photo_url VARCHAR(255)"))
                     conn.commit()
 
+        if "voters" in tables:
+            voter_columns = [col["name"] for col in inspector.get_columns("voters")]
+            with engine.connect() as conn:
+                if "reg_type" not in voter_columns:
+                    conn.execute(text("ALTER TABLE voters ADD COLUMN reg_type VARCHAR(30) DEFAULT 'new'"))
+                if "reg_year" not in voter_columns:
+                    conn.execute(text("ALTER TABLE voters ADD COLUMN reg_year INTEGER DEFAULT 2026"))
+                if "reg_reason" not in voter_columns:
+                    conn.execute(text("ALTER TABLE voters ADD COLUMN reg_reason VARCHAR(100)"))
+                conn.commit()
+
         if "birth_certificates" in tables:
             bc_columns = [col["name"] for col in inspector.get_columns("birth_certificates")]
             if "attachment_url" not in bc_columns:
