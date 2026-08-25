@@ -1374,6 +1374,113 @@ html.dark .border-t-blue-700 {
   border-top-color: #3b82f6 !important;
 }
 
+/* ========================================================================= */
+/* DARK MODE BIRTH CERTIFICATES & YOUTH PIPELINE STYLING */
+/* ========================================================================= */
+html.dark .bg-slate-50\/80,
+html.dark .bg-slate-50\/90 {
+  background-color: #0f172a !important;
+  border-color: #1e293b !important;
+}
+
+html.dark .glass-card .bg-slate-50\/80 span.text-slate-700,
+html.dark .glass-card .bg-slate-50\/80 .text-slate-700 {
+  color: #f8fafc !important;
+  font-weight: 700 !important;
+}
+
+html.dark .glass-card .bg-slate-50\/80 .text-slate-500,
+html.dark .glass-card .bg-slate-50\/80 span.text-slate-500 {
+  color: #94a3b8 !important;
+}
+
+html.dark .glass-card .bg-slate-50\/80 strong.text-slate-800 {
+  color: #f8fafc !important;
+}
+
+/* KPI Cards on Birth Certificates Page */
+html.dark .border-l-4.border-blue-600 .bg-blue-50 {
+  background-color: rgba(56, 189, 248, 0.15) !important;
+  color: #38bdf8 !important;
+}
+
+html.dark .border-l-4.border-amber-500 .bg-amber-50 {
+  background-color: rgba(245, 158, 11, 0.15) !important;
+  color: #fbbf24 !important;
+}
+
+html.dark .border-l-4.border-amber-500 .text-amber-700 {
+  color: #fbbf24 !important;
+}
+
+html.dark .border-l-4.border-amber-500 .text-amber-600 {
+  color: #fcd34d !important;
+}
+
+html.dark .border-l-4.border-rose-500.bg-rose-50\/20,
+html.dark .border-l-4.border-rose-500 {
+  background-color: rgba(239, 68, 68, 0.08) !important;
+}
+
+html.dark .border-l-4.border-rose-500 .bg-rose-100 {
+  background-color: rgba(239, 68, 68, 0.22) !important;
+  color: #f87171 !important;
+}
+
+html.dark .border-l-4.border-rose-500 .text-rose-700 {
+  color: #f87171 !important;
+  font-weight: 700 !important;
+}
+
+html.dark .border-l-4.border-rose-500 .text-rose-600 {
+  color: #fca5a5 !important;
+}
+
+html.dark .border-l-4.border-emerald-500 .bg-emerald-50 {
+  background-color: rgba(16, 185, 129, 0.15) !important;
+  color: #34d399 !important;
+}
+
+html.dark .border-l-4.border-emerald-500 .text-emerald-700 {
+  color: #34d399 !important;
+}
+
+/* Main Table Elements in Birth Certificates */
+html.dark tr.bg-slate-100\/90,
+html.dark .bg-slate-100\/90 {
+  background-color: #0f172a !important;
+  color: #e2e8f0 !important;
+  border-bottom: 2px solid #334155 !important;
+}
+
+html.dark tr.bg-slate-100\/90 th {
+  color: #e2e8f0 !important;
+  font-weight: 700 !important;
+}
+
+html.dark tr.hover\:bg-blue-50\/40:hover {
+  background-color: rgba(30, 41, 59, 0.6) !important;
+}
+
+html.dark .bg-pink-50 {
+  background-color: rgba(236, 72, 153, 0.2) !important;
+}
+
+html.dark .text-pink-700,
+html.dark .text-pink-800 {
+  color: #f472b6 !important;
+}
+
+html.dark .border-pink-200 {
+  border-color: rgba(244, 114, 182, 0.4) !important;
+}
+
+html.dark .bg-blue-100.text-blue-900 {
+  background-color: rgba(30, 58, 138, 0.3) !important;
+  color: #38bdf8 !important;
+  border-color: rgba(56, 189, 248, 0.3) !important;
+}
+
 html.dark input,
 html.dark select,
 html.dark textarea {
