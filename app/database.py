@@ -68,6 +68,3 @@ def ensure_schema_migrations():
                 conn.commit()
     except Exception as e:
         print(f"Migration note: {e}")
-
-# Run schema check
-ensure_schema_migrations()

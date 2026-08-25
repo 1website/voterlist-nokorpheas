@@ -27,13 +27,33 @@ from app.routes import (
     system_routes
 )
 
-# Initialize Database Schema & Seed Data
-Base.metadata.create_all(bind=engine)
-db = SessionLocal()
-try:
-    seed_database(db)
-finally:
-    db.close()
+import time
+
+# Initialize Database Schema & Seed Data with safe retry
+def init_database_with_retry(max_retries=6, delay_sec=2):
+    for attempt in range(1, max_retries + 1):
+        try:
+            print(f"🔄 Initializing database (Attempt {attempt}/{max_retries})...")
+            Base.metadata.create_all(bind=engine)
+            from app.database import ensure_schema_migrations
+            ensure_schema_migrations()
+            
+            db = SessionLocal()
+            try:
+                seed_database(db)
+            finally:
+                db.close()
+            print("✅ Database schema and seed data initialized successfully!")
+            return True
+        except Exception as e:
+            print(f"⚠️ Database init attempt {attempt} failed: {e}")
+            if attempt < max_retries:
+                time.sleep(delay_sec)
+            else:
+                print("❌ Warning: Database connection failed after all retries. Continuing startup...")
+                return False
+
+init_database_with_retry()
 
 # Create FastAPI App
 app = FastAPI(

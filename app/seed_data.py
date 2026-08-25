@@ -208,6 +208,8 @@ def seed_database(db: Session):
                 random_min = random.randint(0, 59)
                 voted_at = datetime.datetime.now().replace(hour=random_hour, minute=random_min, second=random.randint(0, 59))
 
+            v_village_name = village_objs[s_obj.village_id].name_kh if s_obj.village_id in village_objs else ""
+            address_str = f"ក្រុមទី {random.randint(1, 15)} {v_village_name}"
             photo_url = f"/static/images/avatars/female_{(voter_idx % 3) + 1}.jpg" if is_female else f"/static/images/avatars/male_{(voter_idx % 4) + 1}.jpg"
             voter = Voter(
                 voter_code=voter_code,
@@ -217,7 +219,7 @@ def seed_database(db: Session):
                 name_en=en_name,
                 gender=gender,
                 dob=dob_str,
-                address=f"ក្រុមទី {random.randint(1, 15)} {s_obj.village.name_kh}",
+                address=address_str,
                 village_id=s_obj.village_id,
                 station_id=s_obj.id,
                 status=status,
