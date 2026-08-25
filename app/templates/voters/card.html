@@ -40,7 +40,8 @@
                 <div class="relative">
                     <img src="{{ voter.photo_display }}" 
                          alt="{{ voter.name_kh }}" 
-                         class="w-32 h-36 rounded-xl object-cover border-2 border-blue-900 shadow-md bg-white">
+                         class="w-32 h-36 rounded-xl object-cover border-2 border-blue-900 shadow-md bg-white"
+                         onerror="this.onerror=null; this.src='/static/images/avatars/{{ 'female_1.jpg' if voter.gender == 'ស្រី' else 'male_1.jpg' }}';">
                     <span class="absolute bottom-1 right-1 bg-blue-900 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
                         រូបថតផ្លូវការ
                     </span>

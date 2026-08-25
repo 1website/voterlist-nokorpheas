@@ -12,7 +12,7 @@
         <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
             <div class="flex items-center gap-4">
                 <div class="relative">
-                    <img id="headerAvatarPreview" src="{{ current_user.avatar_display }}" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-amber-400 shadow-xl bg-white/10 flex-shrink-0">
+                    <img id="headerAvatarPreview" src="{{ current_user.avatar_display }}" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-amber-400 shadow-xl bg-white/10 flex-shrink-0" onerror="this.onerror=null; this.src='/static/images/avatars/male_1.jpg';">
                     <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-slate-900 flex items-center justify-center text-[10px]" title="កំពុងប្រើប្រាស់"></span>
                 </div>
                 <div>
@@ -53,7 +53,7 @@
         <div class="lg:col-span-1 space-y-6">
             <div class="card p-6 bg-white rounded-3xl border border-slate-200 shadow-sm text-center">
                 <div class="relative inline-block mx-auto mb-4">
-                    <img id="mainAvatarPreview" src="{{ current_user.avatar_display }}" class="w-32 h-32 rounded-3xl object-cover border-4 border-blue-500/20 shadow-lg bg-slate-100 mx-auto">
+                    <img id="mainAvatarPreview" src="{{ current_user.avatar_display }}" class="w-32 h-32 rounded-3xl object-cover border-4 border-blue-500/20 shadow-lg bg-slate-100 mx-auto" onerror="this.onerror=null; this.src='/static/images/avatars/male_1.jpg';">
                     <label for="profilePhotoFileInput" class="absolute bottom-1 right-1 w-9 h-9 rounded-xl bg-blue-700 hover:bg-blue-800 text-white flex items-center justify-center cursor-pointer shadow-md transition transform hover:scale-105 border-2 border-white" title="ប្តូររូបថតពីកុំព្យូទ័រ">
                         <span>📷</span>
                     </label>

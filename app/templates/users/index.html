@@ -43,7 +43,7 @@
                     <td class="font-mono font-bold text-blue-900">{{ u.username }}</td>
                     <td>
                         <div class="flex items-center gap-2.5">
-                            <img src="{{ u.avatar_display }}" class="w-8 h-8 rounded-xl object-cover border border-slate-300 bg-slate-100 flex-shrink-0">
+                            <img src="{{ u.avatar_display }}" class="w-8 h-8 rounded-xl object-cover border border-slate-300 bg-slate-100 flex-shrink-0" onerror="this.onerror=null; this.src='/static/images/avatars/male_1.jpg';">
                             <span class="font-bold text-slate-800">{{ u.full_name }}</span>
                         </div>
                     </td>

@@ -140,12 +140,22 @@ class Voter(Base):
 
     @property
     def photo_display(self):
+        default_img = "/static/images/avatars/female_1.jpg" if self.gender == "ស្រី" else "/static/images/avatars/male_1.jpg"
         if self.photo_url and self.photo_url.strip():
-            return self.photo_url
-        # Default gender avatar
-        if self.gender == "ស្រី":
-            return "/static/images/avatars/female_1.jpg"
-        return "/static/images/avatars/male_1.jpg"
+            url = self.photo_url.strip()
+            # If static avatar preset, data URI, or external URL
+            if url.startswith("/static/images/avatars/") or url.startswith("http://") or url.startswith("https://") or url.startswith("data:"):
+                return url
+            # If local uploaded file path (e.g. /static/uploads/voters/xxx.jpg)
+            if url.startswith("/static/uploads/"):
+                import os
+                rel_path = url.lstrip("/").replace("/", os.sep)
+                if os.path.exists(os.path.join("app", rel_path)) or os.path.exists(rel_path):
+                    return url
+                # If file missing from container disk, fallback to clean gender avatar
+                return default_img
+            return url
+        return default_img
 
 
 class User(Base):
@@ -169,13 +179,25 @@ class User(Base):
 
     @property
     def avatar_display(self):
-        if self.photo_url and self.photo_url.strip():
-            return self.photo_url
         if self.role == "admin":
-            return "/static/images/avatars/male_1.jpg"
+            default_avatar = "/static/images/avatars/male_1.jpg"
         elif self.role == "officer":
-            return "/static/images/avatars/male_2.jpg"
-        return "/static/images/avatars/male_3.jpg"
+            default_avatar = "/static/images/avatars/male_2.jpg"
+        else:
+            default_avatar = "/static/images/avatars/male_3.jpg"
+
+        if self.photo_url and self.photo_url.strip():
+            url = self.photo_url.strip()
+            if url.startswith("/static/images/avatars/") or url.startswith("http://") or url.startswith("https://") or url.startswith("data:"):
+                return url
+            if url.startswith("/static/uploads/"):
+                import os
+                rel_path = url.lstrip("/").replace("/", os.sep)
+                if os.path.exists(os.path.join("app", rel_path)) or os.path.exists(rel_path):
+                    return url
+                return default_avatar
+            return url
+        return default_avatar
 
 
 class AuditLog(Base):

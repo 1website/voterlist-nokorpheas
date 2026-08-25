@@ -155,7 +155,8 @@
                                          id="voter-avatar-{{ v.id }}"
                                          class="w-11 h-11 rounded-full object-cover border-2 border-blue-200 shadow-sm transition-transform duration-200 group-hover:scale-105 cursor-pointer bg-slate-100"
                                          onclick="previewLargePhoto('{{ v.photo_display }}', '{{ v.name_kh }}', '{{ v.voter_code }}')"
-                                         title="ចុចដើម្បីមើលរូបធំ">
+                                         title="ចុចដើម្បីមើលរូបធំ"
+                                         onerror="this.onerror=null; this.src='/static/images/avatars/{{ 'female_1.jpg' if v.gender == 'ស្រី' else 'male_1.jpg' }}';">
                                     {% if current_user.role in ['admin', 'officer'] %}
                                     <button type="button" onclick="openChangePhotoModal({{ v.id }}, '{{ v.name_kh }}', '{{ v.photo_display }}')" 
                                             class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-[10px] flex items-center justify-center shadow-md border border-white" 
@@ -352,7 +353,7 @@
                     <label class="block text-xs font-bold text-slate-700 mb-2">📸 រូបថតអ្នកបោះឆ្នោត (Profile Photo)</label>
                     <div class="flex flex-col sm:flex-row items-center gap-4">
                         <div class="relative flex-shrink-0">
-                            <img id="addPhotoPreview" src="/static/images/avatars/male_1.jpg" alt="Preview" class="w-20 h-20 rounded-2xl object-cover border-2 border-blue-400 shadow-md bg-white">
+                            <img id="addPhotoPreview" src="/static/images/avatars/male_1.jpg" alt="Preview" class="w-20 h-20 rounded-2xl object-cover border-2 border-blue-400 shadow-md bg-white" onerror="this.onerror=null; this.src='/static/images/avatars/male_1.jpg';">
                         </div>
                         <div class="flex-1 space-y-2 w-full">
                             <div class="flex gap-2">
@@ -531,7 +532,7 @@
                     <label class="block text-xs font-bold text-slate-700 mb-2">📸 រូបថតអ្នកបោះឆ្នោត (Profile Photo)</label>
                     <div class="flex flex-col sm:flex-row items-center gap-4">
                         <div class="relative flex-shrink-0">
-                            <img id="editPhotoPreview" src="/static/images/avatars/male_1.jpg" alt="Preview" class="w-20 h-20 rounded-2xl object-cover border-2 border-blue-400 shadow-md bg-white">
+                            <img id="editPhotoPreview" src="/static/images/avatars/male_1.jpg" alt="Preview" class="w-20 h-20 rounded-2xl object-cover border-2 border-blue-400 shadow-md bg-white" onerror="this.onerror=null; this.src='/static/images/avatars/male_1.jpg';">
                         </div>
                         <div class="flex-1 space-y-2 w-full">
                             <div class="flex gap-2">
@@ -666,7 +667,7 @@
                 </div>
 
                 <div class="flex justify-center">
-                    <img id="quickPhotoPreview" src="/static/images/avatars/male_1.jpg" alt="Preview" class="w-28 h-28 rounded-3xl object-cover border-4 border-blue-500 shadow-xl bg-white">
+                    <img id="quickPhotoPreview" src="/static/images/avatars/male_1.jpg" alt="Preview" class="w-28 h-28 rounded-3xl object-cover border-4 border-blue-500 shadow-xl bg-white" onerror="this.onerror=null; this.src='/static/images/avatars/male_1.jpg';">
                 </div>
 
                 <div>
@@ -707,7 +708,7 @@
         </div>
         <div class="modal-body p-6 space-y-3">
             <div class="flex justify-center">
-                <img id="largePhotoImg" src="" alt="Voter Portrait" class="w-56 h-56 rounded-3xl object-cover border-4 border-blue-900 shadow-2xl bg-white">
+                <img id="largePhotoImg" src="" alt="Voter Portrait" class="w-56 h-56 rounded-3xl object-cover border-4 border-blue-900 shadow-2xl bg-white" onerror="this.onerror=null; this.src='/static/images/avatars/male_1.jpg';">
             </div>
             <div>
                 <h4 id="largePhotoName" class="font-bold text-slate-900 text-lg font-kh-bold mt-2"></h4>
