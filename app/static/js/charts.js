@@ -3,7 +3,19 @@
 let stationChart = null;
 let villageChart = null;
 
+function getChartThemeColors() {
+    const isDark = document.documentElement.classList.contains('dark');
+    return {
+        textColor: isDark ? '#94a3b8' : '#64748b',
+        gridColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
+        pendingBg: isDark ? '#1e293b' : '#e2e8f0',
+        villagePendingBg: isDark ? '#1e293b' : '#f1f5f9'
+    };
+}
+
 function initCharts(stationLabels, stationVoted, stationTotal, villageLabels, villageVoted, villageTotal) {
+    const theme = getChartThemeColors();
+
     // 1. Station Turnout Bar Chart
     const stationCtx = document.getElementById('stationChart');
     if (stationCtx && typeof Chart !== 'undefined') {
@@ -21,7 +33,7 @@ function initCharts(stationLabels, stationVoted, stationTotal, villageLabels, vi
                     {
                         label: 'មិនទាន់បោះ (Pending)',
                         data: stationTotal.map((tot, idx) => tot - stationVoted[idx]),
-                        backgroundColor: '#e2e8f0',
+                        backgroundColor: theme.pendingBg,
                         borderRadius: 6
                     }
                 ]
@@ -32,16 +44,21 @@ function initCharts(stationLabels, stationVoted, stationTotal, villageLabels, vi
                 scales: {
                     x: {
                         stacked: true,
-                        grid: { display: false }
+                        grid: { display: false },
+                        ticks: { color: theme.textColor }
                     },
                     y: {
                         stacked: true,
                         beginAtZero: true,
-                        ticks: { stepSize: 2 }
+                        ticks: { stepSize: 2, color: theme.textColor },
+                        grid: { color: theme.gridColor }
                     }
                 },
                 plugins: {
-                    legend: { position: 'top' }
+                    legend: {
+                        position: 'top',
+                        labels: { color: theme.textColor }
+                    }
                 }
             }
         });
@@ -64,7 +81,7 @@ function initCharts(stationLabels, stationVoted, stationTotal, villageLabels, vi
                     {
                         label: 'មិនទាន់បោះ',
                         data: villageTotal.map((tot, idx) => tot - villageVoted[idx]),
-                        backgroundColor: '#f1f5f9',
+                        backgroundColor: theme.villagePendingBg,
                         borderRadius: 6
                     }
                 ]
@@ -75,20 +92,50 @@ function initCharts(stationLabels, stationVoted, stationTotal, villageLabels, vi
                 scales: {
                     x: {
                         stacked: true,
-                        grid: { display: false }
+                        grid: { display: false },
+                        ticks: { color: theme.textColor }
                     },
                     y: {
                         stacked: true,
-                        beginAtZero: true
+                        beginAtZero: true,
+                        ticks: { color: theme.textColor },
+                        grid: { color: theme.gridColor }
                     }
                 },
                 plugins: {
-                    legend: { position: 'top' }
+                    legend: {
+                        position: 'top',
+                        labels: { color: theme.textColor }
+                    }
                 }
             }
         });
     }
 }
+
+// Dynamically update charts on theme toggle (Light / Dark)
+window.updateChartsTheme = function(isDark) {
+    const theme = getChartThemeColors();
+    
+    [stationChart, villageChart].forEach(chart => {
+        if (chart) {
+            if (chart.options.scales.x && chart.options.scales.x.ticks) {
+                chart.options.scales.x.ticks.color = theme.textColor;
+            }
+            if (chart.options.scales.y) {
+                if (chart.options.scales.y.ticks) chart.options.scales.y.ticks.color = theme.textColor;
+                if (chart.options.scales.y.grid) chart.options.scales.y.grid.color = theme.gridColor;
+            }
+            if (chart.options.plugins && chart.options.plugins.legend && chart.options.plugins.legend.labels) {
+                chart.options.plugins.legend.labels.color = theme.textColor;
+            }
+            if (chart.data.datasets && chart.data.datasets[1]) {
+                chart.data.datasets[1].backgroundColor = theme.pendingBg;
+            }
+            chart.update();
+        }
+    });
+};
 
 // Auto-refresh stats from server every 10 seconds
 async function refreshDashboardStats() {

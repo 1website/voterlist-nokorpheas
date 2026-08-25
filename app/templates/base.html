@@ -10,6 +10,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
@@ -21,6 +22,19 @@
                 }
             }
         }
+    </script>
+
+    <!-- Immediate Theme Initialization to avoid flash -->
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        })();
     </script>
 
     <!-- Custom Style and Print CSS with Cache-Buster -->
@@ -306,9 +320,19 @@
                         🔍 ស្វែងរកឈ្មោះ
                     </a>
                     <a href="/reports/export/excel"
-                        class="btn btn-sm btn-outline text-emerald-700 border-emerald-300 hover:bg-emerald-50 hidden md:inline-flex font-semibold text-xs sm:text-sm py-1.5">
+                        class="btn btn-sm btn-outline text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hidden md:inline-flex font-semibold text-xs sm:text-sm py-1.5">
                         📥 Export Excel
                     </a>
+
+                    <!-- Light / Dark Mode Toggle Button -->
+                    <button type="button" onclick="toggleTheme()" id="themeToggleBtn"
+                        class="p-2 sm:px-3 sm:py-1.5 rounded-full sm:rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/90 text-slate-700 dark:text-amber-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition shadow-xs flex items-center gap-1.5 flex-shrink-0 text-xs font-bold cursor-pointer"
+                        title="ប្តូរពន្លឺ / ងងឹត (Light / Dark Mode)">
+                        <span class="theme-icon-light text-sm leading-none">🌙</span>
+                        <span class="theme-icon-dark text-sm leading-none hidden">☀️</span>
+                        <span class="hidden xl:inline theme-text-mode font-kh-bold">ពន្លឺ / ងងឹត</span>
+                    </button>
+
                     <!-- User Profile Button -->
                     <a href="/profile"
                         class="flex items-center gap-1.5 p-1 pl-1 pr-1 sm:pl-1.5 sm:pr-2.5 rounded-full bg-slate-100 hover:bg-blue-50 border border-slate-200 hover:border-blue-300 transition shadow-xs group flex-shrink-0"
@@ -445,8 +469,35 @@
             if (khmerDateTimer) clearTimeout(khmerDateTimer);
         }
 
+        // Theme Switcher System (Light / Dark Mode)
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            updateThemeIcons();
+            if (typeof window.updateChartsTheme === 'function') {
+                window.updateChartsTheme(isDark);
+            }
+        }
+
+        function updateThemeIcons() {
+            const isDark = document.documentElement.classList.contains('dark');
+            document.querySelectorAll('.theme-icon-light').forEach(el => {
+                el.style.display = isDark ? 'none' : 'inline-block';
+            });
+            document.querySelectorAll('.theme-icon-dark').forEach(el => {
+                el.style.display = isDark ? 'inline-block' : 'none';
+            });
+            const textEl = document.querySelector('.theme-text-mode');
+            if (textEl) {
+                textEl.innerText = isDark ? 'ងងឹត (Dark)' : 'ពន្លឺ (Light)';
+            }
+        }
+
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function () {
+            // Synchronize theme toggle UI state
+            updateThemeIcons();
+
             // Restore saved sidebar state on desktop
             if (window.innerWidth >= 1024 && localStorage.getItem('sidebar_collapsed') === 'true') {
                 const layout = document.querySelector('.app-layout');
