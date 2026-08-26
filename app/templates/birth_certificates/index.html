@@ -27,17 +27,22 @@
             </button>
             {% endif %}
             
-            <a href="/birth-certificates/youth-pipeline" class="btn btn-outline text-blue-900 border-blue-300 hover:bg-blue-50 text-sm font-bold flex items-center gap-1.5">
+            <button onclick="openMonthlyMatrixModal()" class="btn bg-indigo-50 dark:bg-indigo-950/60 text-indigo-900 dark:text-indigo-300 border border-indigo-300 dark:border-indigo-700/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-sm font-bold flex items-center gap-1.5 shadow-xs">
+                <span>📈</span>
+                <span>ស្ថិតិប្រចាំខែ & ឆ្នាំ</span>
+            </button>
+
+            <a href="/birth-certificates/youth-pipeline" class="btn btn-outline text-blue-900 dark:text-sky-300 border-blue-300 dark:border-sky-700 hover:bg-blue-50 dark:hover:bg-sky-950/60 text-sm font-bold flex items-center gap-1.5">
                 <span>📊</span>
                 <span>ផ្ទាំងវិភាគយុវជន</span>
             </a>
 
-            <a href="/birth-certificates/print-eligible{% if selected_village_id %}?village_id={{ selected_village_id }}{% endif %}" class="btn btn-outline text-amber-900 border-amber-300 hover:bg-amber-50 text-sm font-bold flex items-center gap-1.5" target="_blank">
+            <a href="/birth-certificates/print-eligible{% if selected_village_id %}?village_id={{ selected_village_id }}{% endif %}" class="btn btn-outline text-amber-900 dark:text-amber-300 border-amber-300 dark:border-amber-700 hover:bg-amber-50 dark:hover:bg-amber-950/60 text-sm font-bold flex items-center gap-1.5" target="_blank">
                 <span>🖨️</span>
                 <span>បញ្ជីជំរុញ (Print)</span>
             </a>
 
-            <a href="/birth-certificates/export-excel?village_id={{ village_id }}&eligibility={{ eligibility }}&reg_status={{ reg_status }}" class="btn btn-outline text-emerald-900 border-emerald-300 hover:bg-emerald-50 text-sm font-bold flex items-center gap-1.5">
+            <a href="/birth-certificates/export-excel?village_id={{ village_id }}&eligibility={{ eligibility }}&reg_status={{ reg_status }}&period={{ period }}&reg_year={{ reg_year }}&reg_month={{ reg_month }}" class="btn btn-outline text-emerald-900 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 text-sm font-bold flex items-center gap-1.5">
                 <span>📥</span>
                 <span>Export Excel</span>
             </a>
@@ -67,53 +72,77 @@
     </div>
     {% endif %}
 
-    <!-- KPI Summary Stat Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Total Birth Records -->
-        <div class="glass-card p-4 flex items-center gap-4 border-l-4 border-blue-600">
-            <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-700 flex items-center justify-center text-2xl flex-shrink-0 shadow-inner">
+    <!-- KPI Summary Stat Cards (6 Cards: Monthly, Yearly, Total, Youth) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3.5">
+        <!-- 1. Total Birth Records -->
+        <div class="glass-card p-4 flex items-center gap-3 border-l-4 border-blue-600">
+            <div class="w-11 h-11 rounded-2xl bg-blue-50 dark:bg-sky-950/60 text-blue-700 dark:text-sky-300 flex items-center justify-center text-xl flex-shrink-0 shadow-inner border border-blue-100 dark:border-sky-800/40">
                 📜
             </div>
             <div class="min-w-0">
-                <div class="text-xs text-slate-500 font-bold uppercase tracking-wider">សំបុត្រកំណើតសរុប</div>
-                <div class="text-2xl font-bold text-slate-900 font-mono mt-0.5">{{ kpi_total }}</div>
-                <div class="text-[11px] text-slate-500 mt-0.5">ទិន្នន័យអត្រានុកូលដ្ឋានឃុំ</div>
+                <div class="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider truncate">សំបុត្រកំណើតសរុប</div>
+                <div class="text-2xl font-black text-slate-900 dark:text-slate-100 font-mono mt-0.5">{{ kpi_total }} <span class="text-xs font-normal text-slate-400 font-sans">ច្បាប់</span></div>
+                <div class="text-[10px] text-blue-700 dark:text-sky-300 font-medium mt-0.5 truncate">ទិន្នន័យអត្រានុកូលដ្ឋាន</div>
             </div>
         </div>
 
-        <!-- Turning 18 This Year -->
-        <div class="glass-card p-4 flex items-center gap-4 border-l-4 border-amber-500">
-            <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center text-2xl flex-shrink-0 shadow-inner">
+        <!-- 2. Registered This Month -->
+        <div class="glass-card p-4 flex items-center gap-3 border-l-4 border-emerald-500 bg-emerald-50/20 dark:bg-emerald-950/20">
+            <div class="w-11 h-11 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 flex items-center justify-center text-xl flex-shrink-0 shadow-inner border border-emerald-100 dark:border-emerald-800/40">
+                📅
+            </div>
+            <div class="min-w-0">
+                <div class="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider truncate">ចុះក្នុង{{ current_month_name }}</div>
+                <div class="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono mt-0.5">{{ kpi_this_month }} <span class="text-xs font-normal text-slate-400 font-sans">ច្បាប់</span></div>
+                <div class="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold mt-0.5 truncate">ស្រី {{ kpi_this_month_female }} | ប្រុស {{ kpi_this_month_male }}</div>
+            </div>
+        </div>
+
+        <!-- 3. Registered This Year -->
+        <div class="glass-card p-4 flex items-center gap-3 border-l-4 border-indigo-600 bg-indigo-50/20 dark:bg-indigo-950/20">
+            <div class="w-11 h-11 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 flex items-center justify-center text-xl flex-shrink-0 shadow-inner border border-indigo-100 dark:border-indigo-800/40">
+                📈
+            </div>
+            <div class="min-w-0">
+                <div class="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider truncate">ចុះក្នុងឆ្នាំ {{ current_year }}</div>
+                <div class="text-2xl font-black text-indigo-700 dark:text-indigo-300 font-mono mt-0.5">{{ kpi_this_year }} <span class="text-xs font-normal text-slate-400 font-sans">ច្បាប់</span></div>
+                <div class="text-[10px] text-indigo-700 dark:text-indigo-300 font-semibold mt-0.5 truncate">ស្រី {{ kpi_this_year_female }} | ប្រុស {{ kpi_this_year_male }}</div>
+            </div>
+        </div>
+
+        <!-- 4. Turning 18 This Year -->
+        <div class="glass-card p-4 flex items-center gap-3 border-l-4 border-amber-500">
+            <div class="w-11 h-11 rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 flex items-center justify-center text-xl flex-shrink-0 shadow-inner border border-amber-100 dark:border-amber-800/40">
                 ⚡
             </div>
             <div class="min-w-0">
-                <div class="text-xs text-slate-500 font-bold uppercase tracking-wider">គ្រប់អាយុក្នុងឆ្នាំ {{ current_year }}</div>
-                <div class="text-2xl font-bold text-amber-700 font-mono mt-0.5">{{ kpi_turning_18_this_year }}</div>
-                <div class="text-[11px] text-amber-600 font-medium mt-0.5">យុវជនបោះឆ្នោតលើកដំបូង</div>
+                <div class="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider truncate">គ្រប់អាយុឆ្នាំ {{ current_year }}</div>
+                <div class="text-2xl font-black text-amber-600 dark:text-amber-400 font-mono mt-0.5">{{ kpi_turning_18_this_year }} <span class="text-xs font-normal text-slate-400 font-sans">នាក់</span></div>
+                <div class="text-[10px] text-amber-700 dark:text-amber-300 font-medium mt-0.5 truncate">យុវជនបោះឆ្នោតលើកដំបូង</div>
             </div>
         </div>
 
-        <!-- Unregistered Gap -->
-        <div class="glass-card p-4 flex items-center gap-4 border-l-4 border-rose-500 bg-rose-50/20">
-            <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center text-2xl flex-shrink-0 shadow-inner animate-pulse">
+        <!-- 5. Unregistered Youth -->
+        <div class="glass-card p-4 flex items-center gap-3 border-l-4 border-rose-500 bg-rose-50/20 dark:bg-rose-950/20">
+            <div class="w-11 h-11 rounded-2xl bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 flex items-center justify-center text-xl flex-shrink-0 shadow-inner border border-rose-100 dark:border-rose-800/40">
                 ⚠️
             </div>
             <div class="min-w-0">
-                <div class="text-xs text-rose-700 font-bold uppercase tracking-wider">គ្រប់អាយុមិនទាន់ចុះឈ្មោះ</div>
-                <div class="text-2xl font-bold text-rose-600 font-mono mt-0.5">{{ kpi_unregistered_eligible }}</div>
-                <div class="text-[11px] text-rose-600 font-semibold mt-0.5">មុខសញ្ញាត្រូវចុះជំរុញ</div>
+                <div class="text-[11px] text-rose-700 dark:text-rose-300 font-bold uppercase tracking-wider truncate">មិនទាន់ចុះឈ្មោះ</div>
+                <div class="text-2xl font-black text-rose-600 dark:text-rose-400 font-mono mt-0.5">{{ kpi_unregistered_eligible }} <span class="text-xs font-normal text-slate-400 font-sans">នាក់</span></div>
+                <div class="text-[10px] text-rose-700 dark:text-rose-300 font-semibold mt-0.5 truncate">មុខសញ្ញាត្រូវចុះជំរុញ</div>
             </div>
         </div>
 
-        <!-- Youth Registration Rate -->
-        <div class="glass-card p-4 flex items-center gap-4 border-l-4 border-emerald-500">
-            <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center text-2xl flex-shrink-0 shadow-inner">
+        <!-- 6. Youth Registration Rate -->
+        <div class="glass-card p-4 flex items-center gap-3 border-l-4 border-teal-500">
+            <div class="w-11 h-11 rounded-2xl bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 flex items-center justify-center text-xl flex-shrink-0 shadow-inner border border-teal-100 dark:border-teal-800/40">
                 🎯
             </div>
             <div class="min-w-0">
-                <div class="text-xs text-slate-500 font-bold uppercase tracking-wider">អត្រាយុវជនបានចុះឈ្មោះ</div>
-                <div class="text-2xl font-bold text-emerald-700 font-mono mt-0.5">{{ kpi_reg_rate }}%</div>
-                <div class="text-[11px] text-slate-500 mt-0.5">ចុះរួច {{ kpi_registered_eligible }} / {{ kpi_eligible_now }} នាក់</div>
+                <div class="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider truncate">អត្រាយុវជនចុះឈ្មោះ</div>
+                <div class="text-2xl font-black text-teal-600 dark:text-teal-400 font-mono mt-0.5">{{ kpi_reg_rate }}%</div>
+                <div class="text-[10px] text-teal-700 dark:text-teal-300 font-medium mt-0.5 truncate">ចុះរួច {{ kpi_registered_eligible }} / {{ kpi_eligible_now }} នាក់</div>
             </div>
         </div>
     </div>
@@ -123,13 +152,13 @@
         <form method="GET" action="/birth-certificates" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
             <!-- Keyword Search -->
             <div class="lg:col-span-2">
-                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ស្វែងរក (ឈ្មោះ / លេខសំបុត្រ / ឪពុក-ម្តាយ)</label>
+                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">ស្វែងរក (ឈ្មោះ / លេខសំបុត្រ / ឪពុក-ម្តាយ)</label>
                 <input type="text" name="q" value="{{ q }}" placeholder="បញ្ចូលឈ្មោះ ឬលេខសំបុត្រ..." class="form-control text-sm py-2">
             </div>
 
             <!-- Village Filter -->
             <div>
-                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ភូមិ (១០ ភូមិ)</label>
+                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">ភូមិ (១០ ភូមិ)</label>
                 <select name="village_id" class="form-control text-sm py-2" {% if current_user.role == 'village_chief' %}disabled{% endif %}>
                     <option value="">-- គ្រប់ភូមិទាំងអស់ --</option>
                     {% for v in villages %}
@@ -138,9 +167,21 @@
                 </select>
             </div>
 
+            <!-- Period / Month / Year Registration Filter -->
+            <div>
+                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">កាលបរិច្ឆេទចុះឈ្មោះ</label>
+                <select name="period" class="form-control text-sm py-2" onchange="toggleCustomDateInputs(this.value)">
+                    <option value="all" {% if period == 'all' or not period %}selected{% endif %}>-- គ្រប់ពេលវេលា --</option>
+                    <option value="this_month" {% if period == 'this_month' %}selected{% endif %}>📅 ខែនេះ ({{ current_month_name }})</option>
+                    <option value="last_month" {% if period == 'last_month' %}selected{% endif %}>🗓️ ខែមុន</option>
+                    <option value="this_year" {% if period == 'this_year' %}selected{% endif %}>📈 ឆ្នាំនេះ ({{ current_year }})</option>
+                    <option value="last_year" {% if period == 'last_year' %}selected{% endif %}>⏳ ឆ្នាំមុន ({{ current_year - 1 }})</option>
+                </select>
+            </div>
+
             <!-- Eligibility Category Filter -->
             <div>
-                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ក្រុមអាយុ / សិទ្ធិបោះឆ្នោត</label>
+                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">ក្រុមអាយុ / សិទ្ធិបោះឆ្នោត</label>
                 <select name="eligibility" class="form-control text-sm py-2">
                     <option value="all" {% if eligibility == 'all' %}selected{% endif %}>-- គ្រប់អាយុ --</option>
                     <option value="turning_18_this_year" {% if eligibility == 'turning_18_this_year' %}selected{% endif %}>⚡ គ្រប់អាយុឆ្នាំនេះ ({{ current_year }})</option>
@@ -150,27 +191,51 @@
                 </select>
             </div>
 
-            <!-- Registration Status Filter -->
+            <!-- Registration Status Filter & Actions -->
             <div>
-                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ស្ថានភាពចុះឈ្មោះ</label>
-                <select name="reg_status" class="form-control text-sm py-2">
-                    <option value="all" {% if reg_status == 'all' %}selected{% endif %}>-- ទាំងអស់ --</option>
-                    <option value="unregistered" {% if reg_status == 'unregistered' %}selected{% endif %}>⚠️ មិនទាន់ចុះឈ្មោះ</option>
-                    <option value="registered" {% if reg_status == 'registered' %}selected{% endif %}>✅ បានចុះឈ្មោះរួច</option>
-                </select>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="flex items-end gap-2">
-                <button type="submit" class="btn btn-primary text-sm py-2 flex-1 flex items-center justify-center gap-1 shadow-xs">
-                    <span>🔍</span> <span>ស្វែងរក</span>
-                </button>
-                <a href="/birth-certificates" class="btn btn-outline text-sm py-2 px-3 hover:bg-slate-100" title="សម្អាតតម្រង">
-                    🔄
-                </a>
+                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">ស្ថានភាពចុះឈ្មោះ</label>
+                <div class="flex items-center gap-1.5">
+                    <select name="reg_status" class="form-control text-sm py-2 flex-1">
+                        <option value="all" {% if reg_status == 'all' %}selected{% endif %}>-- ទាំងអស់ --</option>
+                        <option value="unregistered" {% if reg_status == 'unregistered' %}selected{% endif %}>⚠️ មិនទាន់ចុះ</option>
+                        <option value="registered" {% if reg_status == 'registered' %}selected{% endif %}>✅ បានចុះរួច</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary text-sm py-2 px-3 flex items-center justify-center gap-1 shadow-xs" title="ស្វែងរក">
+                        🔍
+                    </button>
+                    <a href="/birth-certificates" class="btn btn-outline text-sm py-2 px-2.5 hover:bg-slate-100 dark:hover:bg-slate-800" title="សម្អាតតម្រង">
+                        🔄
+                    </a>
+                </div>
             </div>
         </form>
     </div>
+
+    <!-- Active Filter Notice Banner -->
+    {% if period != 'all' or reg_year or reg_month or village_id or eligibility != 'all' or reg_status != 'all' or q %}
+    <div class="p-3 bg-blue-50/80 dark:bg-sky-950/40 border border-blue-200 dark:border-sky-800/60 rounded-xl flex flex-wrap items-center justify-between gap-2 text-xs text-blue-900 dark:text-sky-200 shadow-xs">
+        <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-sm">🗓️</span>
+            <span>កំពុងបង្ហាញទិន្នន័យចម្រាញ់៖ 
+                <strong class="font-bold text-blue-950 dark:text-sky-100">
+                    {% if period == 'this_month' %}ចុះក្នុង{{ current_month_name }} ឆ្នាំ {{ current_year }}
+                    {% elif period == 'last_month' %}ចុះក្នុងខែមុន
+                    {% elif period == 'this_year' %}ចុះក្នុងឆ្នាំ {{ current_year }}
+                    {% elif period == 'last_year' %}ចុះក្នុងឆ្នាំ {{ current_year - 1 }}
+                    {% elif reg_year and reg_month %}ចុះក្នុងខែ {{ khmer_months.get(reg_month|int, reg_month) }} ឆ្នាំ {{ reg_year }}
+                    {% elif reg_year %}ចុះក្នុងឆ្នាំ {{ reg_year }}
+                    {% endif %}
+                    {% if eligibility != 'all' %} • ក្រុម៖ {{ eligibility }}{% endif %}
+                    {% if reg_status != 'all' %} • ស្ថានភាព៖ {{ reg_status }}{% endif %}
+                </strong>
+                (រកឃើញសរុប <strong class="font-mono text-blue-950 dark:text-sky-100">{{ total_count }}</strong> កំណត់ត្រា)
+            </span>
+        </div>
+        <a href="/birth-certificates" class="text-xs text-blue-700 dark:text-sky-400 hover:underline font-bold flex items-center gap-1">
+            ✕ សម្អាតតម្រងទាំងអស់
+        </a>
+    </div>
+    {% endif %}
 
     <!-- Main Table Card -->
     <div class="glass-card overflow-hidden">
@@ -914,6 +979,134 @@ function closePreviewModal() {
     iframeEl.src = '';
     document.getElementById('previewModal').classList.add('hidden');
     document.getElementById('previewModal').classList.remove('flex');
+}
+
+    <!-- ========================================================================= -->
+    <!-- MONTHLY & ANNUAL SUMMARY MATRIX MODAL (ស្ថិតិ ១២ ខែ & ប្រចាំឆ្នាំ) -->
+    <!-- ========================================================================= -->
+    <div id="monthlyMatrixModal" class="modal-overlay hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm items-center justify-center p-3 sm:p-4 overflow-y-auto">
+        <div class="glass-card bg-white dark:bg-[#131f37] border border-slate-200 dark:border-slate-700 rounded-3xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            
+            <!-- Modal Header -->
+            <div class="p-4 sm:p-5 bg-gradient-to-r from-blue-900 to-indigo-900 text-white flex items-center justify-between gap-3 flex-shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-xl flex-shrink-0">
+                        📈
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-base sm:text-lg font-kh-heading text-white">
+                            ស្ថិតិសំបុត្រកំណើតប្រចាំខែ & ប្រចាំឆ្នាំ (Monthly Matrix)
+                        </h3>
+                        <p class="text-xs text-blue-200/80 mt-0.5">
+                            រដ្ឋបាលឃុំនគរភាស • ទិន្នន័យបំបែកតាម ១២ ខែក្នុងឆ្នាំ {{ view_year }}
+                        </p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeMonthlyMatrixModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-sm font-bold transition">
+                    ✕
+                </button>
+            </div>
+
+            <!-- Year Selector Pills -->
+            <div class="px-5 py-3 bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-3 flex-shrink-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-xs font-bold text-slate-600 dark:text-slate-300">ជ្រើសរើសឆ្នាំពិនិត្យ៖</span>
+                    {% for y in available_years %}
+                    <a href="/birth-certificates?reg_year={{ y }}" class="px-3 py-1 rounded-xl text-xs font-bold transition flex items-center gap-1 {% if view_year == y %}bg-blue-600 text-white shadow-xs{% else %}bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600{% endif %}">
+                        <span>📅</span> ឆ្នាំ {{ y }}
+                    </a>
+                    {% endfor %}
+                </div>
+                
+                <div class="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                    <span>សរុបឆ្នាំ {{ view_year }}៖</span>
+                    <span class="badge bg-indigo-100 dark:bg-indigo-950/70 text-indigo-900 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-700/60 font-mono font-bold px-2.5 py-0.5 text-xs">
+                        {{ kpi_this_year }} ច្បាប់ (ស្រី {{ kpi_this_year_female }} | ប្រុស {{ kpi_this_year_male }})
+                    </span>
+                </div>
+            </div>
+
+            <!-- Modal Body (12-Month Matrix Cards Grid) -->
+            <div class="p-4 sm:p-5 overflow-y-auto flex-1 space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                    {% for m in monthly_stats_summary %}
+                    <div class="p-3.5 rounded-2xl border transition relative overflow-hidden flex flex-col justify-between {% if m.is_current %}bg-emerald-50/40 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-700/60 ring-2 ring-emerald-400/30{% elif m.total > 0 %}bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 shadow-xs hover:border-blue-300 dark:hover:border-blue-700{% else %}bg-slate-50/60 dark:bg-slate-800/40 border-slate-200/60 dark:border-slate-800/60 opacity-80{% endif %}">
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="font-bold text-xs sm:text-sm text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                                    <span>🗓️</span> {{ m.month_name }}
+                                </span>
+                                {% if m.is_current %}
+                                <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500 text-white shadow-2xs">
+                                    ខែនេះ
+                                </span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="flex items-baseline gap-2 my-1">
+                                <span class="text-2xl font-black font-mono {% if m.total > 0 %}text-blue-700 dark:text-sky-300{% else %}text-slate-400 dark:text-slate-500{% endif %}">
+                                    {{ m.total }}
+                                </span>
+                                <span class="text-xs text-slate-500 dark:text-slate-400">ច្បាប់</span>
+                            </div>
+
+                            <div class="text-[11px] text-slate-600 dark:text-slate-400 flex items-center gap-2 mt-0.5">
+                                <span class="text-pink-600 dark:text-pink-400 font-semibold">ស្រី {{ m.female }}</span>
+                                <span>•</span>
+                                <span class="text-indigo-600 dark:text-indigo-400 font-semibold">ប្រុស {{ m.male }}</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-3 pt-2 border-t border-slate-100 dark:border-slate-700/60">
+                            {% if m.total > 0 %}
+                            <a href="/birth-certificates?reg_year={{ view_year }}&reg_month={{ m.month_num }}" class="text-[11px] text-blue-600 dark:text-sky-400 hover:text-blue-800 dark:hover:text-sky-300 font-bold flex items-center justify-between">
+                                <span>🔍 មើលបញ្ជី ({{ m.total }} ច្បាប់)</span>
+                                <span>›</span>
+                            </a>
+                            {% else %}
+                            <span class="text-[11px] text-slate-400 dark:text-slate-500 italic">
+                                គ្មានកំណត់ត្រា
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-4 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-3 flex-shrink-0">
+                <div class="text-xs text-slate-500 dark:text-slate-400">
+                    💡 ចុចលើ <span class="font-bold text-slate-700 dark:text-slate-200">«មើលបញ្ជី»</span> នៃខែនីមួយៗ ដើម្បីចម្រាញ់បញ្ជីឈ្មោះសំបុត្រកំណើតលម្អិត។
+                </div>
+                <div class="flex items-center gap-2">
+                    <a href="/birth-certificates/export-excel?reg_year={{ view_year }}" class="btn btn-success text-xs font-bold shadow-xs flex items-center gap-1.5">
+                        <span>📥</span> Export Excel ឆ្នាំ {{ view_year }}
+                    </a>
+                    <button type="button" onclick="closeMonthlyMatrixModal()" class="btn btn-outline text-xs px-4">
+                        បិទ
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+<script>
+function openMonthlyMatrixModal() {
+    const m = document.getElementById('monthlyMatrixModal');
+    if (m) {
+        m.classList.remove('hidden');
+        m.classList.add('flex');
+    }
+}
+
+function closeMonthlyMatrixModal() {
+    const m = document.getElementById('monthlyMatrixModal');
+    if (m) {
+        m.classList.add('hidden');
+        m.classList.remove('flex');
+    }
 }
 
 function openConvertModal(id, nameKh, nameEn, dob, villageId, villageName, address) {

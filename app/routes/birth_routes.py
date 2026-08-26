@@ -53,6 +53,24 @@ def sanitize_id_backend(raw_id: str) -> str:
         )
     return clean
 
+KHMER_MONTH_NAMES = {
+    1: "មករា", 2: "កុម្ភៈ", 3: "មីនា", 4: "មេសា",
+    5: "ឧសភា", 6: "មិថុនា", 7: "កក្កដា", 8: "សីហា",
+    9: "កញ្ញា", 10: "តុលា", 11: "វិច្ឆិកា", 12: "ធ្នូ"
+}
+
+def parse_created_dt(b):
+    if not b or not b.created_at:
+        return None
+    if isinstance(b.created_at, datetime.datetime):
+        return b.created_at
+    if isinstance(b.created_at, str):
+        try:
+            return datetime.datetime.fromisoformat(b.created_at.replace("Z", "+00:00").split(".")[0])
+        except Exception:
+            return None
+    return None
+
 @router.get("/birth-certificates", response_class=HTMLResponse)
 def birth_certificates_list(
     request: Request,
@@ -60,6 +78,9 @@ def birth_certificates_list(
     village_id: str = Query("", description="Village filter"),
     eligibility: str = Query("all", description="all, turning_18_this_year, turning_18_next_year, eligible_now, under_18"),
     reg_status: str = Query("all", description="all, registered, unregistered"),
+    period: str = Query("all", description="all, this_month, last_month, this_year, last_year"),
+    reg_year: str = Query("", description="Year filter e.g. 2026"),
+    reg_month: str = Query("", description="Month filter e.g. 1..12"),
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=100),
     db: Session = Depends(get_db)
@@ -103,9 +124,41 @@ def birth_certificates_list(
 
     all_records = query.order_by(desc(BirthCertificate.id)).all()
 
-    # Filter in Python for eligibility categories
+    now = get_cambodia_now()
+    current_year = now.year
+    current_month = now.month
+    current_month_name = f"ខែ{KHMER_MONTH_NAMES.get(current_month, '')}"
+
+    # Filter in Python for eligibility and period categories
     filtered_records = []
     for rec in all_records:
+        rec_dt = parse_created_dt(rec)
+        
+        # Period Filter
+        if period == "this_month":
+            if not (rec_dt and rec_dt.year == current_year and rec_dt.month == current_month):
+                continue
+        elif period == "last_month":
+            last_m = current_month - 1 if current_month > 1 else 12
+            last_m_year = current_year if current_month > 1 else current_year - 1
+            if not (rec_dt and rec_dt.year == last_m_year and rec_dt.month == last_m):
+                continue
+        elif period == "this_year":
+            if not (rec_dt and rec_dt.year == current_year):
+                continue
+        elif period == "last_year":
+            if not (rec_dt and rec_dt.year == current_year - 1):
+                continue
+
+        # Custom Month / Year Filter
+        if reg_year and reg_year.isdigit():
+            if not (rec_dt and rec_dt.year == int(reg_year)):
+                continue
+        if reg_month and reg_month.isdigit():
+            if not (rec_dt and rec_dt.month == int(reg_month)):
+                continue
+
+        # Eligibility filter
         if eligibility == "turning_18_this_year":
             if rec.is_turning_18_this_year:
                 filtered_records.append(rec)
@@ -137,11 +190,42 @@ def birth_certificates_list(
     all_scope_records = base_all_query.all()
 
     kpi_total = len(all_scope_records)
+    
+    # Monthly and Yearly KPI
+    this_month_recs = [r for r in all_scope_records if parse_created_dt(r) and parse_created_dt(r).year == current_year and parse_created_dt(r).month == current_month]
+    kpi_this_month = len(this_month_recs)
+    kpi_this_month_female = len([r for r in this_month_recs if r.gender == "ស្រី"])
+    kpi_this_month_male = len([r for r in this_month_recs if r.gender == "ប្រុស"])
+
+    this_year_recs = [r for r in all_scope_records if parse_created_dt(r) and parse_created_dt(r).year == current_year]
+    kpi_this_year = len(this_year_recs)
+    kpi_this_year_female = len([r for r in this_year_recs if r.gender == "ស្រី"])
+    kpi_this_year_male = len([r for r in this_year_recs if r.gender == "ប្រុស"])
+
     kpi_turning_18_this_year = len([r for r in all_scope_records if r.is_turning_18_this_year])
     kpi_eligible_now = len([r for r in all_scope_records if r.is_eligible_now or r.is_turning_18_this_year])
     kpi_unregistered_eligible = len([r for r in all_scope_records if (r.is_eligible_now or r.is_turning_18_this_year) and not r.is_registered_voter])
     kpi_registered_eligible = len([r for r in all_scope_records if (r.is_eligible_now or r.is_turning_18_this_year) and r.is_registered_voter])
     kpi_reg_rate = round((kpi_registered_eligible / kpi_eligible_now * 100), 1) if kpi_eligible_now > 0 else 0.0
+
+    # 12-Month breakdown summary for the selected year (default current_year)
+    view_year = int(reg_year) if reg_year and reg_year.isdigit() else current_year
+    monthly_stats_summary = []
+    for m_idx in range(1, 13):
+        m_recs = [r for r in all_scope_records if parse_created_dt(r) and parse_created_dt(r).year == view_year and parse_created_dt(r).month == m_idx]
+        monthly_stats_summary.append({
+            "month_num": m_idx,
+            "month_name": f"ខែ{KHMER_MONTH_NAMES.get(m_idx, '')}",
+            "total": len(m_recs),
+            "female": len([r for r in m_recs if r.gender == "ស្រី"]),
+            "male": len([r for r in m_recs if r.gender == "ប្រុស"]),
+            "is_current": (m_idx == current_month and view_year == current_year)
+        })
+
+    # Available years for dropdown
+    recorded_years = sorted(list(set([parse_created_dt(b).year for b in all_scope_records if parse_created_dt(b)])), reverse=True)
+    if current_year not in recorded_years:
+        recorded_years.insert(0, current_year)
 
     villages = db.query(Village).order_by(Village.code).all()
     stations = db.query(PollingStation).order_by(PollingStation.code).all()
@@ -161,15 +245,30 @@ def birth_certificates_list(
             "selected_village_id": selected_village_id,
             "eligibility": eligibility,
             "reg_status": reg_status,
+            "period": period,
+            "reg_year": reg_year,
+            "reg_month": reg_month,
+            "view_year": view_year,
+            "available_years": recorded_years,
+            "monthly_stats_summary": monthly_stats_summary,
             "villages": villages,
             "stations": stations,
             "kpi_total": kpi_total,
+            "kpi_this_month": kpi_this_month,
+            "kpi_this_month_female": kpi_this_month_female,
+            "kpi_this_month_male": kpi_this_month_male,
+            "kpi_this_year": kpi_this_year,
+            "kpi_this_year_female": kpi_this_year_female,
+            "kpi_this_year_male": kpi_this_year_male,
             "kpi_turning_18_this_year": kpi_turning_18_this_year,
             "kpi_eligible_now": kpi_eligible_now,
             "kpi_unregistered_eligible": kpi_unregistered_eligible,
             "kpi_registered_eligible": kpi_registered_eligible,
             "kpi_reg_rate": kpi_reg_rate,
-            "current_year": get_cambodia_now().year
+            "current_year": current_year,
+            "current_month": current_month,
+            "current_month_name": current_month_name,
+            "khmer_months": KHMER_MONTH_NAMES
         }
     )
 
@@ -618,6 +717,9 @@ def export_birth_certificates_excel(
     village_id: str = Query(""),
     eligibility: str = Query("all"),
     reg_status: str = Query("all"),
+    period: str = Query("all"),
+    reg_year: str = Query(""),
+    reg_month: str = Query(""),
     db: Session = Depends(get_db)
 ):
     current_user = get_current_user_optional(request, db)
@@ -637,8 +739,38 @@ def export_birth_certificates_excel(
 
     all_records = query.order_by(asc(BirthCertificate.village_id), asc(BirthCertificate.dob)).all()
 
+    now = get_cambodia_now()
+    current_year = now.year
+    current_month = now.month
+
     filtered = []
     for rec in all_records:
+        rec_dt = parse_created_dt(rec)
+        
+        # Period Filter
+        if period == "this_month":
+            if not (rec_dt and rec_dt.year == current_year and rec_dt.month == current_month):
+                continue
+        elif period == "last_month":
+            last_m = current_month - 1 if current_month > 1 else 12
+            last_m_year = current_year if current_month > 1 else current_year - 1
+            if not (rec_dt and rec_dt.year == last_m_year and rec_dt.month == last_m):
+                continue
+        elif period == "this_year":
+            if not (rec_dt and rec_dt.year == current_year):
+                continue
+        elif period == "last_year":
+            if not (rec_dt and rec_dt.year == current_year - 1):
+                continue
+
+        # Custom Month / Year Filter
+        if reg_year and reg_year.isdigit():
+            if not (rec_dt and rec_dt.year == int(reg_year)):
+                continue
+        if reg_month and reg_month.isdigit():
+            if not (rec_dt and rec_dt.month == int(reg_month)):
+                continue
+
         if eligibility == "turning_18_this_year" and not rec.is_turning_18_this_year:
             continue
         if eligibility == "turning_18_next_year" and not rec.is_turning_18_next_year:
