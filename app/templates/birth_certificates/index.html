@@ -92,9 +92,9 @@
                 📅
             </div>
             <div class="min-w-0">
-                <div class="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider truncate">ចុះក្នុង{{ current_month_name }}</div>
-                <div class="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono mt-0.5">{{ kpi_this_month }} <span class="text-xs font-normal text-slate-400 font-sans">ច្បាប់</span></div>
-                <div class="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold mt-0.5 truncate">ស្រី {{ kpi_this_month_female }} | ប្រុស {{ kpi_this_month_male }}</div>
+                <div class="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider truncate">ចុះក្នុង{{ current_month_name|default('ខែនេះ') }}</div>
+                <div class="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono mt-0.5">{{ kpi_this_month|default(0) }} <span class="text-xs font-normal text-slate-400 font-sans">ច្បាប់</span></div>
+                <div class="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold mt-0.5 truncate">ស្រី {{ kpi_this_month_female|default(0) }} | ប្រុស {{ kpi_this_month_male|default(0) }}</div>
             </div>
         </div>
 
@@ -104,9 +104,9 @@
                 📈
             </div>
             <div class="min-w-0">
-                <div class="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider truncate">ចុះក្នុងឆ្នាំ {{ current_year }}</div>
-                <div class="text-2xl font-black text-indigo-700 dark:text-indigo-300 font-mono mt-0.5">{{ kpi_this_year }} <span class="text-xs font-normal text-slate-400 font-sans">ច្បាប់</span></div>
-                <div class="text-[10px] text-indigo-700 dark:text-indigo-300 font-semibold mt-0.5 truncate">ស្រី {{ kpi_this_year_female }} | ប្រុស {{ kpi_this_year_male }}</div>
+                <div class="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider truncate">ចុះក្នុងឆ្នាំ {{ current_year|default(2026) }}</div>
+                <div class="text-2xl font-black text-indigo-700 dark:text-indigo-300 font-mono mt-0.5">{{ kpi_this_year|default(0) }} <span class="text-xs font-normal text-slate-400 font-sans">ច្បាប់</span></div>
+                <div class="text-[10px] text-indigo-700 dark:text-indigo-300 font-semibold mt-0.5 truncate">ស្រី {{ kpi_this_year_female|default(0) }} | ប្រុស {{ kpi_this_year_male|default(0) }}</div>
             </div>
         </div>
 
@@ -212,7 +212,7 @@
     </div>
 
     <!-- Active Filter Notice Banner -->
-    {% if period != 'all' or reg_year or reg_month or village_id or eligibility != 'all' or reg_status != 'all' or q %}
+    {% if (period and period != 'all') or reg_year or reg_month or (village_id and village_id != '') or (eligibility and eligibility != 'all') or (reg_status and reg_status != 'all') or (q and q.strip()) %}
     <div class="p-3 bg-blue-50/80 dark:bg-sky-950/40 border border-blue-200 dark:border-sky-800/60 rounded-xl flex flex-wrap items-center justify-between gap-2 text-xs text-blue-900 dark:text-sky-200 shadow-xs">
         <div class="flex items-center gap-2 flex-wrap">
             <span class="text-sm">🗓️</span>
@@ -225,8 +225,10 @@
                     {% elif reg_year and reg_month %}ចុះក្នុងខែ {{ khmer_months.get(reg_month|int, reg_month) }} ឆ្នាំ {{ reg_year }}
                     {% elif reg_year %}ចុះក្នុងឆ្នាំ {{ reg_year }}
                     {% endif %}
-                    {% if eligibility != 'all' %} • ក្រុម៖ {{ eligibility }}{% endif %}
-                    {% if reg_status != 'all' %} • ស្ថានភាព៖ {{ reg_status }}{% endif %}
+                    {% if village_id %} • ភូមិជ្រើសរើស{% endif %}
+                    {% if eligibility and eligibility != 'all' %} • ក្រុម៖ {{ eligibility }}{% endif %}
+                    {% if reg_status and reg_status != 'all' %} • ស្ថានភាព៖ {{ reg_status }}{% endif %}
+                    {% if q and q.strip() %} • ពាក្យគន្លឹះ៖ "{{ q }}"{% endif %}
                 </strong>
                 (រកឃើញសរុប <strong class="font-mono text-blue-950 dark:text-sky-100">{{ total_count }}</strong> កំណត់ត្រា)
             </span>
