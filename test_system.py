@@ -264,19 +264,23 @@ def run_tests():
     assert res_v_create.json()["success"] == True
     print(f"[PASS] 27. Viewer Role User created successfully ({viewer_username})")
 
-    # 28. Test Viewer Login & Read-Only Access to Reports & Dashboard
+    # 28. Test Viewer Login & Exclusive Access to Reports & Profile (Dashboard redirected to Reports)
     res_v_login = client.post("/login", data={"username": viewer_username, "password": "viewerpassword123"}, follow_redirects=False)
     assert res_v_login.status_code in [302, 303]
     viewer_cookies = {"session": res_v_login.cookies.get("session")}
 
-    res_v_dash = client.get("/dashboard", cookies=viewer_cookies)
-    assert res_v_dash.status_code == 200
-    assert "ផ្ទាំងគ្រប់គ្រងស្ថិតិ" in res_v_dash.text
+    res_v_dash = client.get("/dashboard", cookies=viewer_cookies, follow_redirects=False)
+    assert res_v_dash.status_code == 302
+    assert "/reports" in res_v_dash.headers.get("location", "")
 
     res_v_rep = client.get("/reports", cookies=viewer_cookies)
     assert res_v_rep.status_code == 200
     assert "មជ្ឈមណ្ឌលរបាយការណ៍" in res_v_rep.text
-    print("[PASS] 28. Viewer logged in and accessed Dashboard & Reports successfully (Read-Only)")
+    # Ensure Section 1 and 2 are hidden in sidebar for viewer
+    assert "មុខងារស្នូលបោះឆ្នោត" not in res_v_rep.text
+    assert "រចនាសម្ព័ន្ធភូមិសាស្ត្រ" not in res_v_rep.text
+    assert "របាយការណ៍ &amp; សុវត្ថិភាព" in res_v_rep.text or "របាយការណ៍ & សុវត្ថិភាព" in res_v_rep.text
+    print("[PASS] 28. Viewer logged in and redirected to Reports successfully (Only Reports & Security visible)")
 
     # 29. Test Viewer Mutation Blocking (Delete, Edit, Checkin, Add User - All 403 Forbidden)
     res_v_del = client.post("/api/voters/1/delete", cookies=viewer_cookies)

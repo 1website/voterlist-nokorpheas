@@ -3,7 +3,7 @@ import sys
 import webbrowser
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, FileResponse
 from starlette.middleware.sessions import SessionMiddleware
 import uvicorn
 
@@ -75,6 +75,19 @@ app.add_middleware(
 # Mount Static Files
 static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "app", "static")
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
+
+# Root endpoints for PWA & Browser Icons
+@app.get("/manifest.json", include_in_schema=False)
+async def get_manifest():
+    return FileResponse(os.path.join(static_dir, "manifest.json"), media_type="application/manifest+json")
+
+@app.get("/sw.js", include_in_schema=False)
+async def get_service_worker():
+    return FileResponse(os.path.join(static_dir, "sw.js"), media_type="application/javascript")
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def get_favicon():
+    return FileResponse(os.path.join(static_dir, "icons", "favicon.ico"), media_type="image/x-icon")
 
 # Include Application Routers
 app.include_router(auth_routes.router)

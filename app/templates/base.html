@@ -37,6 +37,18 @@
         })();
     </script>
 
+    <!-- PWA & App Icons Metadata -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/icons/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/icons/apple-touch-icon.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0f2b5c">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="VoterList">
+
     <!-- Custom Style and Print CSS with Cache-Buster -->
     <link rel="stylesheet" href="/static/css/style.css?v=21.0">
     <link rel="stylesheet" href="/static/css/print.css?v=21.0" media="print">
@@ -157,6 +169,7 @@
 
             <!-- Sidebar Navigation Menu -->
             <nav class="flex-1 px-3 py-2 space-y-1">
+                {% if current_user.role != 'viewer' %}
                 <!-- Section 1: Main Operations -->
                 <div class="sidebar-nav-header">មុខងារស្នូលបោះឆ្នោត</div>
 
@@ -202,9 +215,10 @@
                     <span class="flex-1">១០ ភូមិ (ឃុំនគរភាស)</span>
                     <span class="text-[11px] px-1.5 py-0.5 rounded-full bg-white/10 text-slate-300 font-mono">10</span>
                 </a>
+                {% endif %}
 
                 <!-- Section 3: Reports & Settings -->
-                <div class="sidebar-nav-header mt-3">របាយការណ៍ & សុវត្ថិភាព</div>
+                <div class="sidebar-nav-header {% if current_user.role != 'viewer' %}mt-3{% endif %}">របាយការណ៍ & សុវត្ថិភាព</div>
 
                 <a href="/reports/annual-summary"
                     class="sidebar-nav-link {% if '/reports/annual-summary' in request.url.path %}active{% endif %}">
@@ -250,6 +264,15 @@
                 </a>
                 {% endif %}
             </nav>
+
+            <!-- Install App Button (Auto-shows when browser allows PWA install) -->
+            <div id="pwaInstallContainer" class="px-3 pb-3 hidden">
+                <button type="button" onclick="installPWA()" 
+                    class="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-blue-950 font-bold text-xs shadow-md hover:shadow-lg transition transform active:scale-95 border border-amber-200">
+                    <img src="/static/icons/icon-192x192.png" class="w-4 h-4 rounded shadow-xs" alt="App Icon">
+                    <span>ដំឡើងកម្មវិធី (Install App)</span>
+                </button>
+            </div>
 
             <!-- Sidebar Footer & Logout -->
             <div class="p-4 border-t border-white/10 flex items-center justify-between">
@@ -312,10 +335,12 @@
                         <span class="hidden sm:inline">វត្តមាន</span>
                     </a>
                     {% endif %}
+                    {% if current_user.role != 'viewer' %}
                     <a href="/voters"
                         class="btn btn-sm btn-outline hidden sm:inline-flex font-semibold text-xs sm:text-sm py-1.5">
                         🔍 ស្វែងរកឈ្មោះ
                     </a>
+                    {% endif %}
                     <a href="/reports/export/excel"
                         class="btn btn-sm btn-outline-emerald hidden md:inline-flex font-semibold text-xs sm:text-sm py-1.5">
                         📥 Export Excel
@@ -515,6 +540,42 @@
                 showKhmerDateBanner();
             }
         });
+
+        // PWA Install Prompt & Service Worker Registration
+        let deferredPwaPrompt = null;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPwaPrompt = e;
+            const container = document.getElementById('pwaInstallContainer');
+            if (container) container.classList.remove('hidden');
+        });
+
+        function installPWA() {
+            if (deferredPwaPrompt) {
+                deferredPwaPrompt.prompt();
+                deferredPwaPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        const container = document.getElementById('pwaInstallContainer');
+                        if (container) container.classList.add('hidden');
+                    }
+                    deferredPwaPrompt = null;
+                });
+            }
+        }
+
+        window.addEventListener('appinstalled', () => {
+            const container = document.getElementById('pwaInstallContainer');
+            if (container) container.classList.add('hidden');
+            deferredPwaPrompt = null;
+        });
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((reg) => console.log('PWA Service Worker registered'))
+                    .catch((err) => console.warn('PWA SW registration failed:', err));
+            });
+        }
     </script>
     {% block scripts %}{% endblock %}
 </body>

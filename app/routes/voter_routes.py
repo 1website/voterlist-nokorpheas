@@ -75,6 +75,8 @@ def voter_list_page(
     current_user = get_current_user_optional(request, db)
     if not current_user:
         return RedirectResponse(url="/login", status_code=302)
+    if current_user.role == "viewer":
+        return RedirectResponse(url="/reports", status_code=302)
 
     query = db.query(Voter)
 

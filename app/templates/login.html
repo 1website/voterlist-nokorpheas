@@ -4,6 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ចូលប្រើប្រព័ន្ធ - រដ្ឋបាលឃុំនគរភាស</title>
+    
+    <!-- PWA & App Icons Metadata -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/icons/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/icons/apple-touch-icon.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0f2b5c">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="VoterList">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
@@ -12,8 +25,8 @@
     <div class="max-w-md w-full">
         <!-- Logo & Title -->
         <div class="text-center mb-8">
-            <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-amber-400/20 border-2 border-amber-400/50 shadow-2xl mb-4 text-4xl">
-                🇰🇭
+            <div class="inline-block relative">
+                <img src="/static/icons/icon-192x192.png" alt="Official Logo" class="w-20 h-20 rounded-2xl shadow-2xl border-2 border-amber-400/80 mb-3 object-cover shadow-amber-500/10">
             </div>
             <h1 class="text-2xl sm:text-3xl font-bold text-white font-kh-heading tracking-normal drop-shadow-md">រដ្ឋបាលឃុំនគរភាស</h1>
             <p class="text-amber-300 font-bold text-base mt-1.5 font-kh-bold">ប្រព័ន្ធគ្រប់គ្រងអ្នកចុះឈ្មោះបោះឆ្នោត</p>
@@ -95,6 +108,14 @@
                 pwdInput.type = 'password';
                 eyeIcon.textContent = '👁️';
             }
+        }
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((reg) => console.log('PWA Service Worker registered'))
+                    .catch((err) => console.warn('PWA SW registration failed:', err));
+            });
         }
     </script>
 </body>

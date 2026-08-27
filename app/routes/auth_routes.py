@@ -18,6 +18,8 @@ templates = Jinja2Templates(directory=templates_path)
 def login_page(request: Request, db: Session = Depends(get_db)):
     current_user = get_current_user_optional(request, db)
     if current_user:
+        if current_user.role == "viewer":
+            return RedirectResponse(url="/reports", status_code=302)
         return RedirectResponse(url="/dashboard", status_code=302)
     
     # Fetch sample accounts for quick-login demo buttons
@@ -61,6 +63,8 @@ def login_post(
 
     log_activity(db, user, "LOGIN", f"បានចូលប្រើប្រាស់ប្រព័ន្ធដោយជោគជ័យ ({user.full_name})", "auth", str(user.id), "success", request=request)
 
+    if user.role == "viewer":
+        return RedirectResponse(url="/reports", status_code=303)
     return RedirectResponse(url="/dashboard", status_code=303)
 
 @router.get("/logout")
@@ -80,4 +84,6 @@ def switch_user(username: str, request: Request, db: Session = Depends(get_db)):
         request.session["role"] = user.role
         request.session["full_name"] = user.full_name
         log_activity(db, user, "SWITCH_USER", f"បានប្តូរទៅកាន់គណនី '{user.full_name}' ({user.role})", "auth", str(user.id), "info", request=request)
+        if user.role == "viewer":
+            return RedirectResponse(url="/reports", status_code=302)
     return RedirectResponse(url="/dashboard", status_code=302)

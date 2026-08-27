@@ -19,6 +19,8 @@ def list_villages(request: Request, db: Session = Depends(get_db)):
     current_user = get_current_user_optional(request, db)
     if not current_user:
         return RedirectResponse(url="/login", status_code=302)
+    if current_user.role == "viewer":
+        return RedirectResponse(url="/reports", status_code=302)
 
     villages = db.query(Village).order_by(Village.code).all()
     return templates.TemplateResponse(request=request, name="villages/index.html", context={
@@ -96,6 +98,8 @@ def list_stations(request: Request, db: Session = Depends(get_db)):
     current_user = get_current_user_optional(request, db)
     if not current_user:
         return RedirectResponse(url="/login", status_code=302)
+    if current_user.role == "viewer":
+        return RedirectResponse(url="/reports", status_code=302)
 
     stations = db.query(PollingStation).order_by(PollingStation.code).all()
     villages = db.query(Village).order_by(Village.code).all()

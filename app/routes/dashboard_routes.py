@@ -20,6 +20,8 @@ def root(request: Request, db: Session = Depends(get_db)):
     user = get_current_user_optional(request, db)
     if not user:
         return RedirectResponse(url="/login", status_code=302)
+    if user.role == "viewer":
+        return RedirectResponse(url="/reports", status_code=302)
     return RedirectResponse(url="/dashboard", status_code=302)
 
 @router.get("/dashboard", response_class=HTMLResponse)
@@ -27,6 +29,8 @@ def dashboard_page(request: Request, db: Session = Depends(get_db)):
     user = get_current_user_optional(request, db)
     if not user:
         return RedirectResponse(url="/login", status_code=302)
+    if user.role == "viewer":
+        return RedirectResponse(url="/reports", status_code=302)
 
     # Calculate statistics based on user role
     villages = db.query(Village).order_by(Village.code).all()
