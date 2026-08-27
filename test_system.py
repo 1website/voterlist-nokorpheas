@@ -229,9 +229,9 @@ def run_tests():
 
     # 24. Test User Profile & Avatar Update
     prof_update_data = {
-        "full_name": "ស្មៀនឃុំនគរភាស (Admin Updated)",
-        "phone": "012 999 888",
-        "photo_preset": "/static/images/avatars/male_3.jpg",
+        "full_name": "មេឃុំនគរភាស (Admin)",
+        "phone": "068 999 888",
+        "photo_preset": "/static/images/avatars/male_2.jpg",
         "current_password": "",
         "new_password": "",
         "confirm_password": ""
@@ -239,6 +239,7 @@ def run_tests():
     res_p_up = client.post("/api/profile/update", data=prof_update_data, cookies=cookies)
     assert res_p_up.status_code == 200
     assert res_p_up.json()["success"] == True
+    print("[PASS] 24. User Profile & Avatar updated successfully")
     # 25. Test Public Voter Verification Page (/verify/{voter_code})
     res_verify = client.get("/verify/NP-0701-0001")
     assert res_verify.status_code == 200

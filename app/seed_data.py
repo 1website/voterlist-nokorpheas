@@ -148,9 +148,10 @@ def seed_database(db: Session):
         default_admin = User(
             username="admin",
             password_hash=hash_password("admin123"),
-            full_name="ស្មៀនឃុំនគរភាស (Admin)",
+            full_name="មេឃុំនគរភាស (Admin)",
             role="admin",
-            phone="012 999 888",
+            phone="068 999 888",
+            photo_url="/static/images/avatars/male_2.jpg",
             is_active=True
         )
         db.add(default_admin)

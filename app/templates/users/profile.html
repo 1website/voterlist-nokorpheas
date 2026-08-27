@@ -255,9 +255,13 @@
         const fileInput = document.getElementById('profilePhotoFileInput');
         if (fileInput) fileInput.value = '';
 
-        // Update previews
+        // Update previews across entire interface
         document.getElementById('mainAvatarPreview').src = avatarUrl;
         document.getElementById('headerAvatarPreview').src = avatarUrl;
+        const sb = document.getElementById('sidebarUserAvatar');
+        const tb = document.getElementById('topbarUserAvatar');
+        if (sb) sb.src = avatarUrl;
+        if (tb) tb.src = avatarUrl;
 
         // Highlight selected
         document.querySelectorAll('.preset-avatar-item').forEach(el => {
@@ -274,6 +278,10 @@
             reader.onload = function(e) {
                 document.getElementById('mainAvatarPreview').src = e.target.result;
                 document.getElementById('headerAvatarPreview').src = e.target.result;
+                const sb = document.getElementById('sidebarUserAvatar');
+                const tb = document.getElementById('topbarUserAvatar');
+                if (sb) sb.src = e.target.result;
+                if (tb) tb.src = e.target.result;
                 
                 // Clear preset selection highlight
                 document.getElementById('photoPresetInput').value = '';
@@ -313,7 +321,18 @@
                 showToast(data.message, 'success');
                 // Update display elements
                 document.getElementById('cardFullNameDisplay').innerText = data.full_name;
+                const sbName = document.getElementById('sidebarUserFullName');
+                const tbName = document.getElementById('topbarUserFullName');
+                if (sbName) sbName.innerText = data.full_name;
+                if (tbName) tbName.innerText = data.full_name;
                 
+                if (data.avatar_url) {
+                    const sb = document.getElementById('sidebarUserAvatar');
+                    const tb = document.getElementById('topbarUserAvatar');
+                    if (sb) sb.src = data.avatar_url;
+                    if (tb) tb.src = data.avatar_url;
+                }
+
                 // Clear password inputs
                 document.getElementById('currentPasswordInput').value = '';
                 document.getElementById('newPasswordInput').value = '';
@@ -321,7 +340,7 @@
 
                 setTimeout(() => {
                     window.location.reload();
-                }, 800);
+                }, 600);
             } else {
                 showToast(data.detail || data.message || 'កំហុសក្នុងការកែប្រែ', 'error');
             }
