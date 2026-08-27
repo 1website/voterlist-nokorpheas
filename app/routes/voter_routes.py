@@ -44,17 +44,10 @@ def sanitize_national_id_backend(raw_id: str) -> str:
         )
     return clean
 
+from app.image_utils import process_and_encode_image
+
 def save_uploaded_photo(upload_file: UploadFile) -> str:
-    if not upload_file or not upload_file.filename:
-        return None
-    ext = os.path.splitext(upload_file.filename)[1].lower()
-    if ext not in [".jpg", ".jpeg", ".png", ".webp", ".gif"]:
-        ext = ".jpg"
-    filename = f"voter_{uuid.uuid4().hex[:12]}{ext}"
-    file_path = os.path.join(UPLOAD_DIR, filename)
-    with open(file_path, "wb") as f:
-        shutil.copyfileobj(upload_file.file, f)
-    return f"/static/uploads/voters/{filename}"
+    return process_and_encode_image(upload_file, subfolder="voters", max_size=(300, 300), quality=85)
 
 @router.get("/voters", response_class=HTMLResponse)
 def voter_list_page(

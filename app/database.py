@@ -48,14 +48,26 @@ def ensure_schema_migrations():
         
         if "users" in tables:
             columns = [col["name"] for col in inspector.get_columns("users")]
-            if "photo_url" not in columns:
-                with engine.connect() as conn:
-                    conn.execute(text("ALTER TABLE users ADD COLUMN photo_url VARCHAR(255)"))
-                    conn.commit()
+            with engine.connect() as conn:
+                if "photo_url" not in columns:
+                    conn.execute(text("ALTER TABLE users ADD COLUMN photo_url TEXT"))
+                elif not IS_SQLITE:
+                    try:
+                        conn.execute(text("ALTER TABLE users ALTER COLUMN photo_url TYPE TEXT"))
+                    except Exception:
+                        pass
+                conn.commit()
 
         if "voters" in tables:
             voter_columns = [col["name"] for col in inspector.get_columns("voters")]
             with engine.connect() as conn:
+                if "photo_url" not in voter_columns:
+                    conn.execute(text("ALTER TABLE voters ADD COLUMN photo_url TEXT"))
+                elif not IS_SQLITE:
+                    try:
+                        conn.execute(text("ALTER TABLE voters ALTER COLUMN photo_url TYPE TEXT"))
+                    except Exception:
+                        pass
                 if "reg_type" not in voter_columns:
                     conn.execute(text("ALTER TABLE voters ADD COLUMN reg_type VARCHAR(30) DEFAULT 'new'"))
                 if "reg_year" not in voter_columns:

@@ -95,7 +95,7 @@ class Voter(Base):
     reg_type = Column(String(30), default="new")                              # new (ចុះថ្មី), legacy (បញ្ជីចាស់), transferred (ផ្ទេរចូល)
     reg_year = Column(Integer, default=2026)                                  # ឆ្នាំចុះឈ្មោះ (2026, 2025, 2024...)
     reg_reason = Column(String(100), nullable=True)                           # first_time_18, never_registered, relocated, legacy
-    photo_url = Column(String(255), nullable=True)                          # Profile photo path
+    photo_url = Column(Text, nullable=True)                                  # Base64 Data URI or Image path
     has_voted = Column(Boolean, default=False)
     voted_at = Column(DateTime, nullable=True)
     voted_by_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
@@ -143,16 +143,21 @@ class Voter(Base):
         default_img = "/static/images/avatars/female_1.jpg" if self.gender == "ស្រី" else "/static/images/avatars/male_1.jpg"
         if self.photo_url and self.photo_url.strip():
             url = self.photo_url.strip()
-            # If static avatar preset, data URI, or external URL
-            if url.startswith("/static/images/avatars/") or url.startswith("http://") or url.startswith("https://") or url.startswith("data:"):
+            # 1. Base64 Data URI (permanently stored in database - immune to git pushes and server redeploys)
+            if url.startswith("data:image/"):
                 return url
-            # If local uploaded file path (e.g. /static/uploads/voters/xxx.jpg)
+            # 2. Static avatar preset or external URL
+            if url.startswith("/static/images/avatars/") or url.startswith("http://") or url.startswith("https://"):
+                return url
+            # 3. Local uploaded file path fallback
             if url.startswith("/static/uploads/"):
                 import os
-                rel_path = url.lstrip("/").replace("/", os.sep)
-                if os.path.exists(os.path.join("app", rel_path)) or os.path.exists(rel_path):
+                base_dir = os.path.dirname(os.path.abspath(__file__))
+                clean_rel = url.lstrip("/").replace("/", os.sep)
+                abs_path = os.path.join(base_dir, clean_rel)
+                root_path = os.path.join(os.path.dirname(base_dir), clean_rel)
+                if os.path.exists(abs_path) or os.path.exists(root_path) or os.path.exists(clean_rel):
                     return url
-                # If file missing from container disk, fallback to clean gender avatar
                 return default_img
             return url
         return default_img
@@ -169,7 +174,7 @@ class User(Base):
     station_id = Column(Integer, ForeignKey("polling_stations.id"), nullable=True) # for station officers
     village_id = Column(Integer, ForeignKey("villages.id"), nullable=True)         # for village chiefs
     phone = Column(String(50), nullable=True)
-    photo_url = Column(String(255), nullable=True)
+    photo_url = Column(Text, nullable=True)                                        # Base64 Data URI or Image path
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=get_cambodia_now)
 
@@ -183,17 +188,27 @@ class User(Base):
             default_avatar = "/static/images/avatars/male_1.jpg"
         elif self.role == "officer":
             default_avatar = "/static/images/avatars/male_2.jpg"
+        elif self.role == "viewer":
+            default_avatar = "/static/images/avatars/female_1.jpg"
         else:
             default_avatar = "/static/images/avatars/male_3.jpg"
 
         if self.photo_url and self.photo_url.strip():
             url = self.photo_url.strip()
-            if url.startswith("/static/images/avatars/") or url.startswith("http://") or url.startswith("https://") or url.startswith("data:"):
+            # 1. Base64 Data URI (permanently stored in database - immune to git pushes and server redeploys)
+            if url.startswith("data:image/"):
                 return url
+            # 2. Static avatar preset or external URL
+            if url.startswith("/static/images/avatars/") or url.startswith("http://") or url.startswith("https://"):
+                return url
+            # 3. Local uploaded file path fallback
             if url.startswith("/static/uploads/"):
                 import os
-                rel_path = url.lstrip("/").replace("/", os.sep)
-                if os.path.exists(os.path.join("app", rel_path)) or os.path.exists(rel_path):
+                base_dir = os.path.dirname(os.path.abspath(__file__))
+                clean_rel = url.lstrip("/").replace("/", os.sep)
+                abs_path = os.path.join(base_dir, clean_rel)
+                root_path = os.path.join(os.path.dirname(base_dir), clean_rel)
+                if os.path.exists(abs_path) or os.path.exists(root_path) or os.path.exists(clean_rel):
                     return url
                 return default_avatar
             return url

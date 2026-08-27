@@ -29,17 +29,10 @@ PRESET_AVATARS = [
     "/static/images/avatars/male_4.jpg",
 ]
 
+from app.image_utils import process_and_encode_image
+
 def save_user_avatar(upload_file: UploadFile) -> str:
-    if not upload_file or not upload_file.filename:
-        return None
-    ext = os.path.splitext(upload_file.filename)[1].lower()
-    if ext not in [".jpg", ".jpeg", ".png", ".webp", ".gif"]:
-        ext = ".jpg"
-    filename = f"user_{uuid.uuid4().hex[:12]}{ext}"
-    file_path = os.path.join(USER_UPLOAD_DIR, filename)
-    with open(file_path, "wb") as f:
-        shutil.copyfileobj(upload_file.file, f)
-    return f"/static/uploads/users/{filename}"
+    return process_and_encode_image(upload_file, subfolder="users", max_size=(300, 300), quality=85)
 
 @router.get("/profile", response_class=HTMLResponse)
 def user_profile_page(request: Request, db: Session = Depends(get_db)):
