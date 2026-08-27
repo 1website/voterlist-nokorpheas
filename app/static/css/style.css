@@ -199,6 +199,21 @@ body {
   display: table-cell !important;
 }
 
+/* ========================================================================= */
+/* DYNAMIC TOPBAR TITLE: រដ្ឋបាលឃុំនគរភាស */
+/* នៅពេល Sidebar បង្ហាញ (Sidebar Open) -> លាក់អក្សរ «រដ្ឋបាលឃុំនគរភាស» លើ Top Bar */
+/* នៅពេល Sidebar លាក់ (Sidebar Collapsed) -> បង្ហាញអក្សរ «រដ្ឋបាលឃុំនគរភាស» លើ Top Bar */
+/* ========================================================================= */
+@media (min-width: 1024px) {
+  .app-layout:not(.sidebar-collapsed) .topbar-commune-title {
+    display: none !important;
+  }
+
+  .app-layout.sidebar-collapsed .topbar-commune-title {
+    display: flex !important;
+  }
+}
+
 .sidebar-nav-link {
   display: flex;
   align-items: center;
