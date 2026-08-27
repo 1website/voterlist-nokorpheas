@@ -276,11 +276,16 @@
                                 {{ (page - 1) * page_size + loop.index }}
                             </td>
 
-                            <!-- Certificate No -->
+                            <!-- Certificate No & Registration Date -->
                             <td class="py-3 px-3">
                                 <div class="font-bold text-blue-950 font-mono text-xs">{{ r.certificate_no }}</div>
                                 {% if r.book_no %}
                                 <div class="text-[10px] text-slate-400 font-mono">សៀវភៅ៖ {{ r.book_no }}</div>
+                                {% endif %}
+                                {% if r.registered_date_effective %}
+                                <div class="text-[10px] text-emerald-700 font-bold font-mono flex items-center gap-1 mt-0.5" title="កាលបរិច្ឆេទចុះបញ្ជី">
+                                    <span>📅</span> <span>ចុះ៖ {{ r.registered_date_effective }}</span>
+                                </div>
                                 {% endif %}
                             </td>
 
@@ -388,7 +393,7 @@
                                     {% endif %}
 
                                     {% if current_user.role in ['admin', 'officer', 'village_chief'] %}
-                                    <button onclick="openEditBirthModal('{{ r.id }}', '{{ r.certificate_no }}', '{{ r.book_no or '' }}', '{{ r.name_kh }}', '{{ r.name_en }}', '{{ r.gender }}', '{{ r.dob }}', '{{ r.pob or '' }}', '{{ r.father_name or '' }}', '{{ r.mother_name or '' }}', '{{ r.address or '' }}', '{{ r.village_id }}', '{{ r.notes or '' }}', '{{ r.attachment_url or '' }}', {{ 'true' if r.is_pdf else 'false' }})" class="p-1.5 rounded-xl border border-slate-200 text-slate-600 hover:text-blue-900 hover:bg-blue-50 transition" title="កែប្រែ">
+                                    <button onclick="openEditBirthModal('{{ r.id }}', '{{ r.certificate_no }}', '{{ r.book_no or '' }}', '{{ r.name_kh }}', '{{ r.name_en }}', '{{ r.gender }}', '{{ r.dob }}', '{{ r.pob or '' }}', '{{ r.father_name or '' }}', '{{ r.mother_name or '' }}', '{{ r.address or '' }}', '{{ r.village_id }}', '{{ r.notes or '' }}', '{{ r.attachment_url or '' }}', {{ 'true' if r.is_pdf else 'false' }}, '{{ r.registered_date_effective or '' }}')" class="p-1.5 rounded-xl border border-slate-200 text-slate-600 hover:text-blue-900 hover:bg-blue-50 transition" title="កែប្រែ">
                                         ✏️
                                     </button>
                                     {% endif %}
@@ -529,6 +534,15 @@
                     <input type="date" name="dob" required class="form-control text-sm font-mono">
                 </div>
 
+                <!-- Registration Date -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold flex items-center justify-between">
+                        <span>កាលបរិច្ឆេទចុះបញ្ជី <span class="text-rose-500">*</span></span>
+                        <span class="text-[10px] text-emerald-600 font-medium">ថ្ងៃចុះសំបុត្រកំណើត</span>
+                    </label>
+                    <input type="date" name="registered_date" id="add_registered_date" value="{{ today_str }}" required class="form-control text-sm font-mono">
+                </div>
+
                 <!-- Village -->
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">ភូមិ <span class="text-rose-500">*</span></label>
@@ -662,6 +676,15 @@
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">ថ្ងៃខែឆ្នាំកំណើត <span class="text-rose-500">*</span></label>
                     <input type="date" id="edit_dob" name="dob" required class="form-control text-sm font-mono">
+                </div>
+
+                <!-- Registration Date in Edit Modal -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold flex items-center justify-between">
+                        <span>កាលបរិច្ឆេទចុះបញ្ជី <span class="text-rose-500">*</span></span>
+                        <span class="text-[10px] text-emerald-600 font-medium">ថ្ងៃចុះសំបុត្រកំណើត</span>
+                    </label>
+                    <input type="date" id="edit_registered_date" name="registered_date" required class="form-control text-sm font-mono">
                 </div>
 
                 <!-- Village -->
@@ -1006,7 +1029,7 @@ function updateAddFileLabel(input) {
     }
 }
 
-function openEditBirthModal(id, certNo, bookNo, nameKh, nameEn, gender, dob, pob, father, mother, address, villageId, notes, attachmentUrl, isPdf) {
+function openEditBirthModal(id, certNo, bookNo, nameKh, nameEn, gender, dob, pob, father, mother, address, villageId, notes, attachmentUrl, isPdf, registeredDate) {
     currentEditBirthId = id;
     document.getElementById('editBirthForm').action = `/birth-certificates/edit/${id}`;
     document.getElementById('edit_cert_no').value = certNo;
@@ -1015,6 +1038,10 @@ function openEditBirthModal(id, certNo, bookNo, nameKh, nameEn, gender, dob, pob
     document.getElementById('edit_name_en').value = nameEn;
     document.getElementById('edit_gender').value = gender;
     document.getElementById('edit_dob').value = dob;
+    const regDateInput = document.getElementById('edit_registered_date');
+    if (regDateInput) {
+        regDateInput.value = registeredDate || '';
+    }
     document.getElementById('edit_pob').value = pob || '';
     document.getElementById('edit_father_name').value = father || '';
     document.getElementById('edit_mother_name').value = mother || '';

@@ -239,6 +239,7 @@ class BirthCertificate(Base):
     # ភ្ជាប់ជាមួយ Voter ពេលគាត់បានចុះឈ្មោះបោះឆ្នោត
     voter_id = Column(Integer, ForeignKey("voters.id"), nullable=True)
     is_registered_voter = Column(Boolean, default=False)
+    registered_date = Column(String(50), nullable=True)                          # YYYY-MM-DD កាលបរិច្ឆេទចុះបញ្ជី
     attachment_url = Column(String(255), nullable=True)                          # PDF or Image attachment path
     notes = Column(Text, nullable=True)
     created_at = Column(DateTime, default=get_cambodia_now)
@@ -247,6 +248,32 @@ class BirthCertificate(Base):
     # Relationships
     village = relationship("Village", back_populates="birth_certificates")
     voter = relationship("Voter", back_populates="birth_certificate", foreign_keys=[voter_id])
+
+    @property
+    def registered_date_effective(self):
+        """Returns registered_date or falls back to created_at date (YYYY-MM-DD)"""
+        if self.registered_date and self.registered_date.strip():
+            return self.registered_date.strip()
+        if self.created_at:
+            if isinstance(self.created_at, datetime.datetime):
+                return self.created_at.strftime("%Y-%m-%d")
+            elif isinstance(self.created_at, str):
+                return self.created_at[:10]
+        return ""
+
+    @property
+    def registered_year(self):
+        d = self.registered_date_effective
+        if d and len(d) >= 4 and d[:4].isdigit():
+            return int(d[:4])
+        return 0
+
+    @property
+    def registered_month(self):
+        d = self.registered_date_effective
+        if d and len(d) >= 7 and d[5:7].isdigit():
+            return int(d[5:7])
+        return 0
 
     @property
     def is_pdf(self):

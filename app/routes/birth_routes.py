@@ -17,7 +17,7 @@ from app.database import get_db
 from app.models import User, Village, PollingStation, Voter, BirthCertificate
 from app.auth import get_current_user_optional, get_current_user, require_admin, require_admin_or_officer
 from app.audit import log_activity
-from app.timezone_utils import get_cambodia_now, get_cambodia_today
+from app.timezone_utils import get_cambodia_now, get_cambodia_today, get_cambodia_today_str
 
 router = APIRouter()
 
@@ -60,7 +60,20 @@ KHMER_MONTH_NAMES = {
 }
 
 def parse_created_dt(b):
-    if not b or not b.created_at:
+    if not b:
+        return None
+    # Check registered_date first if available
+    reg_d = getattr(b, "registered_date", None)
+    if reg_d and str(reg_d).strip():
+        parts = [int(p) for p in str(reg_d).strip().split("-") if p.isdigit()]
+        if len(parts) >= 3:
+            return datetime.datetime(parts[0], parts[1], parts[2])
+        elif len(parts) == 2:
+            return datetime.datetime(parts[0], parts[1], 1)
+        elif len(parts) == 1:
+            return datetime.datetime(parts[0], 1, 1)
+
+    if not b.created_at:
         return None
     if isinstance(b.created_at, datetime.datetime):
         return b.created_at
@@ -270,6 +283,7 @@ def birth_certificates_list(
             "current_year": current_year,
             "current_month": current_month,
             "current_month_name": current_month_name,
+            "today_str": get_cambodia_today_str(),
             "khmer_months": KHMER_MONTH_NAMES
         }
     )
@@ -411,6 +425,7 @@ async def create_birth_certificate(
     name_en: str = Form(...),
     gender: str = Form(...),
     dob: str = Form(...),
+    registered_date: str = Form(""),
     pob: str = Form(""),
     father_name: str = Form(""),
     mother_name: str = Form(""),
@@ -457,6 +472,8 @@ async def create_birth_certificate(
 
     attachment_url = save_birth_attachment(attachment) if attachment and attachment.filename else None
 
+    reg_date_clean = registered_date.strip() if registered_date and registered_date.strip() else get_cambodia_today_str()
+
     birth = BirthCertificate(
         certificate_no=cert_clean,
         book_no=book_clean if book_clean else None,
@@ -464,6 +481,7 @@ async def create_birth_certificate(
         name_en=name_en.strip().upper(),
         gender=gender.strip(),
         dob=dob.strip(),
+        registered_date=reg_date_clean,
         pob=pob.strip() if pob else None,
         father_name=father_name.strip() if father_name else None,
         mother_name=mother_name.strip() if mother_name else None,
@@ -504,6 +522,7 @@ async def edit_birth_certificate(
     name_en: str = Form(...),
     gender: str = Form(...),
     dob: str = Form(...),
+    registered_date: str = Form(""),
     pob: str = Form(""),
     father_name: str = Form(""),
     mother_name: str = Form(""),
@@ -553,6 +572,10 @@ async def edit_birth_certificate(
     birth.name_en = name_en.strip().upper()
     birth.gender = gender.strip()
     birth.dob = dob.strip()
+    if registered_date and registered_date.strip():
+        birth.registered_date = registered_date.strip()
+    elif not birth.registered_date:
+        birth.registered_date = get_cambodia_today_str()
     birth.pob = pob.strip() if pob else None
     birth.father_name = father_name.strip() if father_name else None
     birth.mother_name = mother_name.strip() if mother_name else None
@@ -824,7 +847,7 @@ def export_birth_certificates_excel(
 
     # Table Headers
     headers = [
-        "ល.រ", "លេខសំបុត្រកំណើត", "ឈ្មោះខ្មែរ", "ឈ្មោះឡាតាំង", 
+        "ល.រ", "លេខសំបុត្រកំណើត", "កាលបរិច្ឆេទចុះបញ្ជី", "ឈ្មោះខ្មែរ", "ឈ្មោះឡាតាំង", 
         "ភេទ", "ថ្ងៃខែឆ្នាំកំណើត", "អាយុ", "ស្ថានភាពសិទ្ធិ", 
         "ភូមិ", "ឈ្មោះឪពុក-ម្តាយ", "ស្ថានភាពបោះឆ្នោត"
     ]
@@ -843,10 +866,12 @@ def export_birth_certificates_excel(
         row_idx = header_row_idx + i
         parents = f"{b.father_name or ''} / {b.mother_name or ''}".strip(" /")
         status_text = f"✅ បានចុះឈ្មោះ ({b.voter.voter_code})" if (b.is_registered_voter and b.voter) else "⚠️ មិនទាន់ចុះឈ្មោះ"
+        reg_date_str = b.registered_date_effective or ""
         
         row_data = [
             i,
             b.certificate_no,
+            reg_date_str,
             b.name_kh,
             b.name_en,
             b.gender,
@@ -861,11 +886,11 @@ def export_birth_certificates_excel(
 
         for col_idx in range(1, len(headers) + 1):
             cell = ws.cell(row=row_idx, column=col_idx)
-            cell.font = bold_cell_font if col_idx in [3, 8, 11] else cell_font
+            cell.font = bold_cell_font if col_idx in [4, 9, 12] else cell_font
             cell.border = thin_border
             if row_idx % 2 == 0:
                 cell.fill = even_row_fill
-            if col_idx in [1, 5, 6, 7, 8]:
+            if col_idx in [1, 3, 6, 7, 8, 9]:
                 cell.alignment = Alignment(horizontal="center", vertical="center")
             else:
                 cell.alignment = Alignment(horizontal="left", vertical="center")

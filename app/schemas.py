@@ -58,6 +58,7 @@ class BirthCertificateCreateSchema(BaseModel):
     mother_name: Optional[str] = ""
     address: Optional[str] = ""
     village_id: int
+    registered_date: Optional[str] = ""
     notes: Optional[str] = ""
 
 class ConvertToVoterSchema(BaseModel):

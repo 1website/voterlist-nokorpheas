@@ -66,10 +66,16 @@ def ensure_schema_migrations():
 
         if "birth_certificates" in tables:
             bc_columns = [col["name"] for col in inspector.get_columns("birth_certificates")]
-            if "attachment_url" not in bc_columns:
-                with engine.connect() as conn:
+            with engine.connect() as conn:
+                if "attachment_url" not in bc_columns:
                     conn.execute(text("ALTER TABLE birth_certificates ADD COLUMN attachment_url VARCHAR(255)"))
-                    conn.commit()
+                if "registered_date" not in bc_columns:
+                    conn.execute(text("ALTER TABLE birth_certificates ADD COLUMN registered_date VARCHAR(50)"))
+                    if IS_SQLITE:
+                        conn.execute(text("UPDATE birth_certificates SET registered_date = SUBSTR(created_at, 1, 10) WHERE registered_date IS NULL AND created_at IS NOT NULL"))
+                    else:
+                        conn.execute(text("UPDATE birth_certificates SET registered_date = CAST(created_at AS VARCHAR(10)) WHERE registered_date IS NULL AND created_at IS NOT NULL"))
+                conn.commit()
 
         # For SQLite only: Apply UTC timezone offset migration for existing legacy records
         if IS_SQLITE and "voters" in tables and "audit_logs" in tables:
