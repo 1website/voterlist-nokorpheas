@@ -154,8 +154,8 @@
                             <span class="text-slate-700 font-medium">{{ v.village.name_kh if v.village else '' }}</span>
                         </td>
                         <td>
-                            <span class="font-bold text-blue-800 font-mono">{{ v.station.code if v.station else '' }}</span>
-                            <span class="text-[11px] text-slate-400 block truncate max-w-[140px]">{{ v.station.location if v.station else '' }}</span>
+                            <span class="font-bold text-blue-800 dark:text-sky-300 font-mono">{{ v.station.code if v.station else '' }}</span>
+                            <span class="hidden sm:block text-[11px] text-slate-400 truncate max-w-[140px]">{{ v.station.location if v.station else '' }}</span>
                         </td>
                         <td>
                             {% if v.status == 'active' %}
