@@ -95,7 +95,6 @@
                     <th class="col-national-id">លេខអត្តសញ្ញាណប័ណ្ណ</th>
                     <th class="col-photo-name">រូបថត និង គោត្តនាម-នាម</th>
                     <th class="col-gender-dob">ភេទ / ថ្ងៃកំណើត</th>
-                    <th>ប្រភេទបញ្ជី</th>
                     <th>ភូមិ</th>
                     <th>ការិយាល័យ</th>
                     <th>ស្ថានភាព</th>
@@ -136,13 +135,6 @@
                         <td class="col-gender-dob">
                             <span class="font-semibold text-slate-700">{{ v.gender }}</span>
                             <span class="text-xs text-slate-400 block font-mono">{{ v.dob }}</span>
-                        </td>
-                        <!-- Registration Type & Year Badge -->
-                        <td>
-                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold border {{ v.reg_type_badge.class }}">
-                                <span>{{ v.reg_type_badge.icon }}</span>
-                                <span>{{ v.reg_type_badge.text }}</span>
-                            </span>
                         </td>
                         <td>
                             <span class="text-slate-700 font-medium">{{ v.village.name_kh if v.village else '' }}</span>
@@ -198,7 +190,7 @@
                     {% endfor %}
                 {% else %}
                     <tr>
-                        <td colspan="10" class="text-center py-12 text-slate-400">
+                        <td colspan="9" class="text-center py-12 text-slate-400">
                             <div class="text-4xl mb-2">🔍</div>
                             <div class="text-base font-bold text-slate-600">មិនមានទិន្នន័យអ្នកបោះឆ្នោតឡើយ</div>
                             <p class="text-xs text-slate-400 mt-1">សូមសាកល្បងផ្លាស់ប្តូរពាក្យស្វែងរក ឬបន្ថែមអ្នកបោះឆ្នោតថ្មី</p>
