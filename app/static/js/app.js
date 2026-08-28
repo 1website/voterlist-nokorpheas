@@ -114,11 +114,13 @@ async function toggleCheckin(voterId, btnElement = null) {
 
             if (btnElement) {
                 if (data.has_voted) {
-                    btnElement.className = 'btn btn-sm btn-outline text-danger';
-                    btnElement.innerHTML = '✕ លុប Check-in';
+                    btnElement.className = 'btn btn-sm btn-success bg-emerald-600 hover:bg-emerald-700 text-white font-bold';
+                    btnElement.title = 'បានបោះឆ្នោតរួច (ចុចដើម្បីប្តូរមកមិនទាន់បោះ)';
+                    btnElement.innerHTML = '✓';
                 } else {
-                    btnElement.className = 'btn btn-sm btn-success';
-                    btnElement.innerHTML = '✓ Check-in';
+                    btnElement.className = 'btn btn-sm btn-outline text-slate-400 hover:text-emerald-600 hover:border-emerald-500';
+                    btnElement.title = 'មិនទាន់បោះឆ្នោត (ចុចដើម្បីកំណត់ថាបានបោះ)';
+                    btnElement.innerHTML = '⏳';
                 }
             }
 

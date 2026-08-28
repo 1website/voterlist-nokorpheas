@@ -164,6 +164,17 @@
                         </td>
                         <td class="text-right">
                             <div class="inline-flex items-center gap-1.5">
+                                <!-- Voted / Not Voted Quick Toggle Action Button -->
+                                {% if current_user.role in ['admin', 'officer'] and v.status == 'active' %}
+                                <button type="button" 
+                                        onclick="toggleCheckin({{ v.id }}, this)" 
+                                        id="checkin-btn-{{ v.id }}"
+                                        class="btn btn-sm {% if v.has_voted %}btn-success bg-emerald-600 hover:bg-emerald-700 text-white font-bold{% else %}btn-outline text-slate-400 hover:text-emerald-600 hover:border-emerald-500{% endif %}" 
+                                        title="{% if v.has_voted %}បានបោះឆ្នោតរួច (ចុចដើម្បីប្តូរមកមិនទាន់បោះ){% else %}មិនទាន់បោះឆ្នោត (ចុចដើម្បីកំណត់ថាបានបោះ){% endif %}">
+                                    {% if v.has_voted %}✓{% else %}⏳{% endif %}
+                                </button>
+                                {% endif %}
+
                                 <!-- View/Print Card -->
                                 <a href="/voters/{{ v.id }}/card" target="_blank" class="btn btn-sm btn-outline" title="ប័ណ្ណព័ត៌មាន">
                                     🪪
