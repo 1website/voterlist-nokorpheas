@@ -826,7 +826,7 @@
                 </label>
                 <select name="station_id" id="cv_station_select" required class="form-control text-sm">
                     {% for s in stations %}
-                    <option value="{{ s.id }}" data-village-id="{{ s.village_id }}">{{ s.code }} - {{ s.name }} ({{ s.location }})</option>
+                    <option value="{{ s.id }}" data-village-id="{{ s.village_id }}">{{ s.code }} - {{ s.name }}</option>
                     {% endfor %}
                 </select>
             </div>

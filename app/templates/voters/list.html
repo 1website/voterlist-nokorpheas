@@ -851,7 +851,7 @@
             matching.forEach(s => {
                 const opt = document.createElement('option');
                 opt.value = s.id;
-                opt.textContent = `${s.code} - ${s.name} (${s.location})`;
+                opt.textContent = `${s.code} - ${s.name}`;
                 if (targetStationId && parseInt(targetStationId) === s.id) {
                     opt.selected = true;
                 }
