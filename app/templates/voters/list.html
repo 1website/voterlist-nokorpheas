@@ -35,7 +35,7 @@
 
     <!-- Search & Multi-Filter Filter Bar -->
     <div class="glass-card p-5">
-        <form method="GET" action="/voters" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        <form method="GET" action="/voters" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
             <!-- Keyword Search -->
             <div class="lg:col-span-2">
                 <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ស្វែងរក (ឈ្មោះ / ID / កូដ)</label>
@@ -64,23 +64,21 @@
                 </select>
             </div>
 
-            <!-- Registration Type Filter -->
-            <div>
-                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ប្រភេទបញ្ជី</label>
-                <select name="reg_type_filter" class="form-control text-sm py-2">
-                    <option value="">-- គ្រប់ប្រភេទ --</option>
-                    <option value="new" {% if reg_type_filter == 'new' %}selected{% endif %}>✨ ចុះថ្មី (New)</option>
-                    <option value="legacy" {% if reg_type_filter == 'legacy' %}selected{% endif %}>📋 បញ្ជីចាស់ (Legacy)</option>
-                    <option value="transferred" {% if reg_type_filter == 'transferred' %}selected{% endif %}>📦 ផ្ទេរចូល (Transferred)</option>
-                </select>
-            </div>
-
-            <!-- Submit & Reset Buttons -->
+            <!-- Registration Type Filter & Submit Button -->
             <div class="flex items-end gap-2">
-                <button type="submit" class="btn btn-primary py-2 px-3 text-sm font-bold flex items-center justify-center gap-1.5 flex-1" title="ស្វែងរក">
-                    <span>🔍</span> ស្វែងរក
+                <div class="flex-1">
+                    <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ប្រភេទបញ្ជី</label>
+                    <select name="reg_type_filter" class="form-control text-sm py-2">
+                        <option value="">-- គ្រប់ប្រភេទ --</option>
+                        <option value="new" {% if reg_type_filter == 'new' %}selected{% endif %}>✨ ចុះថ្មី (New)</option>
+                        <option value="legacy" {% if reg_type_filter == 'legacy' %}selected{% endif %}>📋 បញ្ជីចាស់ (Legacy)</option>
+                        <option value="transferred" {% if reg_type_filter == 'transferred' %}selected{% endif %}>📦 ផ្ទេរចូល (Transferred)</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary py-2 px-3 text-sm" title="ស្វែងរក">
+                    🔍
                 </button>
-                <a href="/voters" class="btn btn-outline py-2 px-2.5 text-sm hover:bg-slate-100 dark:hover:bg-slate-800" title="សម្អាតតម្រង">
+                <a href="/voters" class="btn btn-outline py-2 px-2.5 text-sm hover:bg-slate-100" title="សម្អាតតម្រង">
                     🔄
                 </a>
             </div>
@@ -97,6 +95,7 @@
                     <th class="col-national-id">លេខអត្តសញ្ញាណប័ណ្ណ</th>
                     <th class="col-photo-name">រូបថត និង គោត្តនាម-នាម</th>
                     <th class="col-gender-dob">ភេទ / ថ្ងៃកំណើត</th>
+                    <th>ប្រភេទបញ្ជី</th>
                     <th>ភូមិ</th>
                     <th>ការិយាល័យ</th>
                     <th>ស្ថានភាព</th>
@@ -137,6 +136,13 @@
                         <td class="col-gender-dob">
                             <span class="font-semibold text-slate-700">{{ v.gender }}</span>
                             <span class="text-xs text-slate-400 block font-mono">{{ v.dob }}</span>
+                        </td>
+                        <!-- Registration Type & Year Badge -->
+                        <td>
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold border {{ v.reg_type_badge.class }}">
+                                <span>{{ v.reg_type_badge.icon }}</span>
+                                <span>{{ v.reg_type_badge.text }}</span>
+                            </span>
                         </td>
                         <td>
                             <span class="text-slate-700 font-medium">{{ v.village.name_kh if v.village else '' }}</span>
@@ -181,7 +187,7 @@
                     {% endfor %}
                 {% else %}
                     <tr>
-                        <td colspan="9" class="text-center py-12 text-slate-400">
+                        <td colspan="10" class="text-center py-12 text-slate-400">
                             <div class="text-4xl mb-2">🔍</div>
                             <div class="text-base font-bold text-slate-600">មិនមានទិន្នន័យអ្នកបោះឆ្នោតឡើយ</div>
                             <p class="text-xs text-slate-400 mt-1">សូមសាកល្បងផ្លាស់ប្តូរពាក្យស្វែងរក ឬបន្ថែមអ្នកបោះឆ្នោតថ្មី</p>
