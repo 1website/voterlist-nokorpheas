@@ -50,8 +50,8 @@
     <meta name="apple-mobile-web-app-title" content="VoterList">
 
     <!-- Custom Style and Print CSS with Cache-Buster -->
-    <link rel="stylesheet" href="/static/css/style.css?v=25.0">
-    <link rel="stylesheet" href="/static/css/print.css?v=25.0" media="print">
+    <link rel="stylesheet" href="/static/css/style.css?v=26.0">
+    <link rel="stylesheet" href="/static/css/print.css?v=26.0" media="print">
 
     <!-- Chart.js & HTML5-QRCode -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -326,25 +326,12 @@
 
                 <!-- Right Quick Action Shortcuts -->
                 <div class="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
-                    {% if current_user.role in ['admin', 'officer'] %}
-                    <a href="/checkin"
-                        class="btn btn-sm btn-accent shadow-sm font-bold whitespace-nowrap flex items-center gap-1 text-xs sm:text-sm px-2.5 sm:px-3.5 py-1.5 rounded-xl flex-shrink-0"
-                        title="Check-in វត្តមានអ្នកបោះឆ្នោត">
-                        <span class="text-xs sm:text-sm">⚡</span>
-                        <span>Check-in</span>
-                        <span class="hidden sm:inline">វត្តមាន</span>
-                    </a>
-                    {% endif %}
                     {% if current_user.role != 'viewer' %}
                     <a href="/voters"
                         class="btn btn-sm btn-outline hidden sm:inline-flex font-semibold text-xs sm:text-sm py-1.5">
                         🔍 ស្វែងរកឈ្មោះ
                     </a>
                     {% endif %}
-                    <a href="/reports/export/excel"
-                        class="btn btn-sm btn-outline-emerald hidden md:inline-flex font-semibold text-xs sm:text-sm py-1.5">
-                        📥 Export Excel
-                    </a>
 
                     <!-- Light / Dark Mode Toggle Button -->
                     <button type="button" onclick="toggleTheme()" id="themeToggleBtn"
