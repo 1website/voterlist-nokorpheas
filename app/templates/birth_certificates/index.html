@@ -19,32 +19,32 @@
             </p>
         </div>
 
-        <div class="flex flex-wrap items-center gap-2">
+        <div class="grid grid-cols-6 sm:flex sm:flex-wrap items-center gap-2">
             {% if current_user.role in ['admin', 'officer', 'village_chief'] %}
-            <button onclick="openAddBirthModal()" class="btn btn-primary text-sm shadow-md flex items-center gap-1.5">
+            <button onclick="openAddBirthModal()" class="col-span-3 sm:col-auto btn btn-primary text-xs sm:text-sm shadow-md flex items-center justify-center gap-1.5 py-2 px-2.5 sm:px-4">
                 <span>➕</span>
-                <span>កត់ត្រាសំបុត្រកំណើតថ្មី</span>
+                <span class="whitespace-nowrap">កត់ត្រាសំបុត្រកំណើតថ្មី</span>
             </button>
             {% endif %}
             
-            <button onclick="openMonthlyMatrixModal()" class="btn bg-indigo-50 dark:bg-indigo-950/60 text-indigo-900 dark:text-indigo-300 border border-indigo-300 dark:border-indigo-700/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-sm font-bold flex items-center gap-1.5 shadow-xs">
+            <button onclick="openMonthlyMatrixModal()" class="col-span-3 sm:col-auto btn bg-indigo-50 dark:bg-indigo-950/60 text-indigo-900 dark:text-indigo-300 border border-indigo-300 dark:border-indigo-700/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 shadow-xs py-2 px-2 sm:px-3">
                 <span>📈</span>
-                <span>ស្ថិតិប្រចាំខែ & ឆ្នាំ</span>
+                <span class="whitespace-nowrap">ស្ថិតិប្រចាំខែ & ឆ្នាំ</span>
             </button>
 
-            <a href="/birth-certificates/youth-pipeline" class="btn btn-outline text-blue-900 dark:text-sky-300 border-blue-300 dark:border-sky-700 hover:bg-blue-50 dark:hover:bg-sky-950/60 text-sm font-bold flex items-center gap-1.5">
+            <a href="/birth-certificates/youth-pipeline" class="col-span-2 sm:col-auto btn btn-outline text-blue-900 dark:text-sky-300 border-blue-300 dark:border-sky-700 hover:bg-blue-50 dark:hover:bg-sky-950/60 text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 py-2 px-2 sm:px-3">
                 <span>📊</span>
-                <span>ផ្ទាំងវិភាគយុវជន</span>
+                <span class="whitespace-nowrap">ផ្ទាំងវិភាគ<span class="hidden sm:inline">យុវជន</span></span>
             </a>
 
-            <a href="/birth-certificates/print-eligible{% if selected_village_id %}?village_id={{ selected_village_id }}{% endif %}" class="btn btn-outline text-amber-900 dark:text-amber-300 border-amber-300 dark:border-amber-700 hover:bg-amber-50 dark:hover:bg-amber-950/60 text-sm font-bold flex items-center gap-1.5" target="_blank">
+            <a href="/birth-certificates/print-eligible{% if selected_village_id %}?village_id={{ selected_village_id }}{% endif %}" class="col-span-2 sm:col-auto btn btn-outline text-amber-900 dark:text-amber-300 border-amber-300 dark:border-amber-700 hover:bg-amber-50 dark:hover:bg-amber-950/60 text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 py-2 px-2 sm:px-3" target="_blank">
                 <span>🖨️</span>
-                <span>បញ្ជីជំរុញ (Print)</span>
+                <span class="whitespace-nowrap">បញ្ជីជំរុញ<span class="hidden sm:inline"> (Print)</span></span>
             </a>
 
-            <a href="/birth-certificates/export-excel?village_id={{ village_id }}&eligibility={{ eligibility }}&reg_status={{ reg_status }}&period={{ period }}&reg_year={{ reg_year }}&reg_month={{ reg_month }}" class="btn btn-outline text-emerald-900 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 text-sm font-bold flex items-center gap-1.5">
+            <a href="/birth-certificates/export-excel?village_id={{ village_id }}&eligibility={{ eligibility }}&reg_status={{ reg_status }}&period={{ period }}&reg_year={{ reg_year }}&reg_month={{ reg_month }}" class="col-span-2 sm:col-auto btn btn-outline text-emerald-900 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 py-2 px-2 sm:px-3">
                 <span>📥</span>
-                <span>Export Excel</span>
+                <span class="whitespace-nowrap">Export<span class="hidden sm:inline"> Excel</span></span>
             </a>
         </div>
     </div>
