@@ -62,7 +62,7 @@ def voter_list_page(
     reg_type_filter: str = Query("", description="Registration type filter (new, legacy, transferred)"),
     reg_year_filter: str = Query("", description="Registration year filter"),
     page: int = Query(1, ge=1),
-    limit: int = Query(25, ge=1, le=200),
+    limit: int = Query(15, ge=1, le=200),
     db: Session = Depends(get_db)
 ):
     current_user = get_current_user_optional(request, db)
