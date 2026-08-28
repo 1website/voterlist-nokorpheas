@@ -1692,3 +1692,20 @@ html.dark .bg-purple-50 {
 html.dark .bg-amber-50 {
   background-color: rgba(245, 158, 11, 0.15) !important;
 }
+
+/* ========================================================================= */
+/* MOBILE VIEW OPTIMIZATIONS (កែសម្រួលការបង្ហាញលើទូរស័ព្ទដៃ) */
+/* ========================================================================= */
+@media (max-width: 640px) {
+  .col-voter-code,
+  th.col-voter-code,
+  td.col-voter-code {
+    display: none !important;
+  }
+  .voter-latin-name {
+    display: none !important;
+  }
+  .voter-name-kh {
+    white-space: nowrap !important;
+  }
+}
