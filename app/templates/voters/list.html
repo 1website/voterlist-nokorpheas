@@ -39,7 +39,7 @@
 
     <!-- Search & Multi-Filter Filter Bar -->
     <div class="glass-card p-5">
-        <form method="GET" action="/voters" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-8 gap-3">
+        <form method="GET" action="/voters" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
             <!-- Keyword Search -->
             <div class="lg:col-span-2">
                 <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ស្វែងរក (ឈ្មោះ / ID / កូដ)</label>
@@ -76,29 +76,6 @@
                     <option value="new" {% if reg_type_filter == 'new' %}selected{% endif %}>✨ ចុះថ្មី (New)</option>
                     <option value="legacy" {% if reg_type_filter == 'legacy' %}selected{% endif %}>📋 បញ្ជីចាស់ (Legacy)</option>
                     <option value="transferred" {% if reg_type_filter == 'transferred' %}selected{% endif %}>📦 ផ្ទេរចូល (Transferred)</option>
-                </select>
-            </div>
-
-            <!-- Registration Year Filter -->
-            <div>
-                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ឆ្នាំចុះឈ្មោះ</label>
-                <select name="reg_year_filter" class="form-control text-sm py-2 font-mono">
-                    <option value="">-- គ្រប់ឆ្នាំ --</option>
-                    {% for yr in available_years %}
-                    <option value="{{ yr }}" {% if reg_year_filter == yr|string %}selected{% endif %}>{{ yr }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <!-- Status Filter -->
-            <div>
-                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ស្ថានភាព</label>
-                <select name="status_filter" class="form-control text-sm py-2">
-                    <option value="">-- គ្រប់ស្ថានភាព --</option>
-                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>សកម្ម (Active)</option>
-                    <option value="moved" {% if status_filter == 'moved' %}selected{% endif %}>ផ្លាស់ចេញ (Moved)</option>
-                    <option value="deceased" {% if status_filter == 'deceased' %}selected{% endif %}>មរណភាព (Deceased)</option>
-                    <option value="suspended" {% if status_filter == 'suspended' %}selected{% endif %}>ផ្អាកសិទ្ធិ (Suspended)</option>
                 </select>
             </div>
 
