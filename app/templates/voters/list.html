@@ -107,8 +107,8 @@
                     <th>លេខរៀង</th>
                     <th class="hidden sm:table-cell col-voter-code">កូដអ្នកបោះឆ្នោត</th>
                     <th class="col-national-id">លេខអត្តសញ្ញាណប័ណ្ណ</th>
-                    <th>រូបថត និង គោត្តនាម-នាម</th>
-                    <th>ភេទ / ថ្ងៃកំណើត</th>
+                    <th class="col-photo-name">រូបថត និង គោត្តនាម-នាម</th>
+                    <th class="col-gender-dob">ភេទ / ថ្ងៃកំណើត</th>
                     <th>ភូមិ</th>
                     <th>ការិយាល័យ</th>
                     <th>ស្ថានភាព</th>
@@ -122,7 +122,7 @@
                         <td class="font-bold text-center text-slate-500 font-mono text-xs">{{ (page - 1) * limit + loop.index }}</td>
                         <td class="hidden sm:table-cell col-voter-code font-mono text-xs font-bold text-blue-900">{{ v.voter_code }}</td>
                         <td class="col-national-id font-mono text-xs font-semibold text-slate-700">{{ v.national_id }}</td>
-                        <td>
+                        <td class="col-photo-name">
                             <div class="flex items-center gap-3">
                                 <div class="relative group flex-shrink-0">
                                     <img src="{{ v.photo_display }}" 
@@ -146,7 +146,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td>
+                        <td class="col-gender-dob">
                             <span class="font-semibold text-slate-700">{{ v.gender }}</span>
                             <span class="text-xs text-slate-400 block font-mono">{{ v.dob }}</span>
                         </td>

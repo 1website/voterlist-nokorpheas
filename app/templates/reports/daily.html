@@ -189,11 +189,11 @@
             <thead>
                 <tr>
                     <th>ល.រ</th>
-                    <th>ម៉ោងចុះឈ្មោះ</th>
+                    <th class="col-reg-time">ម៉ោងចុះឈ្មោះ</th>
                     <th class="hidden sm:table-cell col-voter-code">កូដអ្នកបោះឆ្នោត</th>
                     <th class="col-national-id">លេខអត្តសញ្ញាណប័ណ្ណ</th>
-                    <th>រូបថត & ឈ្មោះ</th>
-                    <th>ភេទ / ថ្ងៃកំណើត</th>
+                    <th class="col-photo-name">រូបថត & ឈ្មោះ</th>
+                    <th class="col-gender-dob">ភេទ / ថ្ងៃកំណើត</th>
                     <th>ភូមិទីលំនៅ</th>
                     <th>ការិយាល័យបោះឆ្នោត</th>
                     <th>ស្ថានភាព</th>
@@ -205,16 +205,16 @@
                     {% for v in voters %}
                     <tr>
                         <td class="font-bold text-center text-slate-500">{{ loop.index }}</td>
-                        <td class="font-mono text-xs font-bold text-blue-800">
+                        <td class="col-reg-time font-mono text-xs font-bold text-blue-800">
                             {{ v.created_at.strftime('%H:%M:%S') if v.created_at else '' }}
                         </td>
                         <td class="hidden sm:table-cell col-voter-code font-mono text-xs font-bold text-blue-900">{{ v.voter_code }}</td>
                         <td class="col-national-id font-mono text-xs font-semibold text-slate-700">{{ v.national_id }}</td>
-                        <td>
+                        <td class="col-photo-name">
                             <div class="flex items-center gap-3">
                                 <img src="{{ v.photo_display }}" 
                                      alt="{{ v.name_kh }}" 
-                                     class="w-10 h-10 rounded-full object-cover border-2 border-blue-200 shadow-sm bg-slate-100 cursor-pointer"
+                                     class="w-10 h-10 rounded-full object-cover border-2 border-blue-200 shadow-sm bg-slate-100 cursor-pointer flex-shrink-0"
                                      onclick="previewLargePhoto('{{ v.photo_display }}', '{{ v.name_kh }}', '{{ v.voter_code }}')"
                                      title="ចុចដើម្បីមើលរូប"
                                      onerror="this.onerror=null; this.src='/static/images/avatars/{{ 'female_1.jpg' if v.gender == 'ស្រី' else 'male_1.jpg' }}';">
@@ -224,7 +224,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td>
+                        <td class="col-gender-dob">
                             <span class="font-semibold text-slate-700">{{ v.gender }}</span>
                             <span class="text-xs text-slate-400 block">{{ v.dob }}</span>
                         </td>

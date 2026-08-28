@@ -1696,6 +1696,32 @@ html.dark .bg-amber-50 {
 /* ========================================================================= */
 /* MOBILE VIEW OPTIMIZATIONS (កែសម្រួលការបង្ហាញលើទូរស័ព្ទដៃ) */
 /* ========================================================================= */
+.col-photo-name,
+th.col-photo-name,
+td.col-photo-name {
+  min-width: 175px !important;
+  white-space: nowrap !important;
+  padding-right: 20px !important;
+}
+
+.col-gender-dob,
+th.col-gender-dob,
+td.col-gender-dob {
+  min-width: 105px !important;
+  white-space: nowrap !important;
+  padding-left: 14px !important;
+  padding-right: 16px !important;
+}
+
+.col-reg-time,
+th.col-reg-time,
+td.col-reg-time {
+  min-width: 95px !important;
+  white-space: nowrap !important;
+  padding-left: 14px !important;
+  padding-right: 12px !important;
+}
+
 @media (max-width: 640px) {
   .col-voter-code,
   th.col-voter-code,
@@ -1707,5 +1733,25 @@ html.dark .bg-amber-50 {
   }
   .voter-name-kh {
     white-space: nowrap !important;
+  }
+  .col-photo-name,
+  th.col-photo-name,
+  td.col-photo-name {
+    min-width: 160px !important;
+    padding-right: 24px !important;
+  }
+  .col-gender-dob,
+  th.col-gender-dob,
+  td.col-gender-dob {
+    min-width: 100px !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+  .col-reg-time,
+  th.col-reg-time,
+  td.col-reg-time {
+    min-width: 85px !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
   }
 }
