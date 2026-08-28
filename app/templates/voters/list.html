@@ -280,65 +280,65 @@
 <div id="addVoterModal" class="modal-overlay">
     <div class="modal-card max-w-2xl">
         <div class="modal-header">
-            <h3 class="font-bold text-base sm:text-lg font-kh-bold flex items-center gap-2">
-                <span>➕</span> ចុះឈ្មោះអ្នកបោះឆ្នោតថ្មី
+            <h3 class="font-bold text-base sm:text-lg font-kh-bold flex items-center gap-2 text-white">
+                <span class="text-amber-300">➕</span> <span>ចុះឈ្មោះអ្នកបោះឆ្នោតថ្មី</span>
             </h3>
-            <button type="button" onclick="closeModal('addVoterModal')" class="text-white/80 hover:text-white text-xl p-1 leading-none">✕</button>
+            <button type="button" onclick="closeModal('addVoterModal')" class="text-white/80 hover:text-white hover:bg-white/10 rounded-lg text-xl p-1 leading-none transition" title="បិទ">✕</button>
         </div>
         <form id="addVoterForm" onsubmit="submitAddVoter(event)" enctype="multipart/form-data">
             <div class="modal-body space-y-4">
 
                 <!-- Registration Type Selector Box (New vs Legacy vs Transferred) -->
-                <div class="p-3.5 bg-gradient-to-r from-blue-50/80 to-indigo-50/80 rounded-2xl border border-blue-200">
-                    <label class="block text-xs font-bold text-blue-950 mb-2 font-kh-bold flex items-center justify-between">
+                <div class="p-3.5 bg-gradient-to-r from-blue-50/90 to-indigo-50/90 dark:from-slate-800/90 dark:to-slate-850/90 rounded-2xl border border-blue-200 dark:border-slate-700/80 shadow-xs">
+                    <label class="block text-xs font-bold text-blue-950 dark:text-sky-300 mb-2.5 font-kh-bold flex items-center justify-between">
                         <span class="flex items-center gap-1.5">
                             <span>🏷️</span> <span>ប្រភេទនៃការចុះឈ្មោះ / ប្រភពទិន្នន័យ *</span>
                         </span>
-                        <span class="text-[11px] text-blue-700 font-normal">ជ្រើសរើសដើម្បីញែករបាយការណ៍</span>
+                        <span class="text-[11px] text-blue-700 dark:text-sky-400 font-normal">ជ្រើសរើសដើម្បីញែករបាយការណ៍</span>
                     </label>
 
                     <!-- Quick Segmented Type Selector -->
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
-                        <label class="flex items-center gap-2 p-2.5 bg-white rounded-xl border border-blue-200 hover:border-blue-500 cursor-pointer transition shadow-xs">
-                            <input type="radio" name="reg_type" value="new" checked onchange="onRegTypeChange('add', this.value)" class="text-blue-600 focus:ring-blue-500">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-3">
+                        <label class="flex items-center gap-2.5 p-2.5 bg-white dark:bg-slate-900/90 rounded-xl border border-emerald-300 dark:border-emerald-500/40 hover:border-emerald-500 cursor-pointer transition shadow-xs">
+                            <input type="radio" name="reg_type" value="new" checked onchange="onRegTypeChange('add', this.value)" class="text-emerald-600 focus:ring-emerald-500">
                             <div>
-                                <div class="text-xs font-bold text-emerald-800 flex items-center gap-1">
+                                <div class="text-xs font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
                                     <span>✨</span> <span>ចុះឈ្មោះថ្មី (New)</span>
                                 </div>
-                                <div class="text-[10px] text-slate-500">យុវជន ១៨+ / អ្នកចុះថ្មីឆ្នាំនេះ</div>
+                                <div class="text-[10px] text-slate-500 dark:text-slate-400">យុវជន ១៨+ / អ្នកចុះថ្មីឆ្នាំនេះ</div>
                             </div>
                         </label>
 
-                        <label class="flex items-center gap-2 p-2.5 bg-white rounded-xl border border-slate-200 hover:border-blue-500 cursor-pointer transition shadow-xs">
+                        <label class="flex items-center gap-2.5 p-2.5 bg-white dark:bg-slate-900/90 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-blue-500 cursor-pointer transition shadow-xs">
                             <input type="radio" name="reg_type" value="legacy" onchange="onRegTypeChange('add', this.value)" class="text-blue-600 focus:ring-blue-500">
                             <div>
-                                <div class="text-xs font-bold text-slate-800 flex items-center gap-1">
+                                <div class="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1">
                                     <span>📋</span> <span>ទិន្នន័យចាស់ (Legacy)</span>
                                 </div>
-                                <div class="text-[10px] text-slate-500">មានឈ្មោះស្រាប់ពីឆ្នាំមុនៗ</div>
+                                <div class="text-[10px] text-slate-500 dark:text-slate-400">មានឈ្មោះស្រាប់ពីឆ្នាំមុនៗ</div>
                             </div>
                         </label>
 
-                        <label class="flex items-center gap-2 p-2.5 bg-white rounded-xl border border-slate-200 hover:border-blue-500 cursor-pointer transition shadow-xs">
-                            <input type="radio" name="reg_type" value="transferred" onchange="onRegTypeChange('add', this.value)" class="text-blue-600 focus:ring-blue-500">
+                        <label class="flex items-center gap-2.5 p-2.5 bg-white dark:bg-slate-900/90 rounded-xl border border-purple-200 dark:border-purple-500/40 hover:border-purple-500 cursor-pointer transition shadow-xs">
+                            <input type="radio" name="reg_type" value="transferred" onchange="onRegTypeChange('add', this.value)" class="text-purple-600 focus:ring-purple-500">
                             <div>
-                                <div class="text-xs font-bold text-purple-800 flex items-center gap-1">
+                                <div class="text-xs font-bold text-purple-700 dark:text-purple-300 flex items-center gap-1">
                                     <span>📦</span> <span>ផ្ទេរចូល (Transferred)</span>
                                 </div>
-                                <div class="text-[10px] text-slate-500">ផ្លាស់មកពីឃុំ/ស្រុកផ្សេង</div>
+                                <div class="text-[10px] text-slate-500 dark:text-slate-400">ផ្លាស់មកពីឃុំ/ស្រុកផ្សេង</div>
                             </div>
                         </label>
                     </div>
 
                     <!-- Year & Reason Row -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-blue-200/60">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2.5 border-t border-blue-200/70 dark:border-slate-700/80">
                         <div>
-                            <label class="block text-[11px] font-bold text-slate-700 mb-1">ឆ្នាំចុះឈ្មោះ (Year) *</label>
-                            <input type="number" name="reg_year" id="addRegYear" value="2026" min="1993" max="2050" required class="form-control text-sm font-mono font-bold text-blue-900">
+                            <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 mb-1">ឆ្នាំចុះឈ្មោះ (Year) *</label>
+                            <input type="number" name="reg_year" id="addRegYear" value="2026" min="1993" max="2050" required class="form-control text-sm font-mono font-bold text-slate-800 dark:text-sky-300">
                         </div>
                         <div>
-                            <label class="block text-[11px] font-bold text-slate-700 mb-1">មូលហេតុនៃការចុះឈ្មោះ (Reason)</label>
-                            <select name="reg_reason" id="addRegReason" class="form-control text-sm">
+                            <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 mb-1">មូលហេតុនៃការចុះឈ្មោះ (Reason)</label>
+                            <select name="reg_reason" id="addRegReason" class="form-control text-sm font-medium">
                                 <option value="first_time_18">យុវជនទើបគ្រប់អាយុ ១៨ ឆ្នាំ (First-Time 18+)</option>
                                 <option value="never_registered">ពលរដ្ឋមិនធ្លាប់ចុះឈ្មោះពីមុន (Never Registered)</option>
                                 <option value="relocated">ផ្លាស់ប្តូរទីលំនៅចូលឃុំ (Relocated into Commune)</option>
@@ -349,16 +349,16 @@
                 </div>
 
                 <!-- Profile Photo Picker Section in Add -->
-                <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200">
-                    <label class="block text-xs font-bold text-slate-700 mb-2">📸 រូបថតអ្នកបោះឆ្នោត (Profile Photo)</label>
+                <div class="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700">
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-2.5">📸 រូបថតអ្នកបោះឆ្នោត (Profile Photo)</label>
                     <div class="flex flex-col sm:flex-row items-center gap-4">
                         <div class="relative flex-shrink-0">
-                            <img id="addPhotoPreview" src="/static/images/avatars/male_1.jpg" alt="Preview" class="w-20 h-20 rounded-2xl object-cover border-2 border-blue-400 shadow-md bg-white" onerror="this.onerror=null; this.src='/static/images/avatars/male_1.jpg';">
+                            <img id="addPhotoPreview" src="/static/images/avatars/male_1.jpg" alt="Preview" class="w-20 h-20 rounded-2xl object-cover border-2 border-blue-400 dark:border-blue-500 shadow-md bg-white dark:bg-slate-900" onerror="this.onerror=null; this.src='/static/images/avatars/male_1.jpg';">
                         </div>
                         <div class="flex-1 space-y-2 w-full">
                             <div class="flex gap-2">
-                                <label class="btn btn-outline text-xs py-1.5 px-3 cursor-pointer flex items-center gap-1">
-                                    <span>📁 ជ្រើសរើសរូបថតផ្ទាល់ខ្លួន (Upload)</span>
+                                <label class="btn btn-outline text-xs py-1.5 px-3 cursor-pointer flex items-center gap-1.5 font-semibold text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800">
+                                    <span>📁</span> <span>ជ្រើសរើសរូបថតផ្ទាល់ខ្លួន (Upload)</span>
                                     <input type="file" name="photo" id="addPhotoInput" accept="image/*" class="hidden" onchange="handleFileSelect(this, 'addPhotoPreview', 'addPresetInput')">
                                 </label>
                             </div>
@@ -366,15 +366,15 @@
                             
                             <!-- Avatar Preset Quick Chips -->
                             <div>
-                                <span class="text-[11px] text-slate-500 font-semibold block mb-1">ឬជ្រើសរើសគំរូរូបថត (Presets)៖</span>
+                                <span class="text-[11px] text-slate-500 dark:text-slate-400 font-semibold block mb-1.5">ឬជ្រើសរើសគំរូរូបថត (Presets)៖</span>
                                 <div class="flex flex-wrap gap-1.5">
-                                    <button type="button" onclick="selectPreset('/static/images/avatars/male_1.jpg', 'addPhotoPreview', 'addPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 hover:border-blue-600 focus:ring-2 focus:ring-blue-400"><img src="/static/images/avatars/male_1.jpg" class="w-full h-full object-cover"></button>
-                                    <button type="button" onclick="selectPreset('/static/images/avatars/male_2.jpg', 'addPhotoPreview', 'addPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 hover:border-blue-600 focus:ring-2 focus:ring-blue-400"><img src="/static/images/avatars/male_2.jpg" class="w-full h-full object-cover"></button>
-                                    <button type="button" onclick="selectPreset('/static/images/avatars/male_3.jpg', 'addPhotoPreview', 'addPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 hover:border-blue-600 focus:ring-2 focus:ring-blue-400"><img src="/static/images/avatars/male_3.jpg" class="w-full h-full object-cover"></button>
-                                    <button type="button" onclick="selectPreset('/static/images/avatars/male_4.jpg', 'addPhotoPreview', 'addPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 hover:border-blue-600 focus:ring-2 focus:ring-blue-400"><img src="/static/images/avatars/male_4.jpg" class="w-full h-full object-cover"></button>
-                                    <button type="button" onclick="selectPreset('/static/images/avatars/female_1.jpg', 'addPhotoPreview', 'addPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 hover:border-pink-600 focus:ring-2 focus:ring-pink-400"><img src="/static/images/avatars/female_1.jpg" class="w-full h-full object-cover"></button>
-                                    <button type="button" onclick="selectPreset('/static/images/avatars/female_2.jpg', 'addPhotoPreview', 'addPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 hover:border-pink-600 focus:ring-2 focus:ring-pink-400"><img src="/static/images/avatars/female_2.jpg" class="w-full h-full object-cover"></button>
-                                    <button type="button" onclick="selectPreset('/static/images/avatars/female_3.jpg', 'addPhotoPreview', 'addPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 hover:border-pink-600 focus:ring-2 focus:ring-pink-400"><img src="/static/images/avatars/female_3.jpg" class="w-full h-full object-cover"></button>
+                                    <button type="button" onclick="selectPreset('/static/images/avatars/male_1.jpg', 'addPhotoPreview', 'addPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 border-slate-300 dark:border-slate-600 hover:border-blue-500 focus:ring-2 focus:ring-blue-400 transition" title="រូបគំរូ ១"><img src="/static/images/avatars/male_1.jpg" class="w-full h-full object-cover"></button>
+                                    <button type="button" onclick="selectPreset('/static/images/avatars/male_2.jpg', 'addPhotoPreview', 'addPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 border-slate-300 dark:border-slate-600 hover:border-blue-500 focus:ring-2 focus:ring-blue-400 transition" title="រូបគំរូ ២"><img src="/static/images/avatars/male_2.jpg" class="w-full h-full object-cover"></button>
+                                    <button type="button" onclick="selectPreset('/static/images/avatars/male_3.jpg', 'addPhotoPreview', 'addPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 border-slate-300 dark:border-slate-600 hover:border-blue-500 focus:ring-2 focus:ring-blue-400 transition" title="រូបគំរូ ៣"><img src="/static/images/avatars/male_3.jpg" class="w-full h-full object-cover"></button>
+                                    <button type="button" onclick="selectPreset('/static/images/avatars/male_4.jpg', 'addPhotoPreview', 'addPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 border-slate-300 dark:border-slate-600 hover:border-blue-500 focus:ring-2 focus:ring-blue-400 transition" title="រូបគំរូ ៤"><img src="/static/images/avatars/male_4.jpg" class="w-full h-full object-cover"></button>
+                                    <button type="button" onclick="selectPreset('/static/images/avatars/female_1.jpg', 'addPhotoPreview', 'addPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 border-slate-300 dark:border-slate-600 hover:border-pink-500 focus:ring-2 focus:ring-pink-400 transition" title="រូបគំរូ ៥"><img src="/static/images/avatars/female_1.jpg" class="w-full h-full object-cover"></button>
+                                    <button type="button" onclick="selectPreset('/static/images/avatars/female_2.jpg', 'addPhotoPreview', 'addPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 border-slate-300 dark:border-slate-600 hover:border-pink-500 focus:ring-2 focus:ring-pink-400 transition" title="រូបគំរូ ៦"><img src="/static/images/avatars/female_2.jpg" class="w-full h-full object-cover"></button>
+                                    <button type="button" onclick="selectPreset('/static/images/avatars/female_3.jpg', 'addPhotoPreview', 'addPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 border-slate-300 dark:border-slate-600 hover:border-pink-500 focus:ring-2 focus:ring-pink-400 transition" title="រូបគំរូ ៧"><img src="/static/images/avatars/female_3.jpg" class="w-full h-full object-cover"></button>
                                 </div>
                             </div>
                         </div>
@@ -395,7 +395,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div class="form-group">
                         <label class="form-label">ភេទ *</label>
-                        <select name="gender" id="addGenderSelect" required class="form-control" onchange="onGenderChange(this.value, 'addPhotoPreview', 'addPresetInput')">
+                        <select name="gender" id="addGenderSelect" required class="form-control font-medium" onchange="onGenderChange(this.value, 'addPhotoPreview', 'addPresetInput')">
                             <option value="ប្រុស">ប្រុស (Male)</option>
                             <option value="ស្រី">ស្រី (Female)</option>
                         </select>
@@ -403,7 +403,7 @@
                     <div class="form-group sm:col-span-2">
                         <div class="flex items-center justify-between mb-1">
                             <label class="form-label mb-0">ថ្ងៃខែឆ្នាំកំណើត *</label>
-                            <span class="text-[11px] text-slate-500 font-medium">ត្រូវមានអាយុ ១៨ ឆ្នាំឡើងទៅ</span>
+                            <span class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">ត្រូវមានអាយុ ១៨ ឆ្នាំឡើងទៅ</span>
                         </div>
                         <input type="date" name="dob" id="addDobInput" required value="1995-05-15" onchange="checkVoterAge(this, 'addDobFeedback', 'addVoterSubmitBtn')" oninput="checkVoterAge(this, 'addDobFeedback', 'addVoterSubmitBtn')" class="form-control font-mono">
                         <div id="addDobFeedback"></div>
@@ -413,17 +413,17 @@
                 <div class="form-group">
                     <div class="flex items-center justify-between mb-1.5 flex-wrap gap-1">
                         <label class="form-label mb-0">លេខអត្តសញ្ញាណប័ណ្ណ / ឯកសារបញ្ជាក់ *</label>
-                        <span class="text-[11px] text-blue-700 font-semibold bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
+                        <span class="text-[11px] text-blue-700 dark:text-sky-300 font-semibold bg-blue-50 dark:bg-blue-950/70 px-2.5 py-0.5 rounded-full border border-blue-200 dark:border-blue-800/60">
                             ៩ ខ្ទង់ (ID Card) ឬ ៧ ខ្ទង់ (ឯ.អ)
                         </span>
                     </div>
                     <!-- Quick Document Selector Pills -->
                     <div class="flex items-center gap-2 mb-2">
-                        <button type="button" onclick="selectDocType('addNationalId', 9, 'ឧ. 020491999 (៩ ខ្ទង់)')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-100 hover:bg-blue-200 text-blue-900 border border-blue-300 transition flex items-center gap-1">
-                            <span>🪪</span> អត្តសញ្ញាណប័ណ្ណ (៩ ខ្ទង់)
+                        <button type="button" onclick="selectDocType('addNationalId', 9, 'ឧ. 020491999 (៩ ខ្ទង់)')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-100 dark:bg-blue-900/60 hover:bg-blue-200 dark:hover:bg-blue-800 text-blue-900 dark:text-blue-200 border border-blue-300 dark:border-blue-700 transition flex items-center gap-1 shadow-2xs">
+                            <span>🪪</span> <span>អត្តសញ្ញាណប័ណ្ណ (៩ ខ្ទង់)</span>
                         </button>
-                        <button type="button" onclick="selectDocType('addNationalId', 7, 'ឧ. 1234567 (៧ ខ្ទង់)')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-100 hover:bg-emerald-200 text-emerald-900 border border-emerald-300 transition flex items-center gap-1">
-                            <span>📄</span> ឯកសារបញ្ជាក់អត្តសញ្ញាណ (៧ ខ្ទង់)
+                        <button type="button" onclick="selectDocType('addNationalId', 7, 'ឧ. 1234567 (៧ ខ្ទង់)')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-100 dark:bg-emerald-900/60 hover:bg-emerald-200 dark:hover:bg-emerald-800 text-emerald-900 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-700 transition flex items-center gap-1 shadow-2xs">
+                            <span>📄</span> <span>ឯកសារបញ្ជាក់អត្តសញ្ញាណ (៧ ខ្ទង់)</span>
                         </button>
                     </div>
                     <input type="text" name="national_id" id="addNationalId" required maxlength="9" inputmode="numeric" placeholder="ឧ. 020491999 (៩ ខ្ទង់) ឬ 1234567 (៧ ខ្ទង់)" oninput="checkDuplicateID(this)" class="form-control font-mono">
@@ -433,7 +433,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div class="form-group">
                         <label class="form-label">ភូមិ (ទីលំនៅ) *</label>
-                        <select name="village_id" id="addVillageSelect" required class="form-control" onchange="filterStationsByVillage('addVillageSelect', 'addStationSelect')">
+                        <select name="village_id" id="addVillageSelect" required class="form-control font-medium" onchange="filterStationsByVillage('addVillageSelect', 'addStationSelect')">
                             {% for v in villages %}
                             <option value="{{ v.id }}">{{ v.name_kh }} ({{ v.code }})</option>
                             {% endfor %}
@@ -441,7 +441,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">ការិយាល័យបោះឆ្នោត *</label>
-                        <select name="station_id" id="addStationSelect" required class="form-control">
+                        <select name="station_id" id="addStationSelect" required class="form-control font-medium">
                             {% for s in stations %}
                             <option value="{{ s.id }}" data-village-id="{{ s.village_id }}">{{ s.code }} - {{ s.name }}</option>
                             {% endfor %}
@@ -462,9 +462,9 @@
             </div>
 
             <div class="modal-footer">
-                <button type="button" onclick="closeModal('addVoterModal')" class="btn btn-outline text-sm py-2 px-4">បោះបង់</button>
-                <button type="submit" id="addVoterSubmitBtn" class="btn btn-primary text-sm py-2 px-5 shadow-md flex items-center gap-2">
-                    <span>💾</span> រក្សាទុកទិន្នន័យ
+                <button type="button" onclick="closeModal('addVoterModal')" class="btn btn-outline text-sm py-2 px-4 text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold">បោះបង់</button>
+                <button type="submit" id="addVoterSubmitBtn" class="btn btn-primary text-sm py-2 px-5 shadow-md flex items-center gap-2 font-bold">
+                    <span>💾</span> <span>រក្សាទុកទិន្នន័យ</span>
                 </button>
             </div>
         </form>
@@ -477,47 +477,53 @@
 <div id="editVoterModal" class="modal-overlay">
     <div class="modal-card max-w-2xl">
         <div class="modal-header">
-            <h3 class="font-bold text-base sm:text-lg font-kh-bold flex items-center gap-2">
-                <span>✏️</span> កែប្រែព័ត៌មានអ្នកបោះឆ្នោត
+            <h3 class="font-bold text-base sm:text-lg font-kh-bold flex items-center gap-2 text-white">
+                <span class="text-amber-300">✏️</span> <span>កែប្រែព័ត៌មានអ្នកបោះឆ្នោត</span>
             </h3>
-            <button type="button" onclick="closeModal('editVoterModal')" class="text-white/80 hover:text-white text-xl p-1 leading-none">✕</button>
+            <button type="button" onclick="closeModal('editVoterModal')" class="text-white/80 hover:text-white hover:bg-white/10 rounded-lg text-xl p-1 leading-none transition" title="បិទ">✕</button>
         </div>
         <form id="editVoterForm" onsubmit="submitEditVoter(event)" enctype="multipart/form-data">
             <input type="hidden" name="voter_id" id="editVoterId">
             <div class="modal-body space-y-4">
 
                 <!-- Registration Type Selector Box in Edit -->
-                <div class="p-3.5 bg-gradient-to-r from-blue-50/80 to-indigo-50/80 rounded-2xl border border-blue-200">
-                    <label class="block text-xs font-bold text-blue-950 mb-2 font-kh-bold flex items-center justify-between">
+                <div class="p-3.5 bg-gradient-to-r from-blue-50/90 to-indigo-50/90 dark:from-slate-800/90 dark:to-slate-850/90 rounded-2xl border border-blue-200 dark:border-slate-700/80 shadow-xs">
+                    <label class="block text-xs font-bold text-blue-950 dark:text-sky-300 mb-2.5 font-kh-bold flex items-center justify-between">
                         <span class="flex items-center gap-1.5">
                             <span>🏷️</span> <span>ប្រភេទនៃការចុះឈ្មោះ / ប្រភពទិន្នន័យ *</span>
                         </span>
-                        <span class="text-[11px] text-blue-700 font-normal">ញែកតាមបញ្ជី និងឆ្នាំ</span>
+                        <span class="text-[11px] text-blue-700 dark:text-sky-400 font-normal">ញែកតាមបញ្ជី និងឆ្នាំ</span>
                     </label>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
-                        <label class="flex items-center gap-2 p-2 bg-white rounded-xl border border-blue-200 cursor-pointer">
-                            <input type="radio" name="reg_type" id="editRegType_new" value="new" onchange="onRegTypeChange('edit', this.value)" class="text-blue-600">
-                            <div class="text-xs font-bold text-emerald-800">✨ ចុះថ្មី (New)</div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-3">
+                        <label class="flex items-center gap-2.5 p-2.5 bg-white dark:bg-slate-900/90 rounded-xl border border-emerald-300 dark:border-emerald-500/40 hover:border-emerald-500 cursor-pointer transition shadow-xs">
+                            <input type="radio" name="reg_type" id="editRegType_new" value="new" onchange="onRegTypeChange('edit', this.value)" class="text-emerald-600 focus:ring-emerald-500">
+                            <div class="text-xs font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
+                                <span>✨</span> <span>ចុះថ្មី (New)</span>
+                            </div>
                         </label>
-                        <label class="flex items-center gap-2 p-2 bg-white rounded-xl border border-slate-200 cursor-pointer">
-                            <input type="radio" name="reg_type" id="editRegType_legacy" value="legacy" onchange="onRegTypeChange('edit', this.value)" class="text-blue-600">
-                            <div class="text-xs font-bold text-slate-800">📋 បញ្ជីចាស់ (Legacy)</div>
+                        <label class="flex items-center gap-2.5 p-2.5 bg-white dark:bg-slate-900/90 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-blue-500 cursor-pointer transition shadow-xs">
+                            <input type="radio" name="reg_type" id="editRegType_legacy" value="legacy" onchange="onRegTypeChange('edit', this.value)" class="text-blue-600 focus:ring-blue-500">
+                            <div class="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1">
+                                <span>📋</span> <span>បញ្ជីចាស់ (Legacy)</span>
+                            </div>
                         </label>
-                        <label class="flex items-center gap-2 p-2 bg-white rounded-xl border border-slate-200 cursor-pointer">
-                            <input type="radio" name="reg_type" id="editRegType_transferred" value="transferred" onchange="onRegTypeChange('edit', this.value)" class="text-blue-600">
-                            <div class="text-xs font-bold text-purple-800">📦 ផ្ទេរចូល (Transferred)</div>
+                        <label class="flex items-center gap-2.5 p-2.5 bg-white dark:bg-slate-900/90 rounded-xl border border-purple-200 dark:border-purple-500/40 hover:border-purple-500 cursor-pointer transition shadow-xs">
+                            <input type="radio" name="reg_type" id="editRegType_transferred" value="transferred" onchange="onRegTypeChange('edit', this.value)" class="text-purple-600 focus:ring-purple-500">
+                            <div class="text-xs font-bold text-purple-700 dark:text-purple-300 flex items-center gap-1">
+                                <span>📦</span> <span>ផ្ទេរចូល (Transferred)</span>
+                            </div>
                         </label>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-blue-200/60">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2.5 border-t border-blue-200/70 dark:border-slate-700/80">
                         <div>
-                            <label class="block text-[11px] font-bold text-slate-700 mb-1">ឆ្នាំចុះឈ្មោះ (Year) *</label>
-                            <input type="number" name="reg_year" id="editRegYear" min="1993" max="2050" required class="form-control text-sm font-mono font-bold text-blue-900">
+                            <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 mb-1">ឆ្នាំចុះឈ្មោះ (Year) *</label>
+                            <input type="number" name="reg_year" id="editRegYear" min="1993" max="2050" required class="form-control text-sm font-mono font-bold text-slate-800 dark:text-sky-300">
                         </div>
                         <div>
-                            <label class="block text-[11px] font-bold text-slate-700 mb-1">មូលហេតុនៃការចុះឈ្មោះ (Reason)</label>
-                            <select name="reg_reason" id="editRegReason" class="form-control text-sm">
+                            <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 mb-1">មូលហេតុនៃការចុះឈ្មោះ (Reason)</label>
+                            <select name="reg_reason" id="editRegReason" class="form-control text-sm font-medium">
                                 <option value="first_time_18">យុវជនទើបគ្រប់អាយុ ១៨ ឆ្នាំ (First-Time 18+)</option>
                                 <option value="never_registered">ពលរដ្ឋមិនធ្លាប់ចុះឈ្មោះពីមុន (Never Registered)</option>
                                 <option value="relocated">ផ្លាស់ប្តូរទីលំនៅចូលឃុំ (Relocated into Commune)</option>
@@ -528,16 +534,16 @@
                 </div>
 
                 <!-- Profile Photo Picker Section in Edit -->
-                <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200">
-                    <label class="block text-xs font-bold text-slate-700 mb-2">📸 រូបថតអ្នកបោះឆ្នោត (Profile Photo)</label>
+                <div class="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700">
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-2.5">📸 រូបថតអ្នកបោះឆ្នោត (Profile Photo)</label>
                     <div class="flex flex-col sm:flex-row items-center gap-4">
                         <div class="relative flex-shrink-0">
-                            <img id="editPhotoPreview" src="/static/images/avatars/male_1.jpg" alt="Preview" class="w-20 h-20 rounded-2xl object-cover border-2 border-blue-400 shadow-md bg-white" onerror="this.onerror=null; this.src='/static/images/avatars/male_1.jpg';">
+                            <img id="editPhotoPreview" src="/static/images/avatars/male_1.jpg" alt="Preview" class="w-20 h-20 rounded-2xl object-cover border-2 border-blue-400 dark:border-blue-500 shadow-md bg-white dark:bg-slate-900" onerror="this.onerror=null; this.src='/static/images/avatars/male_1.jpg';">
                         </div>
                         <div class="flex-1 space-y-2 w-full">
                             <div class="flex gap-2">
-                                <label class="btn btn-outline text-xs py-1.5 px-3 cursor-pointer flex items-center gap-1">
-                                    <span>📁 ប្តូររូបថ្មី (Upload)</span>
+                                <label class="btn btn-outline text-xs py-1.5 px-3 cursor-pointer flex items-center gap-1.5 font-semibold text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800">
+                                    <span>📁</span> <span>ប្តូររូបថ្មី (Upload)</span>
                                     <input type="file" name="photo" id="editPhotoInput" accept="image/*" class="hidden" onchange="handleFileSelect(this, 'editPhotoPreview', 'editPresetInput')">
                                 </label>
                             </div>
@@ -545,15 +551,15 @@
                             
                             <!-- Avatar Preset Quick Chips -->
                             <div>
-                                <span class="text-[11px] text-slate-500 font-semibold block mb-1">ឬជ្រើសរើសគំរូរូបថត (Presets)៖</span>
+                                <span class="text-[11px] text-slate-500 dark:text-slate-400 font-semibold block mb-1.5">ឬជ្រើសរើសគំរូរូបថត (Presets)៖</span>
                                 <div class="flex flex-wrap gap-1.5">
-                                    <button type="button" onclick="selectPreset('/static/images/avatars/male_1.jpg', 'editPhotoPreview', 'editPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 hover:border-blue-600 focus:ring-2 focus:ring-blue-400"><img src="/static/images/avatars/male_1.jpg" class="w-full h-full object-cover"></button>
-                                    <button type="button" onclick="selectPreset('/static/images/avatars/male_2.jpg', 'editPhotoPreview', 'editPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 hover:border-blue-600 focus:ring-2 focus:ring-blue-400"><img src="/static/images/avatars/male_2.jpg" class="w-full h-full object-cover"></button>
-                                    <button type="button" onclick="selectPreset('/static/images/avatars/male_3.jpg', 'editPhotoPreview', 'editPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 hover:border-blue-600 focus:ring-2 focus:ring-blue-400"><img src="/static/images/avatars/male_3.jpg" class="w-full h-full object-cover"></button>
-                                    <button type="button" onclick="selectPreset('/static/images/avatars/male_4.jpg', 'editPhotoPreview', 'editPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 hover:border-blue-600 focus:ring-2 focus:ring-blue-400"><img src="/static/images/avatars/male_4.jpg" class="w-full h-full object-cover"></button>
-                                    <button type="button" onclick="selectPreset('/static/images/avatars/female_1.jpg', 'editPhotoPreview', 'editPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 hover:border-pink-600 focus:ring-2 focus:ring-pink-400"><img src="/static/images/avatars/female_1.jpg" class="w-full h-full object-cover"></button>
-                                    <button type="button" onclick="selectPreset('/static/images/avatars/female_2.jpg', 'editPhotoPreview', 'editPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 hover:border-pink-600 focus:ring-2 focus:ring-pink-400"><img src="/static/images/avatars/female_2.jpg" class="w-full h-full object-cover"></button>
-                                    <button type="button" onclick="selectPreset('/static/images/avatars/female_3.jpg', 'editPhotoPreview', 'editPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 hover:border-pink-600 focus:ring-2 focus:ring-pink-400"><img src="/static/images/avatars/female_3.jpg" class="w-full h-full object-cover"></button>
+                                    <button type="button" onclick="selectPreset('/static/images/avatars/male_1.jpg', 'editPhotoPreview', 'editPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 border-slate-300 dark:border-slate-600 hover:border-blue-500 focus:ring-2 focus:ring-blue-400 transition" title="រូបគំរូ ១"><img src="/static/images/avatars/male_1.jpg" class="w-full h-full object-cover"></button>
+                                    <button type="button" onclick="selectPreset('/static/images/avatars/male_2.jpg', 'editPhotoPreview', 'editPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 border-slate-300 dark:border-slate-600 hover:border-blue-500 focus:ring-2 focus:ring-blue-400 transition" title="រូបគំរូ ២"><img src="/static/images/avatars/male_2.jpg" class="w-full h-full object-cover"></button>
+                                    <button type="button" onclick="selectPreset('/static/images/avatars/male_3.jpg', 'editPhotoPreview', 'editPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 border-slate-300 dark:border-slate-600 hover:border-blue-500 focus:ring-2 focus:ring-blue-400 transition" title="រូបគំរូ ៣"><img src="/static/images/avatars/male_3.jpg" class="w-full h-full object-cover"></button>
+                                    <button type="button" onclick="selectPreset('/static/images/avatars/male_4.jpg', 'editPhotoPreview', 'editPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 border-slate-300 dark:border-slate-600 hover:border-blue-500 focus:ring-2 focus:ring-blue-400 transition" title="រូបគំរូ ៤"><img src="/static/images/avatars/male_4.jpg" class="w-full h-full object-cover"></button>
+                                    <button type="button" onclick="selectPreset('/static/images/avatars/female_1.jpg', 'editPhotoPreview', 'editPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 border-slate-300 dark:border-slate-600 hover:border-pink-500 focus:ring-2 focus:ring-pink-400 transition" title="រូបគំរូ ៥"><img src="/static/images/avatars/female_1.jpg" class="w-full h-full object-cover"></button>
+                                    <button type="button" onclick="selectPreset('/static/images/avatars/female_2.jpg', 'editPhotoPreview', 'editPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 border-slate-300 dark:border-slate-600 hover:border-pink-500 focus:ring-2 focus:ring-pink-400 transition" title="រូបគំរូ ៦"><img src="/static/images/avatars/female_2.jpg" class="w-full h-full object-cover"></button>
+                                    <button type="button" onclick="selectPreset('/static/images/avatars/female_3.jpg', 'editPhotoPreview', 'editPresetInput')" class="w-7 h-7 rounded-full overflow-hidden border-2 border-slate-300 dark:border-slate-600 hover:border-pink-500 focus:ring-2 focus:ring-pink-400 transition" title="រូបគំរូ ៧"><img src="/static/images/avatars/female_3.jpg" class="w-full h-full object-cover"></button>
                                 </div>
                             </div>
                         </div>
@@ -574,7 +580,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div class="form-group">
                         <label class="form-label">ភេទ *</label>
-                        <select name="gender" id="editGender" required class="form-control">
+                        <select name="gender" id="editGender" required class="form-control font-medium">
                             <option value="ប្រុស">ប្រុស (Male)</option>
                             <option value="ស្រី">ស្រី (Female)</option>
                         </select>
@@ -582,7 +588,7 @@
                     <div class="form-group sm:col-span-2">
                         <div class="flex items-center justify-between mb-1">
                             <label class="form-label mb-0">ថ្ងៃខែឆ្នាំកំណើត *</label>
-                            <span class="text-[11px] text-slate-500 font-medium">ត្រូវមានអាយុ ១៨ ឆ្នាំឡើងទៅ</span>
+                            <span class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">ត្រូវមានអាយុ ១៨ ឆ្នាំឡើងទៅ</span>
                         </div>
                         <input type="date" name="dob" id="editDob" required onchange="checkVoterAge(this, 'editDobFeedback', 'editVoterSubmitBtn')" oninput="checkVoterAge(this, 'editDobFeedback', 'editVoterSubmitBtn')" class="form-control font-mono">
                         <div id="editDobFeedback"></div>
@@ -593,14 +599,14 @@
                     <div class="form-group">
                         <div class="flex items-center justify-between mb-1">
                             <label class="form-label mb-0">លេខអត្តសញ្ញាណប័ណ្ណ *</label>
-                            <span class="text-[11px] text-blue-600 font-semibold">អតិបរមា ៩ ខ្ទង់</span>
+                            <span class="text-[11px] text-blue-700 dark:text-sky-300 font-semibold bg-blue-50 dark:bg-blue-950/70 px-2 py-0.5 rounded-full border border-blue-200 dark:border-blue-800/60">អតិបរមា ៩ ខ្ទង់</span>
                         </div>
                         <input type="text" name="national_id" id="editNationalId" required maxlength="9" inputmode="numeric" oninput="checkDuplicateID(this, document.getElementById('editVoterId').value, 'editIdCheckFeedback')" class="form-control font-mono">
                         <div id="editIdCheckFeedback"></div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">ស្ថានភាពអ្នកបោះឆ្នោត *</label>
-                        <select name="status" id="editStatus" required class="form-control">
+                        <select name="status" id="editStatus" required class="form-control font-medium">
                             <option value="active">សកម្ម (Active)</option>
                             <option value="moved">បានផ្លាស់ចេញ (Moved Out)</option>
                             <option value="deceased">មរណភាព (Deceased)</option>
@@ -612,7 +618,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div class="form-group">
                         <label class="form-label">ភូមិ *</label>
-                        <select name="village_id" id="editVillageId" required class="form-control" onchange="filterStationsByVillage('editVillageId', 'editStationId')">
+                        <select name="village_id" id="editVillageId" required class="form-control font-medium" onchange="filterStationsByVillage('editVillageId', 'editStationId')">
                             {% for v in villages %}
                             <option value="{{ v.id }}">{{ v.name_kh }}</option>
                             {% endfor %}
@@ -620,7 +626,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">ការិយាល័យបោះឆ្នោត *</label>
-                        <select name="station_id" id="editStationId" required class="form-control">
+                        <select name="station_id" id="editStationId" required class="form-control font-medium">
                             {% for s in stations %}
                             <option value="{{ s.id }}" data-village-id="{{ s.village_id }}">{{ s.code }} - {{ s.name }}</option>
                             {% endfor %}
@@ -641,8 +647,10 @@
             </div>
 
             <div class="modal-footer">
-                <button type="button" onclick="closeModal('editVoterModal')" class="btn btn-outline text-sm py-2 px-4">បោះបង់</button>
-                <button type="submit" id="editVoterSubmitBtn" class="btn btn-primary text-sm py-2 px-5 shadow-md">💾 រក្សាទុកការកែប្រែ</button>
+                <button type="button" onclick="closeModal('editVoterModal')" class="btn btn-outline text-sm py-2 px-4 text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold">បោះបង់</button>
+                <button type="submit" id="editVoterSubmitBtn" class="btn btn-primary text-sm py-2 px-5 shadow-md flex items-center gap-2 font-bold">
+                    <span>💾</span> <span>រក្សាទុកការកែប្រែ</span>
+                </button>
             </div>
         </form>
     </div>
@@ -652,48 +660,50 @@
 <div id="quickChangePhotoModal" class="modal-overlay">
     <div class="modal-card max-w-md">
         <div class="modal-header">
-            <h3 class="font-bold text-base font-kh-bold flex items-center gap-2">
-                <span>📸</span> ផ្លាស់ប្តូររូបថតអ្នកបោះឆ្នោត
+            <h3 class="font-bold text-base font-kh-bold flex items-center gap-2 text-white">
+                <span class="text-amber-300">📸</span> <span>ផ្លាស់ប្តូររូបថតអ្នកបោះឆ្នោត</span>
             </h3>
-            <button type="button" onclick="closeModal('quickChangePhotoModal')" class="text-white/80 hover:text-white text-xl p-1 leading-none">✕</button>
+            <button type="button" onclick="closeModal('quickChangePhotoModal')" class="text-white/80 hover:text-white hover:bg-white/10 rounded-lg text-xl p-1 leading-none transition" title="បិទ">✕</button>
         </div>
         <form id="quickPhotoForm" onsubmit="submitQuickPhoto(event)" enctype="multipart/form-data">
             <input type="hidden" name="voter_id" id="quickPhotoVoterId">
             <input type="hidden" name="photo_preset" id="quickPhotoPresetInput">
             <div class="modal-body space-y-4 text-center">
                 <div>
-                    <h4 id="quickPhotoVoterName" class="font-bold text-slate-900 text-lg font-kh-bold">ឈ្មោះអ្នកបោះឆ្នោត</h4>
-                    <p class="text-xs text-slate-500">ជ្រើសរើសរូបថតផ្ទាល់ខ្លួន ឬរូបតំណាងផ្លូវការ</p>
+                    <h4 id="quickPhotoVoterName" class="font-bold text-slate-900 dark:text-slate-100 text-lg font-kh-bold">ឈ្មោះអ្នកបោះឆ្នោត</h4>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">ជ្រើសរើសរូបថតផ្ទាល់ខ្លួន ឬរូបតំណាងផ្លូវការ</p>
                 </div>
 
                 <div class="flex justify-center">
-                    <img id="quickPhotoPreview" src="/static/images/avatars/male_1.jpg" alt="Preview" class="w-28 h-28 rounded-3xl object-cover border-4 border-blue-500 shadow-xl bg-white" onerror="this.onerror=null; this.src='/static/images/avatars/male_1.jpg';">
+                    <img id="quickPhotoPreview" src="/static/images/avatars/male_1.jpg" alt="Preview" class="w-28 h-28 rounded-3xl object-cover border-4 border-blue-500 shadow-xl bg-white dark:bg-slate-900" onerror="this.onerror=null; this.src='/static/images/avatars/male_1.jpg';">
                 </div>
 
                 <div>
-                    <label class="btn btn-primary w-full py-2 text-sm cursor-pointer flex items-center justify-center gap-2 shadow-md">
-                        <span>📁 ជ្រើសរើសរូបភាពថ្មី (Upload)</span>
+                    <label class="btn btn-primary w-full py-2.5 text-sm cursor-pointer flex items-center justify-center gap-2 shadow-md font-bold">
+                        <span>📁</span> <span>ជ្រើសរើសរូបភាពថ្មី (Upload)</span>
                         <input type="file" name="photo" id="quickPhotoFileInput" accept="image/*" class="hidden" onchange="handleFileSelect(this, 'quickPhotoPreview', 'quickPhotoPresetInput')">
                     </label>
                 </div>
 
-                <div class="border-t pt-3">
-                    <span class="text-xs text-slate-500 font-semibold block mb-2">ឬជ្រើសរើសរូបគំរូ (Presets)៖</span>
+                <div class="border-t border-slate-200 dark:border-slate-700/80 pt-3">
+                    <span class="text-xs text-slate-600 dark:text-slate-300 font-semibold block mb-2">ឬជ្រើសរើសរូបគំរូ (Presets)៖</span>
                     <div class="flex justify-center flex-wrap gap-2">
-                        <button type="button" onclick="selectPreset('/static/images/avatars/male_1.jpg', 'quickPhotoPreview', 'quickPhotoPresetInput')" class="w-9 h-9 rounded-full overflow-hidden border-2 hover:border-blue-600 focus:ring-2 focus:ring-blue-400"><img src="/static/images/avatars/male_1.jpg" class="w-full h-full object-cover"></button>
-                        <button type="button" onclick="selectPreset('/static/images/avatars/male_2.jpg', 'quickPhotoPreview', 'quickPhotoPresetInput')" class="w-9 h-9 rounded-full overflow-hidden border-2 hover:border-blue-600 focus:ring-2 focus:ring-blue-400"><img src="/static/images/avatars/male_2.jpg" class="w-full h-full object-cover"></button>
-                        <button type="button" onclick="selectPreset('/static/images/avatars/male_3.jpg', 'quickPhotoPreview', 'quickPhotoPresetInput')" class="w-9 h-9 rounded-full overflow-hidden border-2 hover:border-blue-600 focus:ring-2 focus:ring-blue-400"><img src="/static/images/avatars/male_3.jpg" class="w-full h-full object-cover"></button>
-                        <button type="button" onclick="selectPreset('/static/images/avatars/male_4.jpg', 'quickPhotoPreview', 'quickPhotoPresetInput')" class="w-9 h-9 rounded-full overflow-hidden border-2 hover:border-blue-600 focus:ring-2 focus:ring-blue-400"><img src="/static/images/avatars/male_4.jpg" class="w-full h-full object-cover"></button>
-                        <button type="button" onclick="selectPreset('/static/images/avatars/female_1.jpg', 'quickPhotoPreview', 'quickPhotoPresetInput')" class="w-9 h-9 rounded-full overflow-hidden border-2 hover:border-pink-600 focus:ring-2 focus:ring-pink-400"><img src="/static/images/avatars/female_1.jpg" class="w-full h-full object-cover"></button>
-                        <button type="button" onclick="selectPreset('/static/images/avatars/female_2.jpg', 'quickPhotoPreview', 'quickPhotoPresetInput')" class="w-9 h-9 rounded-full overflow-hidden border-2 hover:border-pink-600 focus:ring-2 focus:ring-pink-400"><img src="/static/images/avatars/female_2.jpg" class="w-full h-full object-cover"></button>
-                        <button type="button" onclick="selectPreset('/static/images/avatars/female_3.jpg', 'quickPhotoPreview', 'quickPhotoPresetInput')" class="w-9 h-9 rounded-full overflow-hidden border-2 hover:border-pink-600 focus:ring-2 focus:ring-pink-400"><img src="/static/images/avatars/female_3.jpg" class="w-full h-full object-cover"></button>
+                        <button type="button" onclick="selectPreset('/static/images/avatars/male_1.jpg', 'quickPhotoPreview', 'quickPhotoPresetInput')" class="w-9 h-9 rounded-full overflow-hidden border-2 border-slate-300 dark:border-slate-600 hover:border-blue-500 focus:ring-2 focus:ring-blue-400 transition"><img src="/static/images/avatars/male_1.jpg" class="w-full h-full object-cover"></button>
+                        <button type="button" onclick="selectPreset('/static/images/avatars/male_2.jpg', 'quickPhotoPreview', 'quickPhotoPresetInput')" class="w-9 h-9 rounded-full overflow-hidden border-2 border-slate-300 dark:border-slate-600 hover:border-blue-500 focus:ring-2 focus:ring-blue-400 transition"><img src="/static/images/avatars/male_2.jpg" class="w-full h-full object-cover"></button>
+                        <button type="button" onclick="selectPreset('/static/images/avatars/male_3.jpg', 'quickPhotoPreview', 'quickPhotoPresetInput')" class="w-9 h-9 rounded-full overflow-hidden border-2 border-slate-300 dark:border-slate-600 hover:border-blue-500 focus:ring-2 focus:ring-blue-400 transition"><img src="/static/images/avatars/male_3.jpg" class="w-full h-full object-cover"></button>
+                        <button type="button" onclick="selectPreset('/static/images/avatars/male_4.jpg', 'quickPhotoPreview', 'quickPhotoPresetInput')" class="w-9 h-9 rounded-full overflow-hidden border-2 border-slate-300 dark:border-slate-600 hover:border-blue-500 focus:ring-2 focus:ring-blue-400 transition"><img src="/static/images/avatars/male_4.jpg" class="w-full h-full object-cover"></button>
+                        <button type="button" onclick="selectPreset('/static/images/avatars/female_1.jpg', 'quickPhotoPreview', 'quickPhotoPresetInput')" class="w-9 h-9 rounded-full overflow-hidden border-2 border-slate-300 dark:border-slate-600 hover:border-pink-500 focus:ring-2 focus:ring-pink-400 transition"><img src="/static/images/avatars/female_1.jpg" class="w-full h-full object-cover"></button>
+                        <button type="button" onclick="selectPreset('/static/images/avatars/female_2.jpg', 'quickPhotoPreview', 'quickPhotoPresetInput')" class="w-9 h-9 rounded-full overflow-hidden border-2 border-slate-300 dark:border-slate-600 hover:border-pink-500 focus:ring-2 focus:ring-pink-400 transition"><img src="/static/images/avatars/female_2.jpg" class="w-full h-full object-cover"></button>
+                        <button type="button" onclick="selectPreset('/static/images/avatars/female_3.jpg', 'quickPhotoPreview', 'quickPhotoPresetInput')" class="w-9 h-9 rounded-full overflow-hidden border-2 border-slate-300 dark:border-slate-600 hover:border-pink-500 focus:ring-2 focus:ring-pink-400 transition"><img src="/static/images/avatars/female_3.jpg" class="w-full h-full object-cover"></button>
                     </div>
                 </div>
             </div>
 
             <div class="modal-footer">
-                <button type="button" onclick="closeModal('quickChangePhotoModal')" class="btn btn-outline text-sm py-2 px-4">បោះបង់</button>
-                <button type="submit" class="btn btn-primary text-sm py-2 px-5 shadow-md">💾 រក្សាទុករូបថត</button>
+                <button type="button" onclick="closeModal('quickChangePhotoModal')" class="btn btn-outline text-sm py-2 px-4 text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold">បោះបង់</button>
+                <button type="submit" class="btn btn-primary text-sm py-2 px-5 shadow-md flex items-center gap-1.5 font-bold">
+                    <span>💾</span> <span>រក្សាទុករូបថត</span>
+                </button>
             </div>
         </form>
     </div>
@@ -703,20 +713,22 @@
 <div id="largePhotoModal" class="modal-overlay">
     <div class="modal-card max-w-sm text-center">
         <div class="modal-header">
-            <h3 id="largePhotoTitle" class="font-bold text-base font-kh-bold">រូបថតអ្នកបោះឆ្នោត</h3>
-            <button type="button" onclick="closeModal('largePhotoModal')" class="text-white/80 hover:text-white text-xl p-1 leading-none">✕</button>
+            <h3 id="largePhotoTitle" class="font-bold text-base font-kh-bold text-white flex items-center gap-2 mx-auto">
+                <span class="text-amber-300">📸</span> <span>រូបថតអ្នកបោះឆ្នោត</span>
+            </h3>
+            <button type="button" onclick="closeModal('largePhotoModal')" class="text-white/80 hover:text-white hover:bg-white/10 rounded-lg text-xl p-1 leading-none transition" title="បិទ">✕</button>
         </div>
         <div class="modal-body p-6 space-y-3">
             <div class="flex justify-center">
-                <img id="largePhotoImg" src="" alt="Voter Portrait" class="w-56 h-56 rounded-3xl object-cover border-4 border-blue-900 shadow-2xl bg-white" onerror="this.onerror=null; this.src='/static/images/avatars/male_1.jpg';">
+                <img id="largePhotoImg" src="" alt="Voter Portrait" class="w-56 h-56 rounded-3xl object-cover border-4 border-blue-900 dark:border-blue-600 shadow-2xl bg-white dark:bg-slate-900" onerror="this.onerror=null; this.src='/static/images/avatars/male_1.jpg';">
             </div>
             <div>
-                <h4 id="largePhotoName" class="font-bold text-slate-900 text-lg font-kh-bold mt-2"></h4>
-                <p id="largePhotoCode" class="font-mono text-xs font-bold text-blue-800 bg-blue-50 py-1 px-3 rounded-full inline-block mt-1"></p>
+                <h4 id="largePhotoName" class="font-bold text-slate-900 dark:text-slate-100 text-lg font-kh-bold mt-2"></h4>
+                <p id="largePhotoCode" class="font-mono text-xs font-bold text-blue-800 dark:text-sky-300 bg-blue-50 dark:bg-blue-950/70 border border-blue-200 dark:border-blue-800/60 py-1 px-3 rounded-full inline-block mt-1"></p>
             </div>
         </div>
         <div class="modal-footer justify-center">
-            <button type="button" onclick="closeModal('largePhotoModal')" class="btn btn-primary text-sm py-2 px-6">បិទ</button>
+            <button type="button" onclick="closeModal('largePhotoModal')" class="btn btn-primary text-sm py-2 px-6 font-bold">បិទ</button>
         </div>
     </div>
 </div>

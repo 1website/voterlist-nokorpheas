@@ -192,9 +192,9 @@ function checkDuplicateID(inputElement, excludeId = 0, feedbackId = 'idCheckFeed
     if (val.length < 7) {
         if (feedback) {
             feedback.innerHTML = `
-                <div class="text-[11px] text-slate-500 font-medium mt-1 flex items-center gap-1.5">
+                <div class="text-xs text-slate-600 dark:text-slate-300 font-medium mt-1.5 flex items-center gap-1.5">
                     <span>⏳</span>
-                    <span>កំពុងបញ្ចូល៖ <strong class="text-blue-700 font-mono">${val.length} ខ្ទង់</strong> (ឯកសារបញ្ជាក់អត្តសញ្ញាណ ៧ ខ្ទង់ ឬ អត្តសញ្ញាណប័ណ្ណ ៩ ខ្ទង់)</span>
+                    <span>កំពុងបញ្ចូល៖ <strong class="text-blue-700 dark:text-sky-300 font-mono font-bold">${val.length} ខ្ទង់</strong> (ឯកសារបញ្ជាក់អត្តសញ្ញាណ ៧ ខ្ទង់ ឬ អត្តសញ្ញាណប័ណ្ណ ៩ ខ្ទង់)</span>
                 </div>
             `;
         }
@@ -205,9 +205,9 @@ function checkDuplicateID(inputElement, excludeId = 0, feedbackId = 'idCheckFeed
     if (val.length === 8) {
         if (feedback) {
             feedback.innerHTML = `
-                <div class="text-[11px] text-amber-700 font-medium mt-1 flex items-center gap-1.5">
+                <div class="text-xs text-amber-700 dark:text-amber-300 font-medium mt-1.5 flex items-center gap-1.5 bg-amber-50 dark:bg-amber-950/60 p-2 rounded-xl border border-amber-200 dark:border-amber-800/60">
                     <span>⚠️</span>
-                    <span>បានបញ្ចូល <strong class="font-mono">៨ ខ្ទង់</strong> (ប្រសិនបើជាអត្តសញ្ញាណប័ណ្ណសញ្ជាតិខ្មែរ សូមបញ្ចូលឱ្យគ្រប់ <strong>៩ ខ្ទង់</strong>)</span>
+                    <span>បានបញ្ចូល <strong class="font-mono font-bold">៨ ខ្ទង់</strong> (ប្រសិនបើជាអត្តសញ្ញាណប័ណ្ណសញ្ជាតិខ្មែរ សូមបញ្ចូលឱ្យគ្រប់ <strong>៩ ខ្ទង់</strong>)</span>
                 </div>
             `;
         }
@@ -234,11 +234,11 @@ function checkDuplicateID(inputElement, excludeId = 0, feedbackId = 'idCheckFeed
                     }
 
                     feedback.innerHTML = `
-                        <div class="p-3 bg-red-50 border-2 border-red-300 rounded-xl text-xs text-red-700 flex items-start gap-2.5 shadow-sm mt-1.5">
+                        <div class="p-3 bg-rose-50 dark:bg-rose-950/70 border-2 border-rose-300 dark:border-rose-800 rounded-xl text-xs text-rose-800 dark:text-rose-200 flex items-start gap-2.5 shadow-sm mt-1.5">
                             <span class="text-lg leading-none flex-shrink-0">🚫</span>
                             <div>
-                                <strong class="font-bold text-red-900 block text-xs">⚠️ ស្ទួនទិន្នន័យ៖ លេខ${docTypeLabel}នេះ បានចុះឈ្មោះរួចហើយ!</strong>
-                                <span class="mt-0.5 block leading-relaxed">${data.message}</span>
+                                <strong class="font-bold text-rose-900 dark:text-rose-100 block text-xs">⚠️ ស្ទួនទិន្នន័យ៖ លេខ${docTypeLabel}នេះ បានចុះឈ្មោះរួចហើយ!</strong>
+                                <span class="mt-0.5 block leading-relaxed text-rose-700 dark:text-rose-300">${data.message}</span>
                             </div>
                         </div>
                     `;
@@ -247,20 +247,20 @@ function checkDuplicateID(inputElement, excludeId = 0, feedbackId = 'idCheckFeed
                     inputElement.classList.remove('border-red-500', 'ring-2', 'ring-red-200', 'bg-red-50/30');
                     inputElement.classList.add('border-emerald-500', 'ring-1', 'ring-emerald-200');
                     feedback.innerHTML = `
-                        <div class="p-2.5 bg-emerald-50 border border-emerald-300 rounded-xl text-xs text-emerald-800 flex items-center gap-2 mt-1.5 shadow-sm">
+                        <div class="p-2.5 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800/80 rounded-xl text-xs text-emerald-800 dark:text-emerald-300 flex items-center gap-2 mt-1.5 shadow-2xs">
                             <span class="text-base leading-none">✅</span>
                             <div>
-                                <strong class="font-bold text-emerald-900">${docTypeIcon} លេខ${docTypeLabel} ត្រឹមត្រូវ</strong>
-                                <span class="text-emerald-700 ml-1">មិនស្ទួនក្នុងប្រព័ន្ធឡើយ អាចចុះឈ្មោះបាន។</span>
+                                <strong class="font-bold text-emerald-900 dark:text-emerald-200">${docTypeIcon} លេខ${docTypeLabel} ត្រឹមត្រូវ</strong>
+                                <span class="text-emerald-700 dark:text-emerald-400 ml-1">មិនស្ទួនក្នុងប្រព័ន្ធឡើយ អាចចុះឈ្មោះបាន។</span>
                             </div>
                         </div>
                     `;
                 }
             }
         } catch (e) {
-            console.error(e);
+            console.error("ID duplication check error:", e);
         }
-    }, 250);
+    }, 280);
 }
 
 // Calculate age and validate >= 18 years old
@@ -284,9 +284,7 @@ function calculateAgeFromDob(dobString) {
     } else {
         birthDate = new Date(dobString);
     }
-
-    if (isNaN(birthDate.getTime())) return null;
-
+    if (!birthDate || isNaN(birthDate.getTime())) return null;
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
     const m = today.getMonth() - birthDate.getMonth();
@@ -320,11 +318,11 @@ function checkVoterAge(inputElement, feedbackId, submitBtnId) {
         inputElement.classList.add('border-red-500', 'ring-2', 'ring-red-200', 'bg-red-50/30');
         if (feedback) {
             feedback.innerHTML = `
-                <div class="p-2.5 bg-red-50 border-2 border-red-300 rounded-xl text-xs text-red-700 flex items-start gap-2 shadow-sm mt-1.5 animate-pulse">
+                <div class="p-2.5 bg-rose-50 dark:bg-rose-950/70 border-2 border-rose-300 dark:border-rose-800 rounded-xl text-xs text-rose-800 dark:text-rose-200 flex items-start gap-2 shadow-sm mt-1.5 animate-pulse">
                     <span class="text-base flex-shrink-0 leading-none">🚫</span>
                     <div>
-                        <strong class="font-bold text-red-900 block text-xs">មិនទាន់គ្រប់អាយុបោះឆ្នោត (អាយុត្រឹម ${age} ឆ្នាំ)!</strong>
-                        <span class="mt-0.5 block leading-relaxed">យោងតាមច្បាប់បោះឆ្នោតជាតិ ពលរដ្ឋត្រូវមានអាយុយ៉ាងតិច <strong>១៨ ឆ្នាំឡើងទៅ</strong> ទើបមានសិទ្ធិចុះឈ្មោះបាន។</span>
+                        <strong class="font-bold text-rose-900 dark:text-rose-100 block text-xs">មិនទាន់គ្រប់អាយុបោះឆ្នោត (អាយុត្រឹម ${age} ឆ្នាំ)!</strong>
+                        <span class="mt-0.5 block leading-relaxed text-rose-700 dark:text-rose-300">យោងតាមច្បាប់បោះឆ្នោតជាតិ ពលរដ្ឋត្រូវមានអាយុយ៉ាងតិច <strong>១៨ ឆ្នាំឡើងទៅ</strong> ទើបមានសិទ្ធិចុះឈ្មោះបាន។</span>
                     </div>
                 </div>
             `;
@@ -339,7 +337,7 @@ function checkVoterAge(inputElement, feedbackId, submitBtnId) {
         inputElement.classList.add('border-emerald-500', 'ring-1', 'ring-emerald-200');
         if (feedback) {
             feedback.innerHTML = `
-                <div class="text-[11px] text-emerald-700 font-semibold mt-1 flex items-center gap-1.5">
+                <div class="text-xs font-semibold mt-1.5 flex items-center gap-1.5 text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 py-1.5 px-3 rounded-xl border border-emerald-200 dark:border-emerald-800/80 shadow-2xs w-fit">
                     <span>✅</span>
                     <span>គ្រប់អាយុបោះឆ្នោត (អាយុ <strong>${age} ឆ្នាំ</strong>) អាចចុះឈ្មោះបាន</span>
                 </div>
@@ -400,17 +398,17 @@ function checkDuplicateBirthCert(certInputId, bookInputId, excludeId = 0, feedba
                 if (feedback) {
                     const ex = data.existing || {};
                     feedback.innerHTML = `
-                        <div class="p-3 bg-red-50 border-2 border-red-300 rounded-xl text-xs text-red-800 flex items-start gap-2.5 shadow-sm mt-2 animate-pulse">
+                        <div class="p-3 bg-rose-50 dark:bg-rose-950/70 border-2 border-rose-300 dark:border-rose-800 rounded-xl text-xs text-rose-800 dark:text-rose-200 flex items-start gap-2.5 shadow-sm mt-2 animate-pulse">
                             <span class="text-xl leading-none flex-shrink-0">🚫</span>
                             <div class="space-y-1 min-w-0 flex-1">
-                                <strong class="font-bold text-red-900 block text-xs font-kh-bold">
+                                <strong class="font-bold text-rose-900 dark:text-rose-100 block text-xs font-kh-bold">
                                     ⚠️ ស្ទួនទិន្នន័យ៖ លេខសំបុត្រកំណើត ឬសៀវភៅនេះ បានបញ្ចូលរួចហើយ!
                                 </strong>
-                                <div class="text-[11px] text-red-700 leading-relaxed">
+                                <div class="text-[11px] text-rose-700 dark:text-rose-300 leading-relaxed">
                                     <span>${data.message}</span>
                                 </div>
                                 ${ex.name_kh ? `
-                                <div class="pt-1.5 mt-1.5 border-t border-red-200 flex flex-wrap gap-x-3 gap-y-1 text-[11px] font-medium text-red-900">
+                                <div class="pt-1.5 mt-1.5 border-t border-rose-200 dark:border-rose-800/80 flex flex-wrap gap-x-3 gap-y-1 text-[11px] font-medium text-rose-900 dark:text-rose-100">
                                     <span>👤 ឈ្មោះ៖ <strong>${ex.name_kh}</strong> (${ex.name_en || ''})</span>
                                     <span>🎂 ថ្ងៃខែឆ្នាំកំណើត៖ <strong>${ex.dob || ''}</strong></span>
                                     ${ex.village_name ? `<span>🏡 ភូមិ៖ <strong>${ex.village_name}</strong></span>` : ''}

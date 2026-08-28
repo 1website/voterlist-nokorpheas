@@ -671,33 +671,40 @@ body {
 
 /* Form Controls */
 .form-group {
-  margin-bottom: 12px;
+  margin-bottom: 13px;
 }
 
 .form-label {
   display: block;
-  font-size: 0.825rem;
-  font-weight: 600;
-  margin-bottom: 4px;
-  color: #334155;
+  font-size: 0.84rem;
+  font-weight: 700;
+  margin-bottom: 5px;
+  color: #0f172a;
+  letter-spacing: -0.01em;
 }
 
 .form-control {
   width: 100%;
-  padding: 9px 13px;
+  padding: 9.5px 14px;
   font-size: 0.9rem;
   font-family: var(--font-body);
-  border: 1.5px solid var(--border-color);
+  border: 1.5px solid #cbd5e1;
   border-radius: var(--radius-md);
-  background: white;
-  color: #1e293b;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  background: #ffffff;
+  color: #0f172a;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.form-control::placeholder {
+  color: #94a3b8;
+  opacity: 0.95;
 }
 
 .form-control:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3.5px rgba(37, 99, 235, 0.18);
+  background-color: #ffffff;
 }
 
 /* Turnout Meter / Progress Bar */
@@ -1017,23 +1024,25 @@ html.dark .stat-card:hover {
 }
 
 html.dark .form-control {
-  background-color: #0b1329 !important;
-  border: 1.5px solid #334155 !important;
-  color: #f8fafc !important;
+  background-color: #0d1a33 !important;
+  border: 1.5px solid #2b3e5f !important;
+  color: #ffffff !important;
 }
 
 html.dark .form-control::placeholder {
-  color: #64748b !important;
+  color: #94a3b8 !important;
+  opacity: 0.88 !important;
 }
 
 html.dark .form-control:focus {
   border-color: #38bdf8 !important;
-  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2) !important;
-  background-color: #0f172a !important;
+  box-shadow: 0 0 0 3.5px rgba(56, 189, 248, 0.25) !important;
+  background-color: #112244 !important;
 }
 
 html.dark .form-label {
-  color: #cbd5e1 !important;
+  color: #f8fafc !important;
+  font-weight: 700 !important;
 }
 
 html.dark select.form-control option {
@@ -1042,31 +1051,36 @@ html.dark select.form-control option {
 }
 
 html.dark .btn-outline {
-  background: rgba(30, 41, 59, 0.4) !important;
-  border-color: #334155 !important;
-  color: #e2e8f0 !important;
+  background: rgba(30, 41, 59, 0.5) !important;
+  border-color: #3e506d !important;
+  color: #f1f5f9 !important;
 }
 
 html.dark .btn-outline:hover {
   background: #1e293b !important;
-  border-color: #475569 !important;
+  border-color: #64748b !important;
   color: #ffffff !important;
 }
 
 html.dark .modal-overlay {
-  background: rgba(3, 7, 18, 0.8) !important;
+  background: rgba(3, 7, 18, 0.82) !important;
 }
 
 html.dark .modal-card {
-  background: #131f37 !important;
-  border: 1px solid #334155 !important;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7) !important;
+  background: #13213c !important;
+  border: 1px solid #2b3e5f !important;
+  box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.8) !important;
   color: #f8fafc !important;
 }
 
+html.dark .modal-header {
+  background: linear-gradient(135deg, #091a3e 0%, #173678 100%) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
 html.dark .modal-footer {
-  background: #0b1329 !important;
-  border-top: 1px solid #1e293b !important;
+  background: #0c1629 !important;
+  border-top: 1px solid #1e2c45 !important;
 }
 
 html.dark .modal-body::-webkit-scrollbar-track {
@@ -1116,10 +1130,10 @@ html.dark .turnout-bar-bg {
   background: #1e293b !important;
 }
 
-/* Polling Station & Village Codes in Tables */
-html.dark .font-bold.text-blue-800,
-html.dark .font-bold.text-blue-900,
-html.dark .font-bold.text-blue-950 {
+/* Polling Station & Village Codes in Tables only */
+html.dark table td .font-bold.text-blue-800,
+html.dark table td .font-bold.text-blue-900,
+html.dark table td .font-bold.text-blue-950 {
   color: #38bdf8 !important;
   text-shadow: 0 0 8px rgba(56, 189, 248, 0.25) !important;
 }
@@ -1639,4 +1653,42 @@ html.dark .bg-blue-100 {
 
 html.dark .bg-amber-100 {
   background-color: rgba(120, 53, 15, 0.35) !important;
+}
+
+/* Dark mode gradient & card background harmonizers */
+html.dark .from-blue-50\/90,
+html.dark .from-blue-50\/80,
+html.dark .from-blue-50 {
+  --tw-gradient-from: rgba(19, 33, 60, 0.95) var(--tw-gradient-from-position) !important;
+}
+
+html.dark .to-indigo-50\/90,
+html.dark .to-indigo-50\/80,
+html.dark .to-indigo-50 {
+  --tw-gradient-to: rgba(26, 42, 77, 0.85) var(--tw-gradient-to-position) !important;
+}
+
+html.dark .bg-slate-50 {
+  background-color: #0f1c34 !important;
+}
+
+html.dark .bg-blue-50 {
+  background-color: rgba(14, 165, 233, 0.15) !important;
+}
+
+html.dark .bg-emerald-50 {
+  background-color: rgba(16, 185, 129, 0.15) !important;
+}
+
+html.dark .bg-rose-50,
+html.dark .bg-red-50 {
+  background-color: rgba(239, 68, 68, 0.15) !important;
+}
+
+html.dark .bg-purple-50 {
+  background-color: rgba(168, 85, 247, 0.15) !important;
+}
+
+html.dark .bg-amber-50 {
+  background-color: rgba(245, 158, 11, 0.15) !important;
 }
