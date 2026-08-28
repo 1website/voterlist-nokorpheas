@@ -30,10 +30,6 @@
             <a href="/reports/daily" class="btn btn-outline-indigo text-sm font-bold flex items-center gap-1.5">
                 <span>📅</span> របាយការណ៍ប្រចាំថ្ងៃ
             </a>
-            
-            <a href="/reports/export/excel?station_id={{ station_id }}&village_id={{ village_id }}&status_filter={{ status_filter }}&reg_type={{ reg_type_filter }}&reg_year={{ reg_year_filter }}" class="btn btn-outline-emerald text-sm font-bold flex items-center gap-1.5">
-                <span>📥</span> Export Excel
-            </a>
         </div>
     </div>
 
@@ -79,20 +75,12 @@
                 </select>
             </div>
 
-            <!-- Voted Filter & Submit Button -->
+            <!-- Submit & Reset Buttons -->
             <div class="flex items-end gap-2">
-                <div class="flex-1">
-                    <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">វត្តមាន</label>
-                    <select name="voted_filter" class="form-control text-sm py-2">
-                        <option value="">-- ទាំងអស់ --</option>
-                        <option value="voted" {% if voted_filter == 'voted' %}selected{% endif %}>បោះរួច</option>
-                        <option value="not_voted" {% if voted_filter == 'not_voted' %}selected{% endif %}>មិនទាន់បោះ</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn btn-primary py-2 px-3 text-sm" title="ស្វែងរក">
-                    🔍
+                <button type="submit" class="btn btn-primary py-2 px-3 text-sm font-bold flex items-center justify-center gap-1.5 flex-1" title="ស្វែងរក">
+                    <span>🔍</span> ស្វែងរក
                 </button>
-                <a href="/voters" class="btn btn-outline py-2 px-2.5 text-sm hover:bg-slate-100" title="សម្អាតតម្រង">
+                <a href="/voters" class="btn btn-outline py-2 px-2.5 text-sm hover:bg-slate-100 dark:hover:bg-slate-800" title="សម្អាតតម្រង">
                     🔄
                 </a>
             </div>
@@ -170,13 +158,6 @@
                         </td>
                         <td class="text-right">
                             <div class="inline-flex items-center gap-1.5">
-                                <!-- Check-in Button -->
-                                {% if current_user.role in ['admin', 'officer'] and v.status == 'active' %}
-                                <button onclick="toggleCheckin({{ v.id }}, this)" class="btn btn-sm {% if v.has_voted %}btn-outline text-red-600{% else %}btn-success{% endif %}" title="Toggle Check-in">
-                                    {% if v.has_voted %}✕{% else %}✓{% endif %}
-                                </button>
-                                {% endif %}
-
                                 <!-- View/Print Card -->
                                 <a href="/voters/{{ v.id }}/card" target="_blank" class="btn btn-sm btn-outline" title="ប័ណ្ណព័ត៌មាន">
                                     🪪
