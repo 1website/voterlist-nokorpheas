@@ -72,6 +72,17 @@ app.add_middleware(
     max_age=86400 # 24 hours
 )
 
+# Prevent stale HTML caching in client browsers
+@app.middleware("http")
+async def add_no_cache_headers_for_html(request: Request, call_next):
+    response = await call_next(request)
+    content_type = response.headers.get("content-type", "")
+    if "text/html" in content_type:
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+    return response
+
 # Mount Static Files
 static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "app", "static")
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
