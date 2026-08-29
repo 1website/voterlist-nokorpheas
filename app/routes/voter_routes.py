@@ -172,6 +172,30 @@ def voter_list_page(
     if 2026 not in available_years:
         available_years.insert(0, 2026)
 
+    # Build clean query string for pagination links
+    active_params = {}
+    if q.strip():
+        active_params["q"] = q.strip()
+    if village_id:
+        active_params["village_id"] = village_id
+    if station_id:
+        active_params["station_id"] = station_id
+    if status_filter:
+        active_params["status_filter"] = status_filter
+    if gender_filter:
+        active_params["gender_filter"] = gender_filter
+    if voted_filter:
+        active_params["voted_filter"] = voted_filter
+    if date_created and date_created.strip():
+        active_params["date_created"] = date_created.strip()
+    if effective_reg_type:
+        active_params["reg_type_filter"] = effective_reg_type
+    if effective_reg_year:
+        active_params["reg_year_filter"] = effective_reg_year
+
+    import urllib.parse
+    filter_querystring = ("&" + urllib.parse.urlencode(active_params)) if active_params else ""
+
     return templates.TemplateResponse(request=request, name="voters/list.html", context={
         "current_user": current_user,
         "voters": voters,
@@ -188,6 +212,7 @@ def voter_list_page(
         "date_created": date_created,
         "reg_type_filter": effective_reg_type,
         "reg_year_filter": effective_reg_year,
+        "filter_querystring": filter_querystring,
         "available_years": available_years,
         "villages": villages,
         "stations": stations
