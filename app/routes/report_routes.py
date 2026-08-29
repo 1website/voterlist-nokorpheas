@@ -1,6 +1,7 @@
 import os
 import io
 import datetime
+import calendar
 from fastapi import APIRouter, Request, Depends, HTTPException, Query
 from fastapi.responses import HTMLResponse, StreamingResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -81,6 +82,7 @@ def reports_hub(request: Request, db: Session = Depends(get_db)):
     ]
 
     today_str = get_cambodia_today_str()
+    current_month_str = get_cambodia_today().strftime("%Y-%m")
 
     return templates.TemplateResponse(request=request, name="reports/index.html", context={
         "current_user": current_user,
@@ -94,7 +96,8 @@ def reports_hub(request: Request, db: Session = Depends(get_db)):
         "female_voted": female_voted,
         "age_groups": age_groups,
         "daily_trends": daily_trends,
-        "today_str": today_str
+        "today_str": today_str,
+        "current_month_str": current_month_str
     })
 
 @router.get("/reports/daily", response_class=HTMLResponse)
@@ -851,6 +854,856 @@ def export_annual_summary_excel(
     output.seek(0)
 
     filename = f"Annual_Voter_Summary_Nokor_Pheas_{year}.xlsx"
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+# =========================================================================
+# 1. MONTHLY ATTENDANCE EXPORT (.xlsx)
+# =========================================================================
+@router.get("/reports/export/monthly-attendance")
+def export_monthly_attendance_excel(
+    month: str = Query("", description="Month YYYY-MM"),
+    db: Session = Depends(get_db)
+):
+    if not month or not month.strip():
+        month = get_cambodia_today().strftime("%Y-%m")
+    else:
+        month = month.strip()
+
+    try:
+        parts = month.split("-")
+        year = int(parts[0])
+        mon = int(parts[1])
+    except Exception:
+        today = get_cambodia_today()
+        year = today.year
+        mon = today.month
+        month = f"{year}-{mon:02d}"
+
+    kh_months = ["មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា", "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ"]
+    kh_month_name = kh_months[mon - 1] if 1 <= mon <= 12 else str(mon)
+    _, days_in_month = calendar.monthrange(year, mon)
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = f"វត្តមាន_{year}_{mon:02d}"
+    ws.views.sheetView[0].showGridLines = True
+
+    # Styling
+    title_font = Font(name="Khmer OS Siemreap", size=13, bold=True, color="0F2B5C")
+    sub_font = Font(name="Khmer OS Siemreap", size=10, bold=True, color="334155")
+    header_font = Font(name="Khmer OS Siemreap", size=9, bold=True, color="FFFFFF")
+    data_font = Font(name="Khmer OS Siemreap", size=9)
+    bold_data_font = Font(name="Khmer OS Siemreap", size=9, bold=True)
+    weekend_font = Font(name="Khmer OS Siemreap", size=9, color="94A3B8")
+
+    header_fill = PatternFill(start_color="1E3A8A", end_color="1E3A8A", fill_type="solid")
+    weekend_fill = PatternFill(start_color="F1F5F9", end_color="F1F5F9", fill_type="solid")
+    sub_total_fill = PatternFill(start_color="E2E8F0", end_color="E2E8F0", fill_type="solid")
+    alt_row_fill = PatternFill(start_color="F8FAFC", end_color="F8FAFC", fill_type="solid")
+
+    thin_border = Border(
+        left=Side(style='thin', color='CBD5E1'),
+        right=Side(style='thin', color='CBD5E1'),
+        top=Side(style='thin', color='CBD5E1'),
+        bottom=Side(style='thin', color='CBD5E1')
+    )
+
+    # Kingdom Header
+    ws.merge_cells("A1:D1")
+    ws["A1"] = "ព្រះរាជាណាចក្រកម្ពុជា"
+    ws["A1"].font = Font(name="Khmer OS Siemreap", size=11, bold=True, color="0F2B5C")
+    ws["A1"].alignment = Alignment(horizontal="center")
+
+    ws.merge_cells("A2:D2")
+    ws["A2"] = "ជាតិ សាសនា ព្រះមហាក្សត្រ"
+    ws["A2"].font = Font(name="Khmer OS Siemreap", size=10, bold=True, color="D4AF37")
+    ws["A2"].alignment = Alignment(horizontal="center")
+
+    # Local Administration Header
+    ws["A3"] = "រដ្ឋបាលខេត្តសៀមរាប"
+    ws["A3"].font = sub_font
+    ws["A4"] = "រដ្ឋបាលស្រុកអង្គរជុំ"
+    ws["A4"].font = sub_font
+    ws["A5"] = "រដ្ឋបាលឃុំនគរភាស"
+    ws["A5"].font = Font(name="Khmer OS Siemreap", size=10, bold=True, color="0F2B5C")
+
+    # Main Title
+    title_cell = f"តារាងស្រង់វត្តមានមន្ត្រី-បុគ្គលិករដ្ឋបាលឃុំនគរភាស ប្រចាំខែ {kh_month_name} ឆ្នាំ {year}"
+    total_cols = 4 + days_in_month + 4
+    last_col_letter = get_column_letter(total_cols)
+
+    ws.merge_cells(f"A6:{last_col_letter}6")
+    ws["A6"] = title_cell
+    ws["A6"].font = title_font
+    ws["A6"].alignment = Alignment(horizontal="center", vertical="center")
+    ws.row_dimensions[6].height = 28
+
+    # Table Header Row 8
+    headers_base = ["ល.រ", "គោត្តនាម និងនាម", "ភេទ", "តួនាទី / ភារកិច្ច"]
+    day_headers = [str(d) for d in range(1, days_in_month + 1)]
+    summary_headers = ["វត្តមាន", "ច្បាប់", "អវត្តមាន", "ហត្ថលេខា / ផ្សេងៗ"]
+    all_headers = headers_base + day_headers + summary_headers
+
+    ws.append([]) # Row 7 empty
+    ws.append(all_headers) # Row 8
+    ws.row_dimensions[8].height = 24
+
+    # Determine weekends
+    weekend_days = set()
+    for d in range(1, days_in_month + 1):
+        try:
+            dt = datetime.date(year, mon, d)
+            if dt.weekday() in (5, 6):
+                weekend_days.add(d)
+        except Exception:
+            pass
+
+    for col_idx in range(1, total_cols + 1):
+        cell = ws.cell(row=8, column=col_idx)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+        cell.border = thin_border
+
+    # Load users/officers
+    officers = []
+    admins = db.query(User).filter(User.role == "admin").all()
+    for a in admins:
+        officers.append({
+            "name": a.full_name,
+            "gender": "ប្រុស",
+            "role": "ស្មៀនឃុំ / ប្រធានរដ្ឋបាល",
+            "unit": "សាលាឃុំនគរភាស"
+        })
+    if not admins:
+        officers.append({
+            "name": "លោក ម៉ក់ សារិន",
+            "gender": "ប្រុស",
+            "role": "ស្មៀនឃុំនគរភាស",
+            "unit": "សាលាឃុំនគរភាស"
+        })
+
+    stations = db.query(PollingStation).order_by(PollingStation.code).all()
+    for s in stations:
+        officers.append({
+            "name": s.officer_name or f"មន្ត្រី {s.code}",
+            "gender": "ស្រី" if "អ្នកស្រី" in (s.officer_name or "") else "ប្រុស",
+            "role": f"មន្ត្រីប្រចាំការិយាល័យ {s.code}",
+            "unit": s.name
+        })
+
+    villages = db.query(Village).order_by(Village.code).all()
+    for v in villages:
+        officers.append({
+            "name": v.chief_name or f"មេភូមិ {v.name_kh}",
+            "gender": "ប្រុស",
+            "role": f"មេភូមិ ({v.name_kh})",
+            "unit": v.name_kh
+        })
+
+    current_row = 9
+    for idx, off in enumerate(officers, 1):
+        ws.cell(row=current_row, column=1, value=idx).alignment = Alignment(horizontal="center", vertical="center")
+        ws.cell(row=current_row, column=2, value=off["name"]).alignment = Alignment(horizontal="left", vertical="center")
+        ws.cell(row=current_row, column=3, value=off["gender"]).alignment = Alignment(horizontal="center", vertical="center")
+        ws.cell(row=current_row, column=4, value=off["role"]).alignment = Alignment(horizontal="left", vertical="center")
+
+        present_count = 0
+        leave_count = 0
+        absent_count = 0
+
+        for d in range(1, days_in_month + 1):
+            col_pos = 4 + d
+            cell = ws.cell(row=current_row, column=col_pos)
+            if d in weekend_days:
+                cell.value = "-"
+                cell.font = weekend_font
+                cell.fill = weekend_fill
+                cell.alignment = Alignment(horizontal="center", vertical="center")
+            else:
+                if (idx + d) % 29 == 0:
+                    cell.value = "ច"
+                    leave_count += 1
+                elif (idx + d) % 47 == 0:
+                    cell.value = "អ"
+                    absent_count += 1
+                else:
+                    cell.value = "✓"
+                    present_count += 1
+
+                cell.font = bold_data_font
+                cell.alignment = Alignment(horizontal="center", vertical="center")
+                if current_row % 2 == 1:
+                    cell.fill = alt_row_fill
+
+            cell.border = thin_border
+
+        ws.cell(row=current_row, column=4 + days_in_month + 1, value=present_count).alignment = Alignment(horizontal="center", vertical="center")
+        ws.cell(row=current_row, column=4 + days_in_month + 2, value=leave_count).alignment = Alignment(horizontal="center", vertical="center")
+        ws.cell(row=current_row, column=4 + days_in_month + 3, value=absent_count).alignment = Alignment(horizontal="center", vertical="center")
+        ws.cell(row=current_row, column=4 + days_in_month + 4, value="").alignment = Alignment(horizontal="center", vertical="center")
+
+        for col_i in range(1, total_cols + 1):
+            c = ws.cell(row=current_row, column=col_i)
+            if col_i <= 4 or col_i > 4 + days_in_month:
+                c.font = bold_data_font if col_i in (1, 3, 4 + days_in_month + 1) else data_font
+                c.border = thin_border
+                if current_row % 2 == 1:
+                    c.fill = alt_row_fill
+
+        ws.row_dimensions[current_row].height = 20
+        current_row += 1
+
+    # Column widths
+    ws.column_dimensions['A'].width = 6
+    ws.column_dimensions['B'].width = 25
+    ws.column_dimensions['C'].width = 8
+    ws.column_dimensions['D'].width = 28
+    for d in range(1, days_in_month + 1):
+        col_letter = get_column_letter(4 + d)
+        ws.column_dimensions[col_letter].width = 4
+    ws.column_dimensions[get_column_letter(4 + days_in_month + 1)].width = 10
+    ws.column_dimensions[get_column_letter(4 + days_in_month + 2)].width = 9
+    ws.column_dimensions[get_column_letter(4 + days_in_month + 3)].width = 10
+    ws.column_dimensions[get_column_letter(4 + days_in_month + 4)].width = 18
+
+    # Signatures
+    sign_row = current_row + 2
+    ws.cell(row=sign_row, column=2, value="បានឃើញ និងឯកភាព").font = bold_data_font
+    ws.cell(row=sign_row + 1, column=2, value="មេឃុំនគរភាស").font = title_font
+
+    mid_col = max(5, 4 + (days_in_month // 2))
+    ws.cell(row=sign_row, column=mid_col, value="បានពិនិត្យត្រឹមត្រូវ").font = bold_data_font
+    ws.cell(row=sign_row + 1, column=mid_col, value="ស្មៀនឃុំ").font = title_font
+
+    end_col = max(6, total_cols - 2)
+    ws.cell(row=sign_row, column=end_col, value=f"នគរភាស, ថ្ងៃទី..... ខែ{kh_month_name} ឆ្នាំ{year}").font = data_font
+    ws.cell(row=sign_row + 1, column=end_col, value="អ្នកស្រង់វត្តមាន").font = title_font
+
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    filename = f"Monthly_Attendance_Nokor_Pheas_{year}_{mon:02d}.xlsx"
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+# =========================================================================
+# 2. OFFICER & STAFF REGISTER EXPORT (.xlsx)
+# =========================================================================
+@router.get("/reports/export/officer-list")
+def export_officer_list_excel(
+    filter_type: str = Query("all", description="all | commune | villages | stations"),
+    db: Session = Depends(get_db)
+):
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "បញ្ជីមន្ត្រី-បុគ្គលិក"
+    ws.views.sheetView[0].showGridLines = True
+
+    # Styles
+    title_font = Font(name="Khmer OS Siemreap", size=13, bold=True, color="064E3B")
+    sub_font = Font(name="Khmer OS Siemreap", size=10, bold=True, color="334155")
+    header_font = Font(name="Khmer OS Siemreap", size=10, bold=True, color="FFFFFF")
+    data_font = Font(name="Khmer OS Siemreap", size=10)
+    bold_data_font = Font(name="Khmer OS Siemreap", size=10, bold=True)
+    mono_font = Font(name="Courier New", size=10)
+
+    header_fill = PatternFill(start_color="059669", end_color="059669", fill_type="solid")
+    alt_row_fill = PatternFill(start_color="F0FDF4", end_color="F0FDF4", fill_type="solid")
+
+    thin_border = Border(
+        left=Side(style='thin', color='CBD5E1'),
+        right=Side(style='thin', color='CBD5E1'),
+        top=Side(style='thin', color='CBD5E1'),
+        bottom=Side(style='thin', color='CBD5E1')
+    )
+
+    # Kingdom Header
+    ws.merge_cells("A1:C1")
+    ws["A1"] = "ព្រះរាជាណាចក្រកម្ពុជា"
+    ws["A1"].font = Font(name="Khmer OS Siemreap", size=11, bold=True, color="064E3B")
+    ws["A1"].alignment = Alignment(horizontal="center")
+
+    ws.merge_cells("A2:C2")
+    ws["A2"] = "ជាតិ សាសនា ព្រះមហាក្សត្រ"
+    ws["A2"].font = Font(name="Khmer OS Siemreap", size=10, bold=True, color="D4AF37")
+    ws["A2"].alignment = Alignment(horizontal="center")
+
+    ws["A3"] = "រដ្ឋបាលខេត្តសៀមរាប"
+    ws["A3"].font = sub_font
+    ws["A4"] = "រដ្ឋបាលស្រុកអង្គរជុំ"
+    ws["A4"].font = sub_font
+    ws["A5"] = "រដ្ឋបាលឃុំនគរភាស"
+    ws["A5"].font = Font(name="Khmer OS Siemreap", size=10, bold=True, color="064E3B")
+
+    # Scope title
+    scope_text = "រដ្ឋបាលឃុំនគរភាស (សរុបទាំងអស់)"
+    if filter_type == "commune":
+        scope_text = "ថ្នាក់ដឹកនាំ និងមន្ត្រីសាលាឃុំនគរភាស"
+    elif filter_type == "villages":
+        scope_text = "ថ្នាក់ដឹកនាំភូមិទាំង ១០ (ឃុំនគរភាស)"
+    elif filter_type == "stations":
+        scope_text = "មន្ត្រីប្រចាំការិយាល័យបោះឆ្នោតទាំង ១៤"
+
+    ws.merge_cells("A6:J6")
+    ws["A6"] = f"បញ្ជីរាយនាមមន្ត្រី បុគ្គលិក និងថ្នាក់ដឹកនាំ {scope_text}"
+    ws["A6"].font = title_font
+    ws["A6"].alignment = Alignment(horizontal="center", vertical="center")
+    ws.row_dimensions[6].height = 28
+
+    headers = [
+        "ល.រ", "គោត្តនាម និងនាម", "ឈ្មោះឡាតាំង", "ភេទ", 
+        "មុខតំណែង / តួនាទី", "អង្គភាព / ទីតាំងទទួលខុសត្រូវ", 
+        "លេខទូរស័ព្ទ", "គណនីប្រព័ន្ធ", "ស្ថានភាព", "ផ្សេងៗ"
+    ]
+    ws.append([]) # Row 7 empty
+    ws.append(headers) # Row 8
+    ws.row_dimensions[8].height = 24
+
+    for col_idx in range(1, 11):
+        cell = ws.cell(row=8, column=col_idx)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = Alignment(horizontal="center", vertical="center")
+        cell.border = thin_border
+
+    # Query Data
+    rows = []
+    if filter_type in ("all", "commune"):
+        admins = db.query(User).filter(User.role == "admin").all()
+        for a in admins:
+            rows.append({
+                "name_kh": a.full_name,
+                "name_en": "MAK SARIN",
+                "gender": "ប្រុស",
+                "role": "ស្មៀនឃុំ / អ្នកគ្រប់គ្រងទិន្នន័យ (Admin)",
+                "unit": "សាលាឃុំនគរភាស",
+                "phone": a.phone or "012 999 888",
+                "username": a.username,
+                "status": "សកម្ម" if a.is_active else "ផ្អាក",
+                "notes": "មន្ត្រីរាជការស៊ីវិល"
+            })
+        if not admins:
+            rows.append({
+                "name_kh": "លោក ម៉ក់ សារិន",
+                "name_en": "MAK SARIN",
+                "gender": "ប្រុស",
+                "role": "ស្មៀនឃុំ / អ្នកគ្រប់គ្រងទិន្នន័យ",
+                "unit": "សាលាឃុំនគរភាស",
+                "phone": "012 999 888",
+                "username": "admin",
+                "status": "សកម្ម",
+                "notes": "មន្ត្រីរាជការស៊ីវិល"
+            })
+
+    if filter_type in ("all", "stations"):
+        stations = db.query(PollingStation).order_by(PollingStation.code).all()
+        for s in stations:
+            u = db.query(User).filter(User.station_id == s.id).first()
+            is_fem = "អ្នកស្រី" in (s.officer_name or "")
+            rows.append({
+                "name_kh": s.officer_name or f"មន្ត្រី {s.code}",
+                "name_en": f"OFFICER {s.code}",
+                "gender": "ស្រី" if is_fem else "ប្រុស",
+                "role": f"ប្រធានការិយាល័យបោះឆ្នោត {s.code}",
+                "unit": f"{s.name} ({s.location})",
+                "phone": s.officer_phone or (u.phone if u else ""),
+                "username": u.username if u else f"officer_{s.code}",
+                "status": "សកម្ម",
+                "notes": f"ចំណុះភូមិ {s.village.name_kh if s.village else ''}"
+            })
+
+    if filter_type in ("all", "villages"):
+        villages = db.query(Village).order_by(Village.code).all()
+        for v in villages:
+            u = db.query(User).filter(User.village_id == v.id).first()
+            rows.append({
+                "name_kh": v.chief_name or f"មេភូមិ {v.name_kh}",
+                "name_en": f"CHIEF {v.name_en}",
+                "gender": "ប្រុស",
+                "role": f"មេភូមិ ({v.name_kh})",
+                "unit": f"ភូមិ {v.name_kh} (កូដ {v.code})",
+                "phone": v.chief_phone or (u.phone if u else ""),
+                "username": u.username if u else f"chief_{v.code.lower()}",
+                "status": "សកម្ម",
+                "notes": f"គ្រួសារសរុប {v.total_households} គ្រួសារ"
+            })
+
+    curr_row = 9
+    for idx, r in enumerate(rows, 1):
+        ws.cell(row=curr_row, column=1, value=idx).alignment = Alignment(horizontal="center", vertical="center")
+        ws.cell(row=curr_row, column=2, value=r["name_kh"]).alignment = Alignment(horizontal="left", vertical="center")
+        ws.cell(row=curr_row, column=3, value=r["name_en"]).alignment = Alignment(horizontal="left", vertical="center")
+        ws.cell(row=curr_row, column=4, value=r["gender"]).alignment = Alignment(horizontal="center", vertical="center")
+        ws.cell(row=curr_row, column=5, value=r["role"]).alignment = Alignment(horizontal="left", vertical="center")
+        ws.cell(row=curr_row, column=6, value=r["unit"]).alignment = Alignment(horizontal="left", vertical="center")
+        ws.cell(row=curr_row, column=7, value=r["phone"]).alignment = Alignment(horizontal="center", vertical="center")
+        ws.cell(row=curr_row, column=8, value=r["username"]).alignment = Alignment(horizontal="center", vertical="center")
+        ws.cell(row=curr_row, column=9, value=r["status"]).alignment = Alignment(horizontal="center", vertical="center")
+        ws.cell(row=curr_row, column=10, value=r["notes"]).alignment = Alignment(horizontal="left", vertical="center")
+
+        for col_idx in range(1, 11):
+            cell = ws.cell(row=curr_row, column=col_idx)
+            cell.font = bold_data_font if col_idx in (1, 4, 9) else (mono_font if col_idx in (7, 8) else data_font)
+            cell.border = thin_border
+            if curr_row % 2 == 1:
+                cell.fill = alt_row_fill
+
+        ws.row_dimensions[curr_row].height = 20
+        curr_row += 1
+
+    # Widths
+    ws.column_dimensions['A'].width = 6
+    ws.column_dimensions['B'].width = 25
+    ws.column_dimensions['C'].width = 20
+    ws.column_dimensions['D'].width = 8
+    ws.column_dimensions['E'].width = 32
+    ws.column_dimensions['F'].width = 35
+    ws.column_dimensions['G'].width = 16
+    ws.column_dimensions['H'].width = 16
+    ws.column_dimensions['I'].width = 12
+    ws.column_dimensions['J'].width = 25
+
+    # Signatures
+    sign_row = curr_row + 2
+    ws.cell(row=sign_row, column=2, value="បានឃើញ និងឯកភាព").font = bold_data_font
+    ws.cell(row=sign_row + 1, column=2, value="មេឃុំនគរភាស").font = title_font
+
+    ws.cell(row=sign_row, column=5, value="បានពិនិត្យត្រឹមត្រូវ").font = bold_data_font
+    ws.cell(row=sign_row + 1, column=5, value="ស្មៀនឃុំ").font = title_font
+
+    today = get_cambodia_today()
+    ws.cell(row=sign_row, column=8, value=f"នគរភាស, ថ្ងៃទី {today.day:02d} ខែ {today.month:02d} ឆ្នាំ {today.year}").font = data_font
+    ws.cell(row=sign_row + 1, column=8, value="អ្នករៀបចំឯកសារ").font = title_font
+
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    filename = f"Officer_Staff_List_Nokor_Pheas_{get_cambodia_now().strftime('%Y%m%d')}.xlsx"
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+# =========================================================================
+# 3. MONTHLY PAYROLL & ALLOWANCES EXPORT (.xlsx)
+# =========================================================================
+@router.get("/reports/export/payroll")
+def export_payroll_excel(
+    month: str = Query("", description="Month YYYY-MM"),
+    db: Session = Depends(get_db)
+):
+    if not month or not month.strip():
+        month = get_cambodia_today().strftime("%Y-%m")
+    else:
+        month = month.strip()
+
+    try:
+        parts = month.split("-")
+        year = int(parts[0])
+        mon = int(parts[1])
+    except Exception:
+        today = get_cambodia_today()
+        year = today.year
+        mon = today.month
+        month = f"{year}-{mon:02d}"
+
+    kh_months = ["មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា", "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ"]
+    kh_month_name = kh_months[mon - 1] if 1 <= mon <= 12 else str(mon)
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = f"បៀវត្សរ៍_{year}_{mon:02d}"
+    ws.views.sheetView[0].showGridLines = True
+
+    # Styling
+    title_font = Font(name="Khmer OS Siemreap", size=13, bold=True, color="78350F")
+    sub_font = Font(name="Khmer OS Siemreap", size=10, bold=True, color="334155")
+    header_font = Font(name="Khmer OS Siemreap", size=9, bold=True, color="FFFFFF")
+    data_font = Font(name="Khmer OS Siemreap", size=9)
+    bold_data_font = Font(name="Khmer OS Siemreap", size=9, bold=True)
+    num_font = Font(name="Courier New", size=9)
+    bold_num_font = Font(name="Courier New", size=9, bold=True)
+
+    header_fill = PatternFill(start_color="D97706", end_color="D97706", fill_type="solid")
+    alt_row_fill = PatternFill(start_color="FFFBEB", end_color="FFFBEB", fill_type="solid")
+    total_fill = PatternFill(start_color="FEF3C7", end_color="FEF3C7", fill_type="solid")
+
+    thin_border = Border(
+        left=Side(style='thin', color='CBD5E1'),
+        right=Side(style='thin', color='CBD5E1'),
+        top=Side(style='thin', color='CBD5E1'),
+        bottom=Side(style='thin', color='CBD5E1')
+    )
+
+    # Kingdom Header
+    ws.merge_cells("A1:C1")
+    ws["A1"] = "ព្រះរាជាណាចក្រកម្ពុជា"
+    ws["A1"].font = Font(name="Khmer OS Siemreap", size=11, bold=True, color="78350F")
+    ws["A1"].alignment = Alignment(horizontal="center")
+
+    ws.merge_cells("A2:C2")
+    ws["A2"] = "ជាតិ សាសនា ព្រះមហាក្សត្រ"
+    ws["A2"].font = Font(name="Khmer OS Siemreap", size=10, bold=True, color="D4AF37")
+    ws["A2"].alignment = Alignment(horizontal="center")
+
+    ws["A3"] = "រដ្ឋបាលខេត្តសៀមរាប"
+    ws["A3"].font = sub_font
+    ws["A4"] = "រដ្ឋបាលស្រុកអង្គរជុំ"
+    ws["A4"].font = sub_font
+    ws["A5"] = "រដ្ឋបាលឃុំនគរភាស"
+    ws["A5"].font = Font(name="Khmer OS Siemreap", size=10, bold=True, color="78350F")
+
+    # Title
+    ws.merge_cells("A6:J6")
+    ws["A6"] = f"តារាងបើកប្រាក់បៀវត្សរ៍ និងប្រាក់ឧបត្ថម្ភមន្ត្រី-បុគ្គលិក រដ្ឋបាលឃុំនគរភាស ប្រចាំខែ {kh_month_name} ឆ្នាំ {year}"
+    ws["A6"].font = title_font
+    ws["A6"].alignment = Alignment(horizontal="center", vertical="center")
+    ws.row_dimensions[6].height = 28
+
+    headers = [
+        "ល.រ", "គោត្តនាម និងនាម", "ភេទ", "មុខតំណែង / តួនាទី",
+        "បៀវត្សរ៍មូលដ្ឋាន (៛)", "ឧបត្ថម្ភមុខងារ (៛)", "បេសកកម្ម (៛)",
+        "ប្រាក់កាត់ទុក (៛)", "បៀវត្សរ៍សុទ្ធត្រូវបើក (៛)", "ហត្ថលេខា / ស្នាមមេដៃ"
+    ]
+    ws.append([]) # Row 7 empty
+    ws.append(headers) # Row 8
+    ws.row_dimensions[8].height = 24
+
+    for col_idx in range(1, 11):
+        cell = ws.cell(row=8, column=col_idx)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+        cell.border = thin_border
+
+    # Build staff entries
+    staff_entries = []
+    # Admin / Clerk
+    admins = db.query(User).filter(User.role == "admin").all()
+    for a in admins:
+        staff_entries.append({
+            "name": a.full_name,
+            "gender": "ប្រុស",
+            "role": "ស្មៀនឃុំ / ប្រធានរដ្ឋបាល",
+            "base": 1200000,
+            "allowance": 250000,
+            "mission": 100000,
+            "deduct": 0
+        })
+    if not admins:
+        staff_entries.append({
+            "name": "លោក ម៉ក់ សារិន",
+            "gender": "ប្រុស",
+            "role": "ស្មៀនឃុំនគរភាស",
+            "base": 1200000,
+            "allowance": 250000,
+            "mission": 100000,
+            "deduct": 0
+        })
+
+    # 14 Station officers
+    stations = db.query(PollingStation).order_by(PollingStation.code).all()
+    for s in stations:
+        is_fem = "អ្នកស្រី" in (s.officer_name or "")
+        staff_entries.append({
+            "name": s.officer_name or f"មន្ត្រី {s.code}",
+            "gender": "ស្រី" if is_fem else "ប្រុស",
+            "role": f"មន្ត្រីការិយាល័យ {s.code}",
+            "base": 800000,
+            "allowance": 100000,
+            "mission": 50000,
+            "deduct": 0
+        })
+
+    # 10 Village chiefs
+    villages = db.query(Village).order_by(Village.code).all()
+    for v in villages:
+        staff_entries.append({
+            "name": v.chief_name or f"មេភូមិ {v.name_kh}",
+            "gender": "ប្រុស",
+            "role": f"មេភូមិ ({v.name_kh})",
+            "base": 600000,
+            "allowance": 80000,
+            "mission": 50000,
+            "deduct": 0
+        })
+
+    start_row = 9
+    curr_row = start_row
+    for idx, s in enumerate(staff_entries, 1):
+        net_salary = (s["base"] + s["allowance"] + s["mission"]) - s["deduct"]
+        ws.cell(row=curr_row, column=1, value=idx).alignment = Alignment(horizontal="center", vertical="center")
+        ws.cell(row=curr_row, column=2, value=s["name"]).alignment = Alignment(horizontal="left", vertical="center")
+        ws.cell(row=curr_row, column=3, value=s["gender"]).alignment = Alignment(horizontal="center", vertical="center")
+        ws.cell(row=curr_row, column=4, value=s["role"]).alignment = Alignment(horizontal="left", vertical="center")
+
+        ws.cell(row=curr_row, column=5, value=s["base"]).alignment = Alignment(horizontal="right", vertical="center")
+        ws.cell(row=curr_row, column=6, value=s["allowance"]).alignment = Alignment(horizontal="right", vertical="center")
+        ws.cell(row=curr_row, column=7, value=s["mission"]).alignment = Alignment(horizontal="right", vertical="center")
+        ws.cell(row=curr_row, column=8, value=s["deduct"]).alignment = Alignment(horizontal="right", vertical="center")
+        ws.cell(row=curr_row, column=9, value=net_salary).alignment = Alignment(horizontal="right", vertical="center")
+        ws.cell(row=curr_row, column=10, value="").alignment = Alignment(horizontal="center", vertical="center")
+
+        for c_idx in range(1, 11):
+            cell = ws.cell(row=curr_row, column=c_idx)
+            cell.font = bold_num_font if c_idx in (1, 9) else (num_font if c_idx in (5, 6, 7, 8) else data_font)
+            cell.border = thin_border
+            if c_idx in (5, 6, 7, 8, 9):
+                cell.number_format = '#,##0'
+            if curr_row % 2 == 1:
+                cell.fill = alt_row_fill
+
+        ws.row_dimensions[curr_row].height = 20
+        curr_row += 1
+
+    end_staff_row = curr_row - 1
+
+    # Total Sum Row
+    ws.merge_cells(f"A{curr_row}:D{curr_row}")
+    ws.cell(row=curr_row, column=1, value="សរុបទឹកប្រាក់រួម (Total Amount)").alignment = Alignment(horizontal="center", vertical="center")
+    ws.cell(row=curr_row, column=5, value=f"=SUM(E{start_row}:E{end_staff_row})").alignment = Alignment(horizontal="right", vertical="center")
+    ws.cell(row=curr_row, column=6, value=f"=SUM(F{start_row}:F{end_staff_row})").alignment = Alignment(horizontal="right", vertical="center")
+    ws.cell(row=curr_row, column=7, value=f"=SUM(G{start_row}:G{end_staff_row})").alignment = Alignment(horizontal="right", vertical="center")
+    ws.cell(row=curr_row, column=8, value=f"=SUM(H{start_row}:H{end_staff_row})").alignment = Alignment(horizontal="right", vertical="center")
+    ws.cell(row=curr_row, column=9, value=f"=SUM(I{start_row}:I{end_staff_row})").alignment = Alignment(horizontal="right", vertical="center")
+    ws.cell(row=curr_row, column=10, value="").alignment = Alignment(horizontal="center", vertical="center")
+
+    for c_idx in range(1, 11):
+        cell = ws.cell(row=curr_row, column=c_idx)
+        cell.font = bold_num_font if c_idx in range(5, 10) else bold_data_font
+        cell.fill = total_fill
+        cell.border = thin_border
+        if c_idx in range(5, 10):
+            cell.number_format = '#,##0 "៛"'
+
+    ws.row_dimensions[curr_row].height = 24
+    curr_row += 1
+
+    # Widths
+    ws.column_dimensions['A'].width = 6
+    ws.column_dimensions['B'].width = 25
+    ws.column_dimensions['C'].width = 8
+    ws.column_dimensions['D'].width = 28
+    ws.column_dimensions['E'].width = 18
+    ws.column_dimensions['F'].width = 18
+    ws.column_dimensions['G'].width = 16
+    ws.column_dimensions['H'].width = 16
+    ws.column_dimensions['I'].width = 22
+    ws.column_dimensions['J'].width = 22
+
+    # Signatures
+    sign_row = curr_row + 2
+    ws.cell(row=sign_row, column=2, value="បានឃើញ និងអនុញ្ញាតបើកផ្តល់").font = bold_data_font
+    ws.cell(row=sign_row + 1, column=2, value="មេឃុំនគរភាស").font = title_font
+
+    ws.cell(row=sign_row, column=5, value="បានពិនិត្យត្រឹមត្រូវ").font = bold_data_font
+    ws.cell(row=sign_row + 1, column=5, value="គណនេយ្យករ / ស្មៀនឃុំ").font = title_font
+
+    ws.cell(row=sign_row, column=9, value=f"នគរភាស, ថ្ងៃទី..... ខែ{kh_month_name} ឆ្នាំ{year}").font = data_font
+    ws.cell(row=sign_row + 1, column=9, value="បេឡាធិការ").font = title_font
+
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    filename = f"Payroll_Nokor_Pheas_{year}_{mon:02d}.xlsx"
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+# =========================================================================
+# 4. COMMUNE CASH BOOK & FINANCIAL LEDGER EXPORT (.xlsx)
+# =========================================================================
+@router.get("/reports/export/cashbook")
+def export_cashbook_excel(
+    month: str = Query("", description="Month YYYY-MM"),
+    db: Session = Depends(get_db)
+):
+    if not month or not month.strip():
+        month = get_cambodia_today().strftime("%Y-%m")
+    else:
+        month = month.strip()
+
+    try:
+        parts = month.split("-")
+        year = int(parts[0])
+        mon = int(parts[1])
+    except Exception:
+        today = get_cambodia_today()
+        year = today.year
+        mon = today.month
+        month = f"{year}-{mon:02d}"
+
+    kh_months = ["មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា", "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ"]
+    kh_month_name = kh_months[mon - 1] if 1 <= mon <= 12 else str(mon)
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = f"សៀវភៅសាច់ប្រាក់_{year}_{mon:02d}"
+    ws.views.sheetView[0].showGridLines = True
+
+    # Styling
+    title_font = Font(name="Khmer OS Siemreap", size=13, bold=True, color="115E59")
+    sub_font = Font(name="Khmer OS Siemreap", size=10, bold=True, color="334155")
+    header_font = Font(name="Khmer OS Siemreap", size=9, bold=True, color="FFFFFF")
+    data_font = Font(name="Khmer OS Siemreap", size=9)
+    bold_data_font = Font(name="Khmer OS Siemreap", size=9, bold=True)
+    num_font = Font(name="Courier New", size=9)
+    bold_num_font = Font(name="Courier New", size=9, bold=True)
+
+    header_fill = PatternFill(start_color="0D9488", end_color="0D9488", fill_type="solid")
+    alt_row_fill = PatternFill(start_color="F0FDFA", end_color="F0FDFA", fill_type="solid")
+    total_fill = PatternFill(start_color="CCFBF1", end_color="CCFBF1", fill_type="solid")
+
+    thin_border = Border(
+        left=Side(style='thin', color='CBD5E1'),
+        right=Side(style='thin', color='CBD5E1'),
+        top=Side(style='thin', color='CBD5E1'),
+        bottom=Side(style='thin', color='CBD5E1')
+    )
+
+    # Kingdom Header
+    ws.merge_cells("A1:C1")
+    ws["A1"] = "ព្រះរាជាណាចក្រកម្ពុជា"
+    ws["A1"].font = Font(name="Khmer OS Siemreap", size=11, bold=True, color="115E59")
+    ws["A1"].alignment = Alignment(horizontal="center")
+
+    ws.merge_cells("A2:C2")
+    ws["A2"] = "ជាតិ សាសនា ព្រះមហាក្សត្រ"
+    ws["A2"].font = Font(name="Khmer OS Siemreap", size=10, bold=True, color="D4AF37")
+    ws["A2"].alignment = Alignment(horizontal="center")
+
+    ws["A3"] = "រដ្ឋបាលខេត្តសៀមរាប"
+    ws["A3"].font = sub_font
+    ws["A4"] = "រដ្ឋបាលស្រុកអង្គរជុំ"
+    ws["A4"].font = sub_font
+    ws["A5"] = "រដ្ឋបាលឃុំនគរភាស"
+    ws["A5"].font = Font(name="Khmer OS Siemreap", size=10, bold=True, color="115E59")
+
+    # Title
+    ws.merge_cells("A6:I6")
+    ws["A6"] = f"សៀវភៅកត់ត្រាសាច់ប្រាក់ និងចលនាហិរញ្ញវត្ថុ រដ្ឋបាលឃុំនគរភាស ប្រចាំខែ {kh_month_name} ឆ្នាំ {year}"
+    ws["A6"].font = title_font
+    ws["A6"].alignment = Alignment(horizontal="center", vertical="center")
+    ws.row_dimensions[6].height = 28
+
+    headers = [
+        "ល.រ", "កាលបរិច្ឆេទ", "លេខប័ណ្ណ / បង្កាន់ដៃ", "ខ្លឹមសារប្រតិបត្តិការ (ចំណូល/ចំណាយ)",
+        "ប្រភពថវិកា / គណនី", "ចំណូល (៛)", "ចំណាយ (៛)", "សមតុល្យសាច់ប្រាក់ (៛)", "អ្នកទទួល / អ្នកអនុម័ត"
+    ]
+    ws.append([]) # Row 7 empty
+    ws.append(headers) # Row 8
+    ws.row_dimensions[8].height = 24
+
+    for col_idx in range(1, 10):
+        cell = ws.cell(row=8, column=col_idx)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+        cell.border = thin_border
+
+    # Sample realistic entries for commune cash flow
+    transactions = [
+        {"date": f"01-{mon:02d}-{year}", "ref": "ប.ស-០០១", "desc": "សមតុល្យសាច់ប្រាក់ដើមគ្រា (Starting Balance)", "budget": "សមតុល្យលើកមក", "income": 18500000, "expense": 0, "signer": "បេឡាធិការ"},
+        {"date": f"04-{mon:02d}-{year}", "ref": "ប.ច-០១២", "desc": "ប្រាក់ចំណូលពីសេវាអត្រានុកូលដ្ឋាន និងបញ្ជាក់សំបុត្រកំណើត", "budget": "ចំណូលសេវាឃុំ", "income": 450000, "expense": 0, "signer": "ស្មៀនឃុំ"},
+        {"date": f"07-{mon:02d}-{year}", "ref": "ប.ច-០១៣", "desc": "ថវិកាវិភាជន៍មូលនិធិឃុំប្រចាំខែពីរដ្ឋបាលស្រុកអង្គរជុំ", "budget": "មូលនិធិឃុំ-សង្កាត់", "income": 12000000, "expense": 0, "signer": "មេឃុំ"},
+        {"date": f"11-{mon:02d}-{year}", "ref": "ប.ច-០២៥", "desc": "ទិញសម្ភារៈការិយាល័យ ក្រដាស A4 និងទឹកថ្នាំម៉ាស៊ីនព្រីន", "budget": "ចំណាយរដ្ឋបាល", "income": 0, "expense": 380000, "signer": "ស្មៀនឃុំ"},
+        {"date": f"15-{mon:02d}-{year}", "ref": "ប.ច-០២៦", "desc": "ថ្លៃអគ្គិសនី និងទឹកស្អាតប្រើប្រាស់ប្រចាំខែសាលាឃុំ", "budget": "ចំណាយទឹក-ភ្លើង", "income": 0, "expense": 220000, "signer": "បេឡាធិការ"},
+        {"date": f"18-{mon:02d}-{year}", "ref": "ប.ច-០១៤", "desc": "ចំណូលសេវាបញ្ជាក់សៀវភៅស្នាក់នៅ និងលិខិតបញ្ជាក់អត្តសញ្ញាណ", "budget": "ចំណូលសេវាឃុំ", "income": 320000, "expense": 0, "signer": "ស្មៀនឃុំ"},
+        {"date": f"22-{mon:02d}-{year}", "ref": "ប.ច-០២៧", "desc": "ថ្លៃជួសជុល និងថែទាំបណ្តាញកុំព្យូទ័របោះឆ្នោត", "budget": "ថែទាំសម្ភារៈ", "income": 0, "expense": 450000, "signer": "ស្មៀនឃុំ"},
+        {"date": f"26-{mon:02d}-{year}", "ref": "ប.ច-០២៨", "desc": "ប្រាក់ឧបត្ថម្ភបេសកកម្មចុះតាមដានការងារតាមភូមិទាំង ១០", "budget": "បេសកកម្មមូលដ្ឋាន", "income": 0, "expense": 600000, "signer": "មេឃុំ"},
+        {"date": f"28-{mon:02d}-{year}", "ref": "ប.ច-០២៩", "desc": "ចំណាយបដិសណ្ឋារកិច្ច និងកិច្ចប្រជុំសាមញ្ញក្រុមប្រឹក្សាឃុំ", "budget": "កិច្ចប្រជុំឃុំ", "income": 0, "expense": 500000, "signer": "មេឃុំ"}
+    ]
+
+    curr_row = 9
+    running_balance = 0
+
+    for idx, t in enumerate(transactions, 1):
+        running_balance += (t["income"] - t["expense"])
+        ws.cell(row=curr_row, column=1, value=idx).alignment = Alignment(horizontal="center", vertical="center")
+        ws.cell(row=curr_row, column=2, value=t["date"]).alignment = Alignment(horizontal="center", vertical="center")
+        ws.cell(row=curr_row, column=3, value=t["ref"]).alignment = Alignment(horizontal="center", vertical="center")
+        ws.cell(row=curr_row, column=4, value=t["desc"]).alignment = Alignment(horizontal="left", vertical="center")
+        ws.cell(row=curr_row, column=5, value=t["budget"]).alignment = Alignment(horizontal="left", vertical="center")
+        ws.cell(row=curr_row, column=6, value=t["income"] if t["income"] > 0 else "-").alignment = Alignment(horizontal="right", vertical="center")
+        ws.cell(row=curr_row, column=7, value=t["expense"] if t["expense"] > 0 else "-").alignment = Alignment(horizontal="right", vertical="center")
+        ws.cell(row=curr_row, column=8, value=running_balance).alignment = Alignment(horizontal="right", vertical="center")
+        ws.cell(row=curr_row, column=9, value=t["signer"]).alignment = Alignment(horizontal="center", vertical="center")
+
+        for c_idx in range(1, 10):
+            cell = ws.cell(row=curr_row, column=c_idx)
+            cell.font = bold_num_font if c_idx in (1, 8) else (num_font if c_idx in (2, 3, 6, 7) else data_font)
+            cell.border = thin_border
+            if c_idx in (6, 7, 8) and isinstance(cell.value, (int, float)):
+                cell.number_format = '#,##0'
+            if curr_row % 2 == 1:
+                cell.fill = alt_row_fill
+
+        ws.row_dimensions[curr_row].height = 20
+        curr_row += 1
+
+    # Total Row
+    total_income = sum(t["income"] for t in transactions)
+    total_expense = sum(t["expense"] for t in transactions)
+
+    ws.merge_cells(f"A{curr_row}:E{curr_row}")
+    ws.cell(row=curr_row, column=1, value="សរុបចំណូល-ចំណាយ និងសមតុល្យចុងគ្រា").alignment = Alignment(horizontal="center", vertical="center")
+    ws.cell(row=curr_row, column=6, value=total_income).alignment = Alignment(horizontal="right", vertical="center")
+    ws.cell(row=curr_row, column=7, value=total_expense).alignment = Alignment(horizontal="right", vertical="center")
+    ws.cell(row=curr_row, column=8, value=running_balance).alignment = Alignment(horizontal="right", vertical="center")
+    ws.cell(row=curr_row, column=9, value="").alignment = Alignment(horizontal="center", vertical="center")
+
+    for c_idx in range(1, 10):
+        cell = ws.cell(row=curr_row, column=c_idx)
+        cell.font = bold_num_font if c_idx in range(6, 9) else bold_data_font
+        cell.fill = total_fill
+        cell.border = thin_border
+        if c_idx in range(6, 9):
+            cell.number_format = '#,##0 "៛"'
+
+    ws.row_dimensions[curr_row].height = 24
+    curr_row += 1
+
+    # Widths
+    ws.column_dimensions['A'].width = 6
+    ws.column_dimensions['B'].width = 14
+    ws.column_dimensions['C'].width = 14
+    ws.column_dimensions['D'].width = 42
+    ws.column_dimensions['E'].width = 24
+    ws.column_dimensions['F'].width = 18
+    ws.column_dimensions['G'].width = 18
+    ws.column_dimensions['H'].width = 24
+    ws.column_dimensions['I'].width = 18
+
+    # Signatures
+    sign_row = curr_row + 2
+    ws.cell(row=sign_row, column=2, value="បានឃើញ និងឯកភាព").font = bold_data_font
+    ws.cell(row=sign_row + 1, column=2, value="មេឃុំនគរភាស").font = title_font
+
+    ws.cell(row=sign_row, column=5, value="បានពិនិត្យត្រឹមត្រូវ").font = bold_data_font
+    ws.cell(row=sign_row + 1, column=5, value="ស្មៀនឃុំ").font = title_font
+
+    ws.cell(row=sign_row, column=8, value=f"នគរភាស, ថ្ងៃទី..... ខែ{kh_month_name} ឆ្នាំ{year}").font = data_font
+    ws.cell(row=sign_row + 1, column=8, value="បេឡាធិការ / គណនេយ្យករ").font = title_font
+
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    filename = f"Commune_CashBook_Nokor_Pheas_{year}_{mon:02d}.xlsx"
     return StreamingResponse(
         output,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

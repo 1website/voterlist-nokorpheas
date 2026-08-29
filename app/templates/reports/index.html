@@ -1,118 +1,263 @@
 {% extends "base.html" %}
 
-{% block title %}របាយការណ៍ & ទាញយកទិន្នន័យ - រដ្ឋបាលឃុំនគរភាស{% endblock %}
+{% block title %}មជ្ឈមណ្ឌលរបាយការណ៍ និងការនាំចេញឯកសារ - រដ្ឋបាលឃុំនគរភាស{% endblock %}
 
 {% block content %}
 <div class="space-y-6">
 
-    <!-- Top Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-            <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 font-kh-bold flex items-center gap-2">
-                <span>📑</span> មជ្ឈមណ្ឌលរបាយការណ៍ & នាំចេញទិន្នន័យ (Reports & Export)
-            </h2>
-            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-1">
-                ទាញយកឯកសារ Excel, បោះពុម្ពបញ្ជីឈ្មោះផ្លូវការ និងរបាយការណ៍ស្ថិតិប្រជាសាស្ត្រ
-            </p>
+    <!-- ========================================================================= -->
+    <!-- 1. TOP HEADER & COMMUNE OFFICIAL EXPORT HUB (៤ របាយការណ៍ស្នូលរដ្ឋបាលឃុំ) -->
+    <!-- ========================================================================= -->
+    <div>
+        <h2 class="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 dark:text-slate-100 font-kh-bold flex items-center gap-2.5">
+            <span class="text-amber-500 text-2xl sm:text-3xl">📄</span>
+            <span>មជ្ឈមណ្ឌលរបាយការណ៍ និងការនាំចេញឯកសារ (Reporting & Export Hub)</span>
+        </h2>
+        <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-1">
+            ទាញយករបាយការណ៍ផ្លូវការជាទម្រង់ Excel (.xlsx) សម្រាប់ផ្ញើទៅសាលាស្រុកអង្គរជុំ និងតម្កល់ទុកនៅសាលាឃុំ
+        </p>
+    </div>
+
+    <!-- 4 Official Commune Export Cards (Responsive: 1 col on mobile, 2 on tablet, 4 on desktop) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4.5 w-full">
+
+        <!-- Card 1: Monthly Attendance -->
+        <div class="glass-card p-5 border-t-4 border-t-blue-600 dark:border-t-blue-500 flex flex-col justify-between shadow-md hover:shadow-lg transition min-w-0 bg-blue-50/15 dark:bg-blue-950/20">
+            <div>
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-11 h-11 rounded-2xl bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 flex items-center justify-center text-2xl shadow-sm border border-blue-100 dark:border-slate-700 flex-shrink-0">
+                        🗓️
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h3 class="text-base font-bold text-slate-900 dark:text-slate-100 font-kh-heading leading-tight">
+                            តារាងស្រង់វត្តមានប្រចាំខែ
+                        </h3>
+                    </div>
+                </div>
+                <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed min-h-[36px]">
+                    សម្រាប់ផ្ញើជូនរដ្ឋបាលស្រុកអង្គរជុំ ដើម្បីបូកសរុបប្រចាំខែ និងតម្កល់ទុក
+                </p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800/80 flex items-center gap-2">
+                <input type="month" id="monthlyAttMonth" value="{{ current_month_str }}" 
+                       class="form-control text-xs flex-1 min-w-0 bg-slate-50 dark:bg-slate-800/90 border border-slate-300 dark:border-slate-700 rounded-xl px-2.5 py-1.5 font-mono text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                       title="ជ្រើសរើសខែសម្រាប់ស្រង់វត្តមាន">
+                <button type="button" onclick="exportMonthlyAttendance()" 
+                        class="btn btn-success text-xs font-bold whitespace-nowrap px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 shadow-sm hover:shadow-md transition shrink-0"
+                        title="ទាញយកជាឯកសារ Excel">
+                    <span>📥</span>
+                    <span>Excel</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Card 2: Staff & Personnel Register -->
+        <div class="glass-card p-5 border-t-4 border-t-emerald-600 dark:border-t-emerald-500 flex flex-col justify-between shadow-md hover:shadow-lg transition min-w-0 bg-emerald-50/15 dark:bg-emerald-950/20">
+            <div>
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-11 h-11 rounded-2xl bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-2xl shadow-sm border border-emerald-100 dark:border-slate-700 flex-shrink-0">
+                        👥
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h3 class="text-base font-bold text-slate-900 dark:text-slate-100 font-kh-heading leading-tight">
+                            បញ្ជីរាយនាមមន្ត្រី-បុគ្គលិក
+                        </h3>
+                    </div>
+                </div>
+                <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed min-h-[36px]">
+                    បញ្ជីឈ្មោះមន្ត្រីសាលាឃុំ និងថ្នាក់ដឹកនាំភូមិទាំង ១០
+                </p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800/80 flex items-center gap-2">
+                <select id="officerFilter" 
+                        class="form-control text-xs flex-1 min-w-0 bg-slate-50 dark:bg-slate-800/90 border border-slate-300 dark:border-slate-700 rounded-xl px-2.5 py-1.5 text-slate-800 dark:text-slate-100 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                        title="ជ្រើសរើសប្រភេទមន្ត្រី">
+                    <option value="all">-- ទាំងអស់ --</option>
+                    <option value="commune">មន្ត្រីសាលាឃុំ</option>
+                    <option value="villages">មេភូមិទាំង ១០</option>
+                    <option value="stations">មន្ត្រីការិយាល័យ</option>
+                </select>
+                <button type="button" onclick="exportOfficerList()" 
+                        class="btn btn-success text-xs font-bold whitespace-nowrap px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 shadow-sm hover:shadow-md transition shrink-0"
+                        title="ទាញយកជាឯកសារ Excel">
+                    <span>📥</span>
+                    <span>Excel</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Card 3: Monthly Payroll -->
+        <div class="glass-card p-5 border-t-4 border-t-amber-500 dark:border-t-amber-400 flex flex-col justify-between shadow-md hover:shadow-lg transition min-w-0 bg-amber-50/15 dark:bg-amber-950/20">
+            <div>
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-11 h-11 rounded-2xl bg-white dark:bg-slate-800 text-amber-600 dark:text-amber-400 flex items-center justify-center text-2xl shadow-sm border border-amber-100 dark:border-slate-700 flex-shrink-0">
+                        💵
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h3 class="text-base font-bold text-slate-900 dark:text-slate-100 font-kh-heading leading-tight">
+                            តារាងបើកប្រាក់បៀវត្សរ៍
+                        </h3>
+                    </div>
+                </div>
+                <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed min-h-[36px]">
+                    តារាងទូទាត់ប្រាក់បៀវត្សរ៍ និងប្រាក់ឧបត្ថម្ភផ្សេងៗ
+                </p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800/80 flex items-center gap-2">
+                <input type="month" id="payrollMonth" value="{{ current_month_str }}" 
+                       class="form-control text-xs flex-1 min-w-0 bg-slate-50 dark:bg-slate-800/90 border border-slate-300 dark:border-slate-700 rounded-xl px-2.5 py-1.5 font-mono text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                       title="ជ្រើសរើសខែសម្រាប់ទូទាត់បៀវត្សរ៍">
+                <button type="button" onclick="exportPayroll()" 
+                        class="btn btn-success text-xs font-bold whitespace-nowrap px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 shadow-sm hover:shadow-md transition shrink-0"
+                        title="ទាញយកជាឯកសារ Excel">
+                    <span>📥</span>
+                    <span>Excel</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Card 4: Commune Cash Book -->
+        <div class="glass-card p-5 border-t-4 border-t-teal-600 dark:border-t-teal-500 flex flex-col justify-between shadow-md hover:shadow-lg transition min-w-0 bg-teal-50/15 dark:bg-teal-950/20">
+            <div>
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-11 h-11 rounded-2xl bg-white dark:bg-slate-800 text-teal-600 dark:text-teal-400 flex items-center justify-center text-2xl shadow-sm border border-teal-100 dark:border-slate-700 flex-shrink-0">
+                        ⚖️
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h3 class="text-base font-bold text-slate-900 dark:text-slate-100 font-kh-heading leading-tight">
+                            សៀវភៅកត់ត្រាសាច់ប្រាក់
+                        </h3>
+                    </div>
+                </div>
+                <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed min-h-[36px]">
+                    សៀវភៅកត់ត្រាចំណូល-ចំណាយ និងហិរញ្ញវត្ថុ
+                </p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800/80 flex items-center gap-2">
+                <input type="month" id="cashbookMonth" value="{{ current_month_str }}" 
+                       class="form-control text-xs flex-1 min-w-0 bg-slate-50 dark:bg-slate-800/90 border border-slate-300 dark:border-slate-700 rounded-xl px-2.5 py-1.5 font-mono text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                       title="ជ្រើសរើសខែសម្រាប់សៀវភៅសាច់ប្រាក់">
+                <button type="button" onclick="exportCashbook()" 
+                        class="btn btn-success text-xs font-bold whitespace-nowrap px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 shadow-sm hover:shadow-md transition shrink-0"
+                        title="ទាញយកជាឯកសារ Excel">
+                    <span>📥</span>
+                    <span>Excel</span>
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- 2. VOTER REGISTRATION & ELECTORAL REPORTS SECTION (គ.ជ.ប) -->
+    <!-- ========================================================================= -->
+    <div class="pt-2">
+        <div class="flex items-center justify-between mb-3 border-b border-slate-200 dark:border-slate-800 pb-2">
+            <h3 class="font-bold text-slate-900 dark:text-slate-100 text-base font-kh-heading flex items-center gap-2">
+                <span>🗳️</span>
+                <span>ឯកសារចុះឈ្មោះបោះឆ្នោត & ស្ថិតិ គ.ជ.ប (Voter Register Hub)</span>
+            </h3>
+            <span class="text-xs text-slate-500 dark:text-slate-400">ទម្រង់ស្តង់ដារ គ.ជ.ប</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 w-full">
+
+            <!-- 0. Annual Summary Report -->
+            <div class="glass-card p-4.5 border-t-4 border-t-amber-500 flex flex-col justify-between shadow-md hover:shadow-lg transition min-w-0 bg-amber-50/20 dark:bg-amber-950/20">
+                <div>
+                    <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 flex items-center justify-center text-xl font-black mb-2.5 shadow-inner">
+                        📊
+                    </div>
+                    <h4 class="text-sm font-bold text-slate-900 dark:text-slate-100 font-kh-heading">បូកសរុបប្រចាំឆ្នាំ</h4>
+                    <p class="text-[11px] text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
+                        ញែកស្ថិតិអ្នកចុះថ្មី vs បញ្ជីចាស់ និងផ្ទេរចូល តាមទម្រង់ គ.ជ.ប។
+                    </p>
+                </div>
+                <div class="mt-3 pt-2.5 border-t border-slate-200 dark:border-slate-800">
+                    <a href="/reports/annual-summary" class="btn btn-warning w-full text-xs font-bold shadow-sm">
+                        📈 បើករបាយការណ៍
+                    </a>
+                </div>
+            </div>
+            
+            <!-- 1. Daily Registration Report -->
+            <div class="glass-card p-4.5 border-t-4 border-t-indigo-600 flex flex-col justify-between shadow-md hover:shadow-lg transition min-w-0">
+                <div>
+                    <div class="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-950/60 text-indigo-900 dark:text-indigo-300 flex items-center justify-center text-xl font-black mb-2.5">
+                        📅
+                    </div>
+                    <h4 class="text-sm font-bold text-slate-900 dark:text-slate-100 font-kh-heading">ចុះឈ្មោះប្រចាំថ្ងៃ</h4>
+                    <p class="text-[11px] text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
+                        ស្វែងរក និងតាមដានអ្នកចុះឈ្មោះតាមថ្ងៃជាក់លាក់ ជាមួយ Print/Export។
+                    </p>
+                </div>
+                <div class="mt-3 pt-2.5 border-t border-slate-200 dark:border-slate-800">
+                    <a href="/reports/daily" class="btn btn-primary w-full text-xs font-bold shadow-sm">
+                        🔍 មើលតាមថ្ងៃ
+                    </a>
+                </div>
+            </div>
+
+            <!-- 2. Full Voter Excel Export -->
+            <div class="glass-card p-4.5 border-t-4 border-t-emerald-600 flex flex-col justify-between shadow-md hover:shadow-lg transition min-w-0">
+                <div>
+                    <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 flex items-center justify-center text-xl font-black mb-2.5">
+                        📑
+                    </div>
+                    <h4 class="text-sm font-bold text-slate-900 dark:text-slate-100 font-kh-heading">បញ្ជីឈ្មោះឃុំទាំងមូល</h4>
+                    <p class="text-[11px] text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
+                        ទាញយកបញ្ជីអ្នកបោះឆ្នោតពេញលេញគ្រប់ភូមិ និងការិយាល័យ។
+                    </p>
+                </div>
+                <div class="mt-3 pt-2.5 border-t border-slate-200 dark:border-slate-800">
+                    <a href="/reports/export/excel" class="btn btn-success w-full text-xs font-bold shadow-sm">
+                        📥 ទាញយក .xlsx
+                    </a>
+                </div>
+            </div>
+
+            <!-- 3. Official Printable Voter Register -->
+            <div class="glass-card p-4.5 border-t-4 border-t-blue-800 flex flex-col justify-between shadow-md hover:shadow-lg transition min-w-0">
+                <div>
+                    <div class="w-10 h-10 rounded-xl bg-blue-100 dark:bg-sky-950/60 text-blue-900 dark:text-sky-300 flex items-center justify-center text-xl font-black mb-2.5">
+                        🖨️
+                    </div>
+                    <h4 class="text-sm font-bold text-slate-900 dark:text-slate-100 font-kh-heading">បញ្ជីបោះឆ្នោតផ្លូវការ</h4>
+                    <p class="text-[11px] text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
+                        ទម្រង់ស្តង់ដារផ្លូវការសម្រាប់បោះពុម្ពបិទផ្សាយតាមការិយាល័យ។
+                    </p>
+                </div>
+                <div class="mt-3 pt-2.5 border-t border-slate-200 dark:border-slate-800">
+                    <a href="/reports/official-list" target="_blank" class="btn btn-primary w-full text-xs font-bold shadow-sm">
+                        📄 បើកផ្ទាំងបោះពុម្ព
+                    </a>
+                </div>
+            </div>
+
+            <!-- 4. Batch Voter Cards -->
+            <div class="glass-card p-4.5 border-t-4 border-t-amber-500 flex flex-col justify-between shadow-md hover:shadow-lg transition min-w-0">
+                <div>
+                    <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 flex items-center justify-center text-xl font-black mb-2.5">
+                        🪪
+                    </div>
+                    <h4 class="text-sm font-bold text-slate-900 dark:text-slate-100 font-kh-heading">ប័ណ្ណបោះឆ្នោតជាបាច់</h4>
+                    <p class="text-[11px] text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
+                        បោះពុម្ពប័ណ្ណព័ត៌មានអ្នកបោះឆ្នោតមាន QR (៤ ប័ណ្ណ/A4)។
+                    </p>
+                </div>
+                <div class="mt-3 pt-2.5 border-t border-slate-200 dark:border-slate-800">
+                    <a href="/reports/batch-cards" target="_blank" class="btn btn-accent w-full text-xs font-bold shadow-sm">
+                        🖨️ បើកប័ណ្ណជាបាច់
+                    </a>
+                </div>
+            </div>
+
         </div>
     </div>
 
-    <!-- Export & Printing Actions Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 w-full">
-
-        <!-- 0. Annual Summary Report (NEW) -->
-        <div class="glass-card p-5 border-t-4 border-t-amber-500 flex flex-col justify-between shadow-md hover:shadow-lg transition min-w-0 bg-amber-50/20 dark:bg-amber-950/20">
-            <div>
-                <div class="w-11 h-11 rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 flex items-center justify-center text-2xl font-black mb-3 shadow-inner">
-                    📊
-                </div>
-                <h3 class="text-base font-bold text-slate-900 dark:text-slate-100 font-kh-heading">របាយការណ៍បូកសរុបប្រចាំឆ្នាំ</h3>
-                <p class="text-xs text-slate-600 dark:text-slate-300 mt-1.5 leading-relaxed">
-                    ញែកស្ថិតិអ្នកចុះថ្មី (New) vs បញ្ជីចាស់ (Legacy) និងផ្ទេរចូល តាមទម្រង់ គ.ជ.ប។
-                </p>
-            </div>
-            <div class="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800 space-y-1.5">
-                <a href="/reports/annual-summary" class="btn btn-warning w-full text-xs font-bold shadow-sm">
-                    📈 បើករបាយការណ៍បូកសរុប
-                </a>
-            </div>
-        </div>
-        
-        <!-- 1. Daily Registration Report -->
-        <div class="glass-card p-5 border-t-4 border-t-indigo-600 flex flex-col justify-between shadow-md hover:shadow-lg transition min-w-0">
-            <div>
-                <div class="w-11 h-11 rounded-2xl bg-indigo-100 dark:bg-indigo-950/60 text-indigo-900 dark:text-indigo-300 flex items-center justify-center text-2xl font-black mb-3">
-                    📅
-                </div>
-                <h3 class="text-base font-bold text-slate-900 dark:text-slate-100 font-kh-heading">របាយការណ៍ចុះឈ្មោះប្រចាំថ្ងៃ</h3>
-                <p class="text-xs text-slate-600 dark:text-slate-300 mt-1.5 leading-relaxed">
-                    ស្វែងរក និងតាមដានអ្នកចុះឈ្មោះតាមថ្ងៃជាក់លាក់ ជាមួយការ Print និង Export។
-                </p>
-            </div>
-            <div class="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800 space-y-1.5">
-                <a href="/reports/daily" class="btn btn-primary w-full text-xs font-bold shadow-sm">
-                    🔍 ស្វែងរកតាមថ្ងៃ (Daily)
-                </a>
-            </div>
-        </div>
-
-        <!-- 2. Excel Export -->
-        <div class="glass-card p-5 border-t-4 border-t-emerald-600 flex flex-col justify-between shadow-md hover:shadow-lg transition min-w-0">
-            <div>
-                <div class="w-11 h-11 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 flex items-center justify-center text-2xl font-black mb-3">
-                    📊
-                </div>
-                <h3 class="text-base font-bold text-slate-900 dark:text-slate-100 font-kh-heading">នាំចេញជាឯកសារ Excel</h3>
-                <p class="text-xs text-slate-600 dark:text-slate-300 mt-1.5 leading-relaxed">
-                    ទាញយកទិន្នន័យអ្នកបោះឆ្នោតពេញលេញ មានទម្រង់ស្អាត សម្រាប់ចែកជូនមេភូមិ ឬផ្ទៀងផ្ទាត់។
-                </p>
-            </div>
-            <div class="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800 space-y-1.5">
-                <a href="/reports/export/excel" class="btn btn-success w-full text-xs font-bold shadow-sm">
-                    📥 ទាញយកឃុំទាំងមូល (.xlsx)
-                </a>
-            </div>
-        </div>
-
-        <!-- 3. Official Printable Voter Register -->
-        <div class="glass-card p-5 border-t-4 border-t-blue-800 flex flex-col justify-between shadow-md hover:shadow-lg transition min-w-0">
-            <div>
-                <div class="w-11 h-11 rounded-2xl bg-blue-100 dark:bg-sky-950/60 text-blue-900 dark:text-sky-300 flex items-center justify-center text-2xl font-black mb-3">
-                    🖨️
-                </div>
-                <h3 class="text-base font-bold text-slate-900 dark:text-slate-100 font-kh-heading">បញ្ជីបោះឆ្នោតផ្លូវការ</h3>
-                <p class="text-xs text-slate-600 dark:text-slate-300 mt-1.5 leading-relaxed">
-                    ទម្រង់ស្តង់ដារផ្លូវការសម្រាប់បោះពុម្ពបិទផ្សាយតាមការិយាល័យ និងចុះហត្ថលេខា។
-                </p>
-            </div>
-            <div class="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800 space-y-1.5">
-                <a href="/reports/official-list" target="_blank" class="btn btn-primary w-full text-xs font-bold shadow-sm">
-                    📄 បើកផ្ទាំងបោះពុម្ពបញ្ជីផ្លូវការ
-                </a>
-            </div>
-        </div>
-
-        <!-- 4. Batch Voter Cards -->
-        <div class="glass-card p-5 border-t-4 border-t-amber-500 flex flex-col justify-between shadow-md hover:shadow-lg transition min-w-0">
-            <div>
-                <div class="w-11 h-11 rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 flex items-center justify-center text-2xl font-black mb-3">
-                    🪪
-                </div>
-                <h3 class="text-base font-bold text-slate-900 dark:text-slate-100 font-kh-heading">បោះពុម្ពប័ណ្ណជាបាច់</h3>
-                <p class="text-xs text-slate-600 dark:text-slate-300 mt-1.5 leading-relaxed">
-                    បោះពុម្ពប័ណ្ណព័ត៌មានអ្នកបោះឆ្នោតដែលមាន QR Code (៤ ប័ណ្ណក្នុង ១ សន្លឹក A4)។
-                </p>
-            </div>
-            <div class="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800 space-y-1.5">
-                <a href="/reports/batch-cards" target="_blank" class="btn btn-accent w-full text-xs font-bold shadow-sm">
-                    🖨️ បើកប័ណ្ណជាបាច់ (Batch)
-                </a>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- Daily Registration Breakdown Section -->
+    <!-- ========================================================================= -->
+    <!-- 3. DAILY REGISTRATION BREAKDOWN TABLE -->
+    <!-- ========================================================================= -->
     <div class="glass-card p-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 mb-4 border-b border-slate-200 dark:border-slate-800 gap-2">
             <div>
@@ -181,6 +326,9 @@
         </div>
     </div>
 
+    <!-- ========================================================================= -->
+    <!-- 4. DEMOGRAPHICS & PER-STATION QUICK EXPORT -->
+    <!-- ========================================================================= -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Demographics Breakdown -->
         <div class="glass-card p-6">
@@ -263,4 +411,29 @@
     </div>
 
 </div>
+
+<!-- ========================================================================= -->
+<!-- JAVASCRIPT ACTIONS FOR EXPORT HUB -->
+<!-- ========================================================================= -->
+<script>
+function exportMonthlyAttendance() {
+    const month = document.getElementById('monthlyAttMonth').value || '{{ current_month_str }}';
+    window.location.href = `/reports/export/monthly-attendance?month=${encodeURIComponent(month)}`;
+}
+
+function exportOfficerList() {
+    const filterType = document.getElementById('officerFilter').value || 'all';
+    window.location.href = `/reports/export/officer-list?filter_type=${encodeURIComponent(filterType)}`;
+}
+
+function exportPayroll() {
+    const month = document.getElementById('payrollMonth').value || '{{ current_month_str }}';
+    window.location.href = `/reports/export/payroll?month=${encodeURIComponent(month)}`;
+}
+
+function exportCashbook() {
+    const month = document.getElementById('cashbookMonth').value || '{{ current_month_str }}';
+    window.location.href = `/reports/export/cashbook?month=${encodeURIComponent(month)}`;
+}
+</script>
 {% endblock %}
