@@ -1,3 +1,4 @@
+import os
 from starlette.testclient import TestClient
 from main import app
 from app.database import SessionLocal
@@ -185,7 +186,17 @@ def test_birth_certificate_attachments():
     assert rec_pdf.is_pdf is True
     assert rec_pdf.is_image is False
 
-    # Clean up test records
+    # Clean up test records and uploaded files
+    import os
+    for rec in [rec_img, rec_pdf]:
+        if rec and rec.attachment_url:
+            local_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "app", rec.attachment_url.lstrip("/"))
+            if os.path.exists(local_path):
+                try:
+                    os.remove(local_path)
+                except Exception:
+                    pass
+
     db.delete(rec_img)
     db.delete(rec_pdf)
     db.commit()
@@ -286,21 +297,34 @@ def test_birth_certificate_duplicate_check():
     db.close()
 
 if __name__ == "__main__":
-    print("Running tests manually...")
-    test_birth_certificates_list_page()
-    print("✅ test_birth_certificates_list_page passed")
-    test_birth_certificates_filters()
-    print("✅ test_birth_certificates_filters passed")
-    test_youth_pipeline_dashboard()
-    print("✅ test_youth_pipeline_dashboard passed")
-    test_create_and_convert_birth_certificate()
-    print("✅ test_create_and_convert_birth_certificate passed")
-    test_birth_certificate_attachments()
-    print("✅ test_birth_certificate_attachments (Image & PDF) passed")
-    test_export_excel()
-    print("✅ test_export_excel passed")
-    test_print_eligible_view()
-    print("✅ test_print_eligible_view passed")
-    test_birth_certificate_duplicate_check()
-    print("✅ test_birth_certificate_duplicate_check passed")
-    print("🎉 All 8 tests passed successfully!")
+    from app.database import DB_PATH
+    import shutil
+    temp_backup = DB_PATH + ".test_backup_birth"
+    if os.path.exists(DB_PATH):
+        shutil.copy2(DB_PATH, temp_backup)
+    try:
+        print("Running tests manually...")
+        test_birth_certificates_list_page()
+        print("✅ test_birth_certificates_list_page passed")
+        test_birth_certificates_filters()
+        print("✅ test_birth_certificates_filters passed")
+        test_youth_pipeline_dashboard()
+        print("✅ test_youth_pipeline_dashboard passed")
+        test_create_and_convert_birth_certificate()
+        print("✅ test_create_and_convert_birth_certificate passed")
+        test_birth_certificate_attachments()
+        print("✅ test_birth_certificate_attachments (Image & PDF) passed")
+        test_export_excel()
+        print("✅ test_export_excel passed")
+        test_print_eligible_view()
+        print("✅ test_print_eligible_view passed")
+        test_birth_certificate_duplicate_check()
+        print("✅ test_birth_certificate_duplicate_check passed")
+        print("🎉 All 8 tests passed successfully!")
+    finally:
+        if os.path.exists(temp_backup):
+            shutil.copy2(temp_backup, DB_PATH)
+            try:
+                os.remove(temp_backup)
+            except Exception:
+                pass

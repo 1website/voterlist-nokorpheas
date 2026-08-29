@@ -173,15 +173,28 @@ def test_annual_summary_excel_export():
     assert "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" in res.headers.get("content-type", "")
 
 if __name__ == "__main__":
-    print("Running Voter Registration Types Tests...")
-    test_voter_registration_new_legacy_transferred()
-    print("✅ test_voter_registration_new_legacy_transferred passed")
-    test_voter_reg_type_filters()
-    print("✅ test_voter_reg_type_filters passed")
-    test_annual_summary_dashboard_page()
-    print("✅ test_annual_summary_dashboard_page passed")
-    test_annual_summary_print_page()
-    print("✅ test_annual_summary_print_page passed")
-    test_annual_summary_excel_export()
-    print("✅ test_annual_summary_excel_export passed")
-    print("🎉 All Voter Registration Types tests passed successfully!")
+    import os, shutil
+    from app.database import DB_PATH
+    temp_backup = DB_PATH + ".test_backup_reg"
+    if os.path.exists(DB_PATH):
+        shutil.copy2(DB_PATH, temp_backup)
+    try:
+        print("Running Voter Registration Types Tests...")
+        test_voter_registration_new_legacy_transferred()
+        print("✅ test_voter_registration_new_legacy_transferred passed")
+        test_voter_reg_type_filters()
+        print("✅ test_voter_reg_type_filters passed")
+        test_annual_summary_dashboard_page()
+        print("✅ test_annual_summary_dashboard_page passed")
+        test_annual_summary_print_page()
+        print("✅ test_annual_summary_print_page passed")
+        test_annual_summary_excel_export()
+        print("✅ test_annual_summary_excel_export passed")
+        print("🎉 All Voter Registration Types tests passed successfully!")
+    finally:
+        if os.path.exists(temp_backup):
+            shutil.copy2(temp_backup, DB_PATH)
+            try:
+                os.remove(temp_backup)
+            except Exception:
+                pass
