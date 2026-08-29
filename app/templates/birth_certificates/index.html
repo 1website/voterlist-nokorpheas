@@ -511,143 +511,151 @@
 <!-- MODAL: ADD BIRTH CERTIFICATE -->
 <!-- ========================================================================= -->
 <div id="addBirthModal" class="modal-overlay hidden">
-    <div class="modal-card max-w-2xl w-full bg-white dark:bg-[#0b1329] rounded-3xl shadow-2xl max-h-[90vh] overflow-y-auto border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100">
-        <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between sticky top-0 bg-white dark:bg-[#0b1329] z-10">
+    <div class="modal-card max-w-2xl w-full bg-white dark:bg-[#0b1329] rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 flex flex-col max-h-[92vh] overflow-hidden">
+        <!-- Fixed Header -->
+        <div class="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0 bg-white dark:bg-[#0b1329]">
             <div class="flex items-center gap-2.5">
                 <span class="text-2xl">📜</span>
                 <div>
-                    <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 font-kh-heading">កត់ត្រាសំបុត្រកំណើតថ្មី</h3>
+                    <h3 class="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100 font-kh-heading">កត់ត្រាសំបុត្រកំណើតថ្មី</h3>
                     <p class="text-xs text-slate-500 dark:text-slate-400">បញ្ចូលទិន្នន័យអត្រានុកូលដ្ឋាន និងភ្ជាប់ឯកសារចម្លង</p>
                 </div>
             </div>
-            <button type="button" onclick="closeAddBirthModal()" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-lg font-bold p-1 rounded-lg">✕</button>
+            <button type="button" onclick="closeAddBirthModal()" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-lg font-bold p-1 rounded-lg transition" title="បិទ">✕</button>
         </div>
 
-        <form id="addBirthForm" method="POST" action="/birth-certificates/create" enctype="multipart/form-data" class="p-6 space-y-4">
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <!-- Certificate No -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold flex items-center justify-between">
-                        <span>លេខសំបុត្រកំណើត <span class="text-rose-500">*</span></span>
-                        <span class="text-[10px] text-blue-600 font-medium font-mono">ឧ. ស.ក-២០២៦-០០១</span>
-                    </label>
-                    <input type="text" id="add_cert_no" name="certificate_no" required placeholder="ឧ. ស.ក-២០២៦-០០១" oninput="checkDuplicateBirthCert('add_cert_no', 'add_book_no', 0, 'addBirthDupFeedback', 'addBirthSubmitBtn')" class="form-control text-sm font-semibold">
-                </div>
+        <!-- Form with Scrollable Body & Sticky Footer -->
+        <form id="addBirthForm" method="POST" action="/birth-certificates/create" enctype="multipart/form-data" class="flex flex-col flex-1 min-h-0 overflow-hidden">
+            <!-- Scrollable Body -->
+            <div class="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1 custom-scrollbar">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Certificate No -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5 font-kh-bold flex items-center justify-between">
+                            <span>លេខសំបុត្រកំណើត <span class="text-rose-500">*</span></span>
+                            <span class="text-[10px] text-blue-600 dark:text-sky-400 font-medium font-mono">ឧ. ស.ក-២០២៦-០០១</span>
+                        </label>
+                        <input type="text" id="add_cert_no" name="certificate_no" required placeholder="ឧ. ស.ក-២០២៦-០០១" oninput="checkDuplicateBirthCert('add_cert_no', 'add_book_no', 0, 'addBirthDupFeedback', 'addBirthSubmitBtn')" class="form-control text-sm font-semibold text-slate-900 dark:text-slate-100">
+                    </div>
 
-                <!-- Book No -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold flex items-center justify-between">
-                        <span>លេខសៀវភៅអត្រានុកូលដ្ឋាន</span>
-                        <span class="text-[10px] text-slate-400 font-mono">ឧ. ០១/២០២៦</span>
-                    </label>
-                    <input type="text" id="add_book_no" name="book_no" placeholder="ឧ. សៀវភៅលេខ ០១/២០២៦" oninput="checkDuplicateBirthCert('add_cert_no', 'add_book_no', 0, 'addBirthDupFeedback', 'addBirthSubmitBtn')" class="form-control text-sm">
-                </div>
+                    <!-- Book No -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5 font-kh-bold flex items-center justify-between">
+                            <span>លេខសៀវភៅអត្រានុកូលដ្ឋាន</span>
+                            <span class="text-[10px] text-slate-500 dark:text-slate-400 font-mono">ឧ. ០១/២០២៦</span>
+                        </label>
+                        <input type="text" id="add_book_no" name="book_no" placeholder="ឧ. សៀវភៅលេខ ០១/២០២៦" oninput="checkDuplicateBirthCert('add_cert_no', 'add_book_no', 0, 'addBirthDupFeedback', 'addBirthSubmitBtn')" class="form-control text-sm text-slate-900 dark:text-slate-100">
+                    </div>
 
-                <!-- Duplicate Live Feedback Container for Add -->
-                <div id="addBirthDupFeedback" class="sm:col-span-2"></div>
+                    <!-- Duplicate Live Feedback Container for Add -->
+                    <div id="addBirthDupFeedback" class="sm:col-span-2"></div>
 
-                <!-- Name Khmer -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">ឈ្មោះជាភាសាខ្មែរ <span class="text-rose-500">*</span></label>
-                    <input type="text" id="add_name_kh" name="name_kh" required placeholder="ឧ. ស៊ឹម ចាន់ថន" class="form-control text-sm font-kh-bold">
-                </div>
+                    <!-- Name Khmer -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5 font-kh-bold">ឈ្មោះជាភាសាខ្មែរ <span class="text-rose-500">*</span></label>
+                        <input type="text" id="add_name_kh" name="name_kh" required placeholder="ឧ. ស៊ឹម ចាន់ថន" class="form-control text-sm font-kh-bold text-slate-900 dark:text-slate-100">
+                    </div>
 
-                <!-- Name Latin -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">ឈ្មោះជាអក្សរឡាតាំង <span class="text-rose-500">*</span></label>
-                    <input type="text" id="add_name_en" name="name_en" required placeholder="ឧ. SIM CHANTHORN" class="form-control text-sm uppercase font-mono">
-                </div>
+                    <!-- Name Latin -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5 font-kh-bold">ឈ្មោះជាអក្សរឡាតាំង <span class="text-rose-500">*</span></label>
+                        <input type="text" id="add_name_en" name="name_en" required placeholder="ឧ. SIM CHANTHORN" class="form-control text-sm uppercase font-mono text-slate-900 dark:text-slate-100">
+                    </div>
 
-                <!-- Gender -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">ភេទ <span class="text-rose-500">*</span></label>
-                    <select name="gender" required class="form-control text-sm">
-                        <option value="ប្រុស">ប្រុស (Male)</option>
-                        <option value="ស្រី">ស្រី (Female)</option>
-                    </select>
-                </div>
+                    <!-- Gender -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5 font-kh-bold">ភេទ <span class="text-rose-500">*</span></label>
+                        <select name="gender" required class="form-control text-sm font-semibold">
+                            <option value="ប្រុស">ប្រុស (Male)</option>
+                            <option value="ស្រី">ស្រី (Female)</option>
+                        </select>
+                    </div>
 
-                <!-- DOB -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">ថ្ងៃខែឆ្នាំកំណើត <span class="text-rose-500">*</span></label>
-                    <input type="date" name="dob" required class="form-control text-sm font-mono">
-                </div>
+                    <!-- DOB -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5 font-kh-bold">ថ្ងៃខែឆ្នាំកំណើត <span class="text-rose-500">*</span></label>
+                        <input type="date" name="dob" required class="form-control text-sm font-mono text-slate-900 dark:text-slate-100">
+                    </div>
 
-                <!-- Registration Date -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold flex items-center justify-between">
-                        <span>កាលបរិច្ឆេទចុះបញ្ជី <span class="text-rose-500">*</span></span>
-                        <span class="text-[10px] text-emerald-600 font-medium">ថ្ងៃចុះសំបុត្រកំណើត</span>
-                    </label>
-                    <input type="date" name="registered_date" id="add_registered_date" value="{{ today_str }}" required class="form-control text-sm font-mono">
-                </div>
+                    <!-- Registration Date -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5 font-kh-bold flex items-center justify-between">
+                            <span>កាលបរិច្ឆេទចុះបញ្ជី <span class="text-rose-500">*</span></span>
+                            <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">ថ្ងៃចុះសំបុត្រកំណើត</span>
+                        </label>
+                        <input type="date" name="registered_date" id="add_registered_date" value="{{ today_str }}" required class="form-control text-sm font-mono text-slate-900 dark:text-slate-100">
+                    </div>
 
-                <!-- Village -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">ភូមិ <span class="text-rose-500">*</span></label>
-                    <select name="village_id" required class="form-control text-sm">
-                        {% for v in villages %}
-                        <option value="{{ v.id }}" {% if current_user.village_id == v.id %}selected{% endif %}>{{ v.name_kh }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
+                    <!-- Village -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5 font-kh-bold">ភូមិ <span class="text-rose-500">*</span></label>
+                        <select name="village_id" required class="form-control text-sm font-semibold">
+                            {% for v in villages %}
+                            <option value="{{ v.id }}" {% if current_user.village_id == v.id %}selected{% endif %}>{{ v.name_kh }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
-                <!-- Place of Birth -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">ទីកន្លែងកំណើត</label>
-                    <input type="text" name="pob" placeholder="ឧ. ឃុំនគរភាស ស្រុកអង្គរជុំ ខេត្តសៀមរាប" class="form-control text-sm">
-                </div>
+                    <!-- Father Name -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5 font-kh-bold">ឈ្មោះឪពុក</label>
+                        <input type="text" name="father_name" placeholder="ឧ. ស៊ឹម វណ្ណា" class="form-control text-sm text-slate-900 dark:text-slate-100">
+                    </div>
 
-                <!-- Father Name -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">ឈ្មោះឪពុក</label>
-                    <input type="text" name="father_name" placeholder="ឧ. ស៊ឹម វណ្ណា" class="form-control text-sm">
-                </div>
+                    <!-- Mother Name -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5 font-kh-bold">ឈ្មោះម្តាយ</label>
+                        <input type="text" name="mother_name" placeholder="ឧ. អ៊ុក សុភា" class="form-control text-sm text-slate-900 dark:text-slate-100">
+                    </div>
 
-                <!-- Mother Name -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">ឈ្មោះម្តាយ</label>
-                    <input type="text" name="mother_name" placeholder="ឧ. អ៊ុក សុភា" class="form-control text-sm">
-                </div>
+                    <!-- Place of Birth -->
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5 font-kh-bold">ទីកន្លែងកំណើត</label>
+                        <input type="text" name="pob" placeholder="ឧ. ឃុំនគរភាស ស្រុកអង្គរជុំ ខេត្តសៀមរាប" class="form-control text-sm text-slate-900 dark:text-slate-100">
+                    </div>
 
-                <!-- Attachment Upload (PDF or Image) -->
-                <div class="sm:col-span-2">
-                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold flex items-center justify-between">
-                        <span class="flex items-center gap-1.5">
-                            <span>📎</span> <span>ឯកសារចម្លងសំបុត្រកំណើតភ្ជាប់ (រូបភាព ឬ PDF)</span>
-                        </span>
-                        <span class="text-[11px] text-blue-600 font-semibold">PDF, JPG, PNG, WEBP</span>
-                    </label>
-                    <div class="relative border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-2xl p-4 text-center bg-slate-50/70 hover:bg-blue-50/30 transition cursor-pointer group">
-                        <input type="file" name="attachment" id="add_attachment_input" accept=".pdf,.jpg,.jpeg,.png,.webp,.gif" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="updateAddFileLabel(this)">
-                        <div class="flex flex-col items-center justify-center gap-1">
-                            <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xl group-hover:scale-110 transition shadow-inner">
-                                📄
+                    <!-- Address -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5 font-kh-bold">អាសយដ្ឋានបច្ចុប្បន្ន</label>
+                        <input type="text" name="address" placeholder="ឧ. ក្រុមទី ៣ ភូមិរមៀត" class="form-control text-sm text-slate-900 dark:text-slate-100">
+                    </div>
+
+                    <!-- Notes -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5 font-kh-bold">កំណត់ចំណាំ</label>
+                        <input type="text" name="notes" placeholder="ព័ត៌មានបន្ថែម..." class="form-control text-sm text-slate-900 dark:text-slate-100">
+                    </div>
+
+                    <!-- Attachment Upload (PDF or Image) -->
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5 font-kh-bold flex items-center justify-between">
+                            <span class="flex items-center gap-1.5">
+                                <span>📎</span> <span>ឯកសារចម្លងសំបុត្រកំណើតភ្ជាប់ (រូបភាព ឬ PDF)</span>
+                            </span>
+                            <span class="text-[11px] text-blue-600 dark:text-sky-400 font-semibold font-mono">PDF, JPG, PNG, WEBP</span>
+                        </label>
+                        <div class="relative border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-400 rounded-2xl p-4 text-center bg-slate-50/70 dark:bg-slate-850/60 hover:bg-blue-50/30 dark:hover:bg-slate-800 transition cursor-pointer group">
+                            <input type="file" name="attachment" id="add_attachment_input" accept=".pdf,.jpg,.jpeg,.png,.webp,.gif" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="updateAddFileLabel(this)">
+                            <div class="flex flex-col items-center justify-center gap-1">
+                                <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-slate-700 text-blue-700 dark:text-sky-300 flex items-center justify-center text-xl group-hover:scale-110 transition shadow-inner">
+                                    📄
+                                </div>
+                                <div id="add_attachment_label" class="text-xs text-slate-800 dark:text-slate-200 font-bold mt-1">
+                                    ចុចទីនេះដើម្បីជ្រើសរើសឯកសារចម្លង (រូបថត ឬ PDF)
+                                </div>
+                                <div class="text-[11px] text-slate-400 dark:text-slate-400">ទំហំអតិបរមា 10MB</div>
                             </div>
-                            <div id="add_attachment_label" class="text-xs text-slate-700 font-bold mt-1">
-                                ចុចទីនេះដើម្បីជ្រើសរើសឯកសារចម្លង (រូបថត ឬ PDF)
-                            </div>
-                            <div class="text-[11px] text-slate-400">ទំហំអតិបរមា 10MB</div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Address -->
-            <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">អាសយដ្ឋានបច្ចុប្បន្ន</label>
-                <input type="text" name="address" placeholder="ឧ. ក្រុមទី ៣ ភូមិរមៀត" class="form-control text-sm">
-            </div>
-
-            <!-- Notes -->
-            <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">កំណត់ចំណាំ</label>
-                <textarea name="notes" rows="2" placeholder="ព័ត៌មានបន្ថែម..." class="form-control text-sm"></textarea>
-            </div>
-
-            <div class="pt-4 border-t border-slate-200 flex items-center justify-end gap-2">
-                <button type="button" onclick="closeAddBirthModal()" class="btn btn-outline text-sm">បោះបង់</button>
-                <button type="submit" id="addBirthSubmitBtn" class="btn btn-primary text-sm shadow-md flex items-center gap-1.5">
+            <!-- Sticky Fixed Footer -->
+            <div class="p-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2.5 shrink-0 bg-slate-50 dark:bg-slate-900/90 rounded-b-3xl">
+                <button type="button" onclick="closeAddBirthModal()" class="btn btn-outline text-xs sm:text-sm py-2 px-4 rounded-xl font-bold">
+                    បោះបង់
+                </button>
+                <button type="submit" id="addBirthSubmitBtn" class="btn btn-primary text-xs sm:text-sm py-2 px-5 rounded-xl shadow-md font-bold flex items-center gap-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white">
                     <span>💾</span> <span>រក្សាទុកសំបុត្រកំណើត</span>
                 </button>
             </div>
@@ -659,152 +667,160 @@
 <!-- MODAL: EDIT BIRTH CERTIFICATE -->
 <!-- ========================================================================= -->
 <div id="editBirthModal" class="modal-overlay hidden">
-    <div class="modal-card max-w-2xl w-full bg-white dark:bg-[#0b1329] rounded-3xl shadow-2xl max-h-[90vh] overflow-y-auto border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100">
-        <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between sticky top-0 bg-white dark:bg-[#0b1329] z-10">
+    <div class="modal-card max-w-2xl w-full bg-white dark:bg-[#0b1329] rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 flex flex-col max-h-[92vh] overflow-hidden">
+        <!-- Fixed Header -->
+        <div class="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0 bg-white dark:bg-[#0b1329]">
             <div class="flex items-center gap-2.5">
                 <span class="text-2xl">✏️</span>
                 <div>
-                    <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 font-kh-heading">កែប្រែសំបុត្រកំណើត</h3>
+                    <h3 class="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100 font-kh-heading">កែប្រែសំបុត្រកំណើត</h3>
                     <p class="text-xs text-slate-500 dark:text-slate-400">កែសម្រួលព័ត៌មានអត្រានុកូលដ្ឋាន និងឯកសារភ្ជាប់</p>
                 </div>
             </div>
-            <button type="button" onclick="closeEditBirthModal()" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-lg font-bold p-1 rounded-lg">✕</button>
+            <button type="button" onclick="closeEditBirthModal()" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-lg font-bold p-1 rounded-lg transition" title="បិទ">✕</button>
         </div>
 
-        <form id="editBirthForm" method="POST" action="" enctype="multipart/form-data" class="p-6 space-y-4">
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <!-- Certificate No -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold flex items-center justify-between">
-                        <span>លេខសំបុត្រកំណើត <span class="text-rose-500">*</span></span>
-                    </label>
-                    <input type="text" id="edit_cert_no" name="certificate_no" required oninput="checkDuplicateBirthCert('edit_cert_no', 'edit_book_no', currentEditBirthId, 'editBirthDupFeedback', 'editBirthSubmitBtn')" class="form-control text-sm font-semibold">
-                </div>
+        <!-- Form with Scrollable Body & Sticky Footer -->
+        <form id="editBirthForm" method="POST" action="" enctype="multipart/form-data" class="flex flex-col flex-1 min-h-0 overflow-hidden">
+            <!-- Scrollable Body -->
+            <div class="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1 custom-scrollbar">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Certificate No -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5 font-kh-bold flex items-center justify-between">
+                            <span>លេខសំបុត្រកំណើត <span class="text-rose-500">*</span></span>
+                        </label>
+                        <input type="text" id="edit_cert_no" name="certificate_no" required oninput="checkDuplicateBirthCert('edit_cert_no', 'edit_book_no', currentEditBirthId, 'editBirthDupFeedback', 'editBirthSubmitBtn')" class="form-control text-sm font-semibold text-slate-900 dark:text-slate-100">
+                    </div>
 
-                <!-- Book No -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">លេខសៀវភៅអត្រានុកូលដ្ឋាន</label>
-                    <input type="text" id="edit_book_no" name="book_no" oninput="checkDuplicateBirthCert('edit_cert_no', 'edit_book_no', currentEditBirthId, 'editBirthDupFeedback', 'editBirthSubmitBtn')" class="form-control text-sm">
-                </div>
+                    <!-- Book No -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5 font-kh-bold">លេខសៀវភៅអត្រានុកូលដ្ឋាន</label>
+                        <input type="text" id="edit_book_no" name="book_no" oninput="checkDuplicateBirthCert('edit_cert_no', 'edit_book_no', currentEditBirthId, 'editBirthDupFeedback', 'editBirthSubmitBtn')" class="form-control text-sm text-slate-900 dark:text-slate-100">
+                    </div>
 
-                <!-- Duplicate Live Feedback Container for Edit -->
-                <div id="editBirthDupFeedback" class="sm:col-span-2"></div>
+                    <!-- Duplicate Live Feedback Container for Edit -->
+                    <div id="editBirthDupFeedback" class="sm:col-span-2"></div>
 
-                <!-- Name Khmer -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">ឈ្មោះជាភាសាខ្មែរ <span class="text-rose-500">*</span></label>
-                    <input type="text" id="edit_name_kh" name="name_kh" required class="form-control text-sm font-kh-bold">
-                </div>
+                    <!-- Name Khmer -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5 font-kh-bold">ឈ្មោះជាភាសាខ្មែរ <span class="text-rose-500">*</span></label>
+                        <input type="text" id="edit_name_kh" name="name_kh" required class="form-control text-sm font-kh-bold text-slate-900 dark:text-slate-100">
+                    </div>
 
-                <!-- Name Latin -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">ឈ្មោះជាអក្សរឡាតាំង <span class="text-rose-500">*</span></label>
-                    <input type="text" id="edit_name_en" name="name_en" required class="form-control text-sm uppercase font-mono">
-                </div>
+                    <!-- Name Latin -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5 font-kh-bold">ឈ្មោះជាអក្សរឡាតាំង <span class="text-rose-500">*</span></label>
+                        <input type="text" id="edit_name_en" name="name_en" required class="form-control text-sm uppercase font-mono text-slate-900 dark:text-slate-100">
+                    </div>
 
-                <!-- Gender -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">ភេទ <span class="text-rose-500">*</span></label>
-                    <select id="edit_gender" name="gender" required class="form-control text-sm">
-                        <option value="ប្រុស">ប្រុស (Male)</option>
-                        <option value="ស្រី">ស្រី (Female)</option>
-                    </select>
-                </div>
+                    <!-- Gender -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5 font-kh-bold">ភេទ <span class="text-rose-500">*</span></label>
+                        <select id="edit_gender" name="gender" required class="form-control text-sm font-semibold">
+                            <option value="ប្រុស">ប្រុស (Male)</option>
+                            <option value="ស្រី">ស្រី (Female)</option>
+                        </select>
+                    </div>
 
-                <!-- DOB -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">ថ្ងៃខែឆ្នាំកំណើត <span class="text-rose-500">*</span></label>
-                    <input type="date" id="edit_dob" name="dob" required class="form-control text-sm font-mono">
-                </div>
+                    <!-- DOB -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5 font-kh-bold">ថ្ងៃខែឆ្នាំកំណើត <span class="text-rose-500">*</span></label>
+                        <input type="date" id="edit_dob" name="dob" required class="form-control text-sm font-mono text-slate-900 dark:text-slate-100">
+                    </div>
 
-                <!-- Registration Date in Edit Modal -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold flex items-center justify-between">
-                        <span>កាលបរិច្ឆេទចុះបញ្ជី <span class="text-rose-500">*</span></span>
-                        <span class="text-[10px] text-emerald-600 font-medium">ថ្ងៃចុះសំបុត្រកំណើត</span>
-                    </label>
-                    <input type="date" id="edit_registered_date" name="registered_date" required class="form-control text-sm font-mono">
-                </div>
+                    <!-- Registration Date in Edit Modal -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5 font-kh-bold flex items-center justify-between">
+                            <span>កាលបរិច្ឆេទចុះបញ្ជី <span class="text-rose-500">*</span></span>
+                            <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">ថ្ងៃចុះសំបុត្រកំណើត</span>
+                        </label>
+                        <input type="date" id="edit_registered_date" name="registered_date" required class="form-control text-sm font-mono text-slate-900 dark:text-slate-100">
+                    </div>
 
-                <!-- Village -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">ភូមិ <span class="text-rose-500">*</span></label>
-                    <select id="edit_village_id" name="village_id" required class="form-control text-sm">
-                        {% for v in villages %}
-                        <option value="{{ v.id }}">{{ v.name_kh }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
+                    <!-- Village -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5 font-kh-bold">ភូមិ <span class="text-rose-500">*</span></label>
+                        <select id="edit_village_id" name="village_id" required class="form-control text-sm font-semibold">
+                            {% for v in villages %}
+                            <option value="{{ v.id }}">{{ v.name_kh }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
-                <!-- Place of Birth -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">ទីកន្លែងកំណើត</label>
-                    <input type="text" id="edit_pob" name="pob" class="form-control text-sm">
-                </div>
+                    <!-- Father Name -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5 font-kh-bold">ឈ្មោះឪពុក</label>
+                        <input type="text" id="edit_father_name" name="father_name" class="form-control text-sm text-slate-900 dark:text-slate-100">
+                    </div>
 
-                <!-- Father Name -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">ឈ្មោះឪពុក</label>
-                    <input type="text" id="edit_father_name" name="father_name" class="form-control text-sm">
-                </div>
+                    <!-- Mother Name -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5 font-kh-bold">ឈ្មោះម្តាយ</label>
+                        <input type="text" id="edit_mother_name" name="mother_name" class="form-control text-sm text-slate-900 dark:text-slate-100">
+                    </div>
 
-                <!-- Mother Name -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">ឈ្មោះម្តាយ</label>
-                    <input type="text" id="edit_mother_name" name="mother_name" class="form-control text-sm">
-                </div>
+                    <!-- Place of Birth -->
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5 font-kh-bold">ទីកន្លែងកំណើត</label>
+                        <input type="text" id="edit_pob" name="pob" class="form-control text-sm text-slate-900 dark:text-slate-100">
+                    </div>
 
-                <!-- Attachment in Edit Modal -->
-                <div class="sm:col-span-2">
-                    <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold flex items-center justify-between">
-                        <span class="flex items-center gap-1.5">
-                            <span>📎</span> <span>ឯកសារភ្ជាប់ (រូបភាព ឬ PDF)</span>
-                        </span>
-                        <span class="text-[11px] text-blue-600 font-semibold">PDF, JPG, PNG, WEBP</span>
-                    </label>
+                    <!-- Address -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5 font-kh-bold">អាសយដ្ឋានបច្ចុប្បន្ន</label>
+                        <input type="text" id="edit_address" name="address" class="form-control text-sm text-slate-900 dark:text-slate-100">
+                    </div>
 
-                    <!-- Existing Attachment Preview Box -->
-                    <div id="edit_current_attachment_box" class="hidden mb-2 p-3 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-between">
-                        <div class="flex items-center gap-2 min-w-0">
-                            <span id="edit_attachment_icon" class="text-lg">📄</span>
-                            <div class="min-w-0">
-                                <a id="edit_attachment_link" href="#" target="_blank" class="text-xs font-bold text-blue-800 hover:underline truncate block">
-                                    ពិនិត្យមើលឯកសារភ្ជាប់បច្ចុប្បន្ន ↗
-                                </a>
-                                <span class="text-[10px] text-slate-500">មានឯកសារភ្ជាប់រួចជាស្រេច</span>
+                    <!-- Notes -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5 font-kh-bold">កំណត់ចំណាំ</label>
+                        <input type="text" id="edit_notes" name="notes" class="form-control text-sm text-slate-900 dark:text-slate-100">
+                    </div>
+
+                    <!-- Attachment in Edit Modal -->
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5 font-kh-bold flex items-center justify-between">
+                            <span class="flex items-center gap-1.5">
+                                <span>📎</span> <span>ឯកសារភ្ជាប់ (រូបភាព ឬ PDF)</span>
+                            </span>
+                            <span class="text-[11px] text-blue-600 dark:text-sky-400 font-semibold font-mono">PDF, JPG, PNG, WEBP</span>
+                        </label>
+
+                        <!-- Existing Attachment Preview Box -->
+                        <div id="edit_current_attachment_box" class="hidden mb-2 p-3 rounded-xl bg-blue-50 dark:bg-slate-800 border border-blue-200 dark:border-slate-700 flex items-center justify-between">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span id="edit_attachment_icon" class="text-lg">📄</span>
+                                <div class="min-w-0">
+                                    <a id="edit_attachment_link" href="#" target="_blank" class="text-xs font-bold text-blue-800 dark:text-sky-300 hover:underline truncate block">
+                                        ពិនិត្យមើលឯកសារភ្ជាប់បច្ចុប្បន្ន ↗
+                                    </a>
+                                    <span class="text-[10px] text-slate-500 dark:text-slate-400">មានឯកសារភ្ជាប់រួចជាស្រេច</span>
+                                </div>
+                            </div>
+                            <label class="flex items-center gap-1.5 text-xs text-rose-600 dark:text-rose-400 font-bold cursor-pointer hover:text-rose-700 dark:hover:text-rose-300 bg-white dark:bg-slate-900 px-2.5 py-1 rounded-lg border border-rose-200 dark:border-rose-800">
+                                <input type="checkbox" name="remove_attachment" value="1" id="edit_remove_attachment" class="rounded text-rose-600 focus:ring-rose-500">
+                                <span>លុបឯកសារ</span>
+                            </label>
+                        </div>
+
+                        <div class="relative border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-400 rounded-2xl p-3.5 text-center bg-slate-50/70 dark:bg-slate-850/60 hover:bg-blue-50/30 dark:hover:bg-slate-800 transition cursor-pointer group">
+                            <input type="file" name="attachment" id="edit_attachment_input" accept=".pdf,.jpg,.jpeg,.png,.webp,.gif" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="updateEditFileLabel(this)">
+                            <div class="flex items-center justify-center gap-2">
+                                <span class="text-xl group-hover:scale-110 transition">📤</span>
+                                <span id="edit_attachment_label" class="text-xs text-slate-800 dark:text-slate-200 font-bold">ជ្រើសរើសឯកសារថ្មីដើម្បីជំនួស (Click to replace file)</span>
                             </div>
                         </div>
-                        <label class="flex items-center gap-1.5 text-xs text-rose-600 font-bold cursor-pointer hover:text-rose-700 bg-white px-2.5 py-1 rounded-lg border border-rose-200">
-                            <input type="checkbox" name="remove_attachment" value="1" id="edit_remove_attachment" class="rounded text-rose-600 focus:ring-rose-500">
-                            <span>លុបឯកសារ</span>
-                        </label>
-                    </div>
-
-                    <div class="relative border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-2xl p-3.5 text-center bg-slate-50/70 hover:bg-blue-50/30 transition cursor-pointer group">
-                        <input type="file" name="attachment" id="edit_attachment_input" accept=".pdf,.jpg,.jpeg,.png,.webp,.gif" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="updateEditFileLabel(this)">
-                        <div class="flex items-center justify-center gap-2">
-                            <span class="text-xl group-hover:scale-110 transition">📤</span>
-                            <span id="edit_attachment_label" class="text-xs text-slate-700 font-bold">ជ្រើសរើសឯកសារថ្មីដើម្បីជំនួស (Click to replace file)</span>
-                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Address -->
-            <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">អាសយដ្ឋានបច្ចុប្បន្ន</label>
-                <input type="text" id="edit_address" name="address" class="form-control text-sm">
-            </div>
-
-            <!-- Notes -->
-            <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1 font-kh-bold">កំណត់ចំណាំ</label>
-                <textarea id="edit_notes" name="notes" rows="2" class="form-control text-sm"></textarea>
-            </div>
-
-            <div class="pt-4 border-t border-slate-200 flex items-center justify-end gap-2">
-                <button type="button" onclick="closeEditBirthModal()" class="btn btn-outline text-sm">បោះបង់</button>
-                <button type="submit" id="editBirthSubmitBtn" class="btn btn-primary text-sm shadow-md flex items-center gap-1.5">
+            <!-- Sticky Fixed Footer -->
+            <div class="p-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2.5 shrink-0 bg-slate-50 dark:bg-slate-900/90 rounded-b-3xl">
+                <button type="button" onclick="closeEditBirthModal()" class="btn btn-outline text-xs sm:text-sm py-2 px-4 rounded-xl font-bold">
+                    បោះបង់
+                </button>
+                <button type="submit" id="editBirthSubmitBtn" class="btn btn-primary text-xs sm:text-sm py-2 px-5 rounded-xl shadow-md font-bold flex items-center gap-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white">
                     <span>💾</span> <span>រក្សាទុកការកែប្រែ</span>
                 </button>
             </div>
