@@ -387,6 +387,28 @@
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="toast-container"></div>
 
+    <!-- Global Loading State Overlay -->
+    <div id="globalLoadingOverlay" class="global-loader-overlay no-print" aria-hidden="true">
+        <div class="global-loader-card">
+            <div class="relative flex items-center justify-center">
+                <!-- Glowing Outer Spinner Ring -->
+                <div class="w-16 h-16 rounded-full border-4 border-blue-200/40 dark:border-blue-900/40 border-t-blue-600 dark:border-t-sky-400 animate-spin"></div>
+                <!-- Center Icon -->
+                <div class="absolute inset-0 flex items-center justify-center text-xl select-none animate-pulse" id="globalLoadingIcon">
+                    ⚡
+                </div>
+            </div>
+            <div class="text-center space-y-1">
+                <h4 id="globalLoadingTitle" class="text-sm font-bold text-slate-900 dark:text-slate-100 font-kh-heading">
+                    កំពុងដំណើរការ...
+                </h4>
+                <p id="globalLoadingSubtitle" class="text-xs text-slate-500 dark:text-slate-400">
+                    សូមរង់ចាំមួយភ្លែត
+                </p>
+            </div>
+        </div>
+    </div>
+
     <!-- Main Scripts -->
     <script src="/static/js/app.js"></script>
     <script src="/static/js/qr_scanner.js"></script>

@@ -1781,3 +1781,80 @@ html.dark input[type="date"]::-webkit-calendar-picker-indicator {
   cursor: pointer;
 }
 
+/* ========================================================================= */
+/* GLOBAL LOADING OVERLAY & SPINNER ANIMATIONS */
+/* ========================================================================= */
+.global-loader-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.22s ease, visibility 0.22s ease;
+  pointer-events: none;
+}
+
+.global-loader-overlay.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.global-loader-card {
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  padding: 26px 36px;
+  border-radius: 24px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  min-width: 250px;
+  max-width: 90vw;
+  transform: scale(0.92);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html.dark .global-loader-card {
+  background: rgba(19, 31, 55, 0.96);
+  border-color: rgba(51, 65, 85, 0.8);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+}
+
+.global-loader-overlay.active .global-loader-card {
+  transform: scale(1);
+}
+
+/* In-Button Loading Spinner */
+.btn.btn-loading {
+  position: relative;
+  pointer-events: none !important;
+  opacity: 0.85 !important;
+  cursor: wait !important;
+}
+
+.spinner-icon {
+  display: inline-block;
+  width: 1.1em;
+  height: 1.1em;
+  vertical-align: -0.15em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spinner-border 0.65s linear infinite;
+}
+
+@keyframes spinner-border {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+

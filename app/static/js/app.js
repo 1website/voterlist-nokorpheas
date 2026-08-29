@@ -459,7 +459,68 @@ function checkDuplicateBirthCert(certInputId, bookInputId, excludeId = 0, feedba
     }, 250);
 }
 
-// Automatically trigger toasts if URL parameters 'msg' or 'error' exist
+// =========================================================================
+// GLOBAL LOADING SYSTEM (SPINNER, BUTTON STATES, AND EXPORT FEEDBACK)
+// =========================================================================
+let _loadingHideTimeout = null;
+
+function showLoading(title = 'កំពុងដំណើរការ...', subtitle = 'សូមរង់ចាំមួយភ្លែត', icon = '⚡', autoHideMs = 0) {
+    const overlay = document.getElementById('globalLoadingOverlay');
+    const titleEl = document.getElementById('globalLoadingTitle');
+    const subtitleEl = document.getElementById('globalLoadingSubtitle');
+    const iconEl = document.getElementById('globalLoadingIcon');
+
+    if (titleEl) titleEl.textContent = title;
+    if (subtitleEl) subtitleEl.textContent = subtitle;
+    if (iconEl) iconEl.textContent = icon;
+
+    if (overlay) {
+        overlay.classList.add('active');
+        overlay.setAttribute('aria-hidden', 'false');
+    }
+
+    if (_loadingHideTimeout) {
+        clearTimeout(_loadingHideTimeout);
+        _loadingHideTimeout = null;
+    }
+
+    if (autoHideMs > 0) {
+        _loadingHideTimeout = setTimeout(() => {
+            hideLoading();
+        }, autoHideMs);
+    }
+}
+
+function hideLoading() {
+    const overlay = document.getElementById('globalLoadingOverlay');
+    if (overlay) {
+        overlay.classList.remove('active');
+        overlay.setAttribute('aria-hidden', 'true');
+    }
+    if (_loadingHideTimeout) {
+        clearTimeout(_loadingHideTimeout);
+        _loadingHideTimeout = null;
+    }
+}
+
+function showButtonLoading(btn, text = null) {
+    if (!btn || btn.classList.contains('btn-loading')) return;
+    btn._originalHtml = btn.innerHTML;
+    btn.classList.add('btn-loading');
+    const loadingText = text || 'កំពុងដំណើរការ...';
+    btn.innerHTML = `<span class="spinner-icon mr-1.5"></span><span>${loadingText}</span>`;
+    btn.disabled = true;
+}
+
+function restoreButtonLoading(btn) {
+    if (!btn || !btn._originalHtml) return;
+    btn.innerHTML = btn._originalHtml;
+    btn.classList.remove('btn-loading');
+    btn.disabled = false;
+    delete btn._originalHtml;
+}
+
+// Automatically bind loading indicators on Form Submissions and Export/Downloads
 document.addEventListener('DOMContentLoaded', function() {
     try {
         const urlParams = new URLSearchParams(window.location.search);
@@ -473,5 +534,68 @@ document.addEventListener('DOMContentLoaded', function() {
     } catch (e) {
         console.error(e);
     }
+
+    // 1. Automatic loading on Form Submissions (Add, Edit, Delete, Filter)
+    document.addEventListener('submit', function(e) {
+        const form = e.target;
+        if (!form || form.hasAttribute('data-no-loading')) return;
+
+        const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
+        const action = (form.getAttribute('action') || '').toLowerCase();
+        const method = (form.getAttribute('method') || 'GET').toUpperCase();
+
+        // Determine action type from action URL, form ID, or button text
+        const btnText = submitBtn ? submitBtn.innerText.trim() : '';
+        const isDelete = action.includes('delete') || btnText.includes('លុប') || (form.id && form.id.includes('delete'));
+        const isEdit = action.includes('update') || action.includes('edit') || btnText.includes('កែប្រែ') || btnText.includes('រក្សាទុកការកែប្រែ');
+        const isSearch = method === 'GET' && (action.includes('voters') || action.includes('reports') || action.includes('audit-logs') || action.includes('birth-certificates'));
+
+        if (isDelete) {
+            showLoading('កំពុងលុបទិន្នន័យ...', 'ប្រព័ន្ធកំពុងដំណើរការលុបចេញពីមូលដ្ឋានទិន្នន័យ', '🗑️');
+            if (submitBtn) showButtonLoading(submitBtn, 'កំពុងលុប...');
+        } else if (isEdit) {
+            showLoading('កំពុងកែប្រែទិន្នន័យ...', 'ប្រព័ន្ធកំពុងធ្វើបច្ចុប្បន្នភាពទិន្នន័យ', '✏️');
+            if (submitBtn) showButtonLoading(submitBtn, 'កំពុងកែប្រែ...');
+        } else if (isSearch) {
+            // For search filters, show quick subtle loading
+            showLoading('កំពុងស្វែងរកទិន្នន័យ...', 'សូមរង់ចាំការទាញយកលទ្ធផល', '🔍', 4000);
+            if (submitBtn) showButtonLoading(submitBtn, 'ស្វែងរក...');
+        } else if (method === 'POST') {
+            showLoading('កំពុងរក្សាទុកទិន្នន័យ...', 'ប្រព័ន្ធកំពុងបញ្ចូលទិន្នន័យថ្មី', '💾');
+            if (submitBtn) showButtonLoading(submitBtn, 'កំពុងរក្សាទុក...');
+        }
+    });
+
+    // 2. Automatic loading on Export and Download Links (Excel, JSON, Database backups)
+    document.addEventListener('click', function(e) {
+        const link = e.target.closest('a');
+        if (!link || !link.href) return;
+
+        const href = link.getAttribute('href') || '';
+        const isExportExcel = href.includes('export/excel') || href.includes('.xlsx') || href.includes('export_excel');
+        const isBackupDownload = href.includes('backup/download') || href.includes('download-json');
+        const isDownloadAction = link.hasAttribute('download') || isExportExcel || isBackupDownload;
+
+        if (isDownloadAction) {
+            let title = 'កំពុងរៀបចំឯកសារទាញយក...';
+            let subtitle = 'ឯកសារ Excel (.xlsx) កំពុងត្រូវបានបង្កើត';
+            let icon = '📥';
+
+            if (isBackupDownload) {
+                title = 'កំពុងបង្កើតឯកសារបម្រុងទុក...';
+                subtitle = 'មូលដ្ឋានទិន្នន័យកំពុងត្រូវបានវេចខ្ចប់សម្រាប់ទាញយក';
+                icon = '💾';
+            }
+
+            showLoading(title, subtitle, icon, 3200);
+
+            // Add pulse feedback to clicked button
+            link.classList.add('animate-pulse');
+            setTimeout(() => {
+                link.classList.remove('animate-pulse');
+            }, 3200);
+        }
+    });
 });
+
 
