@@ -71,7 +71,12 @@ def audit_logs_page(
 
     # Filter date
     if date_filter and date_filter.strip():
-        query = query.filter(func.date(AuditLog.created_at) == date_filter.strip())
+        clean_d = date_filter.strip()
+        try:
+            datetime.date.fromisoformat(clean_d)
+            query = query.filter(func.date(AuditLog.created_at) == clean_d)
+        except ValueError:
+            pass
 
     total_count = query.count()
     total_pages = (total_count + limit - 1) // limit if total_count > 0 else 1
@@ -135,7 +140,12 @@ def export_audit_logs_excel(
     if role_filter and role_filter.strip():
         query = query.filter(AuditLog.user_role == role_filter.strip())
     if date_filter and date_filter.strip():
-        query = query.filter(func.date(AuditLog.created_at) == date_filter.strip())
+        clean_d = date_filter.strip()
+        try:
+            datetime.date.fromisoformat(clean_d)
+            query = query.filter(func.date(AuditLog.created_at) == clean_d)
+        except ValueError:
+            pass
 
     logs = query.order_by(AuditLog.created_at.desc()).limit(1000).all()
 

@@ -89,6 +89,8 @@ async def get_service_worker():
 async def get_favicon():
     return FileResponse(os.path.join(static_dir, "icons", "favicon.ico"), media_type="image/x-icon")
 
+from fastapi.responses import RedirectResponse, FileResponse, HTMLResponse
+
 # Include Application Routers
 app.include_router(auth_routes.router)
 app.include_router(dashboard_routes.router)
@@ -99,6 +101,39 @@ app.include_router(report_routes.router)
 app.include_router(user_routes.router)
 app.include_router(system_routes.router)
 app.include_router(birth_routes.router)
+
+@app.exception_handler(500)
+async def custom_500_handler(request: Request, exc):
+    return HTMLResponse(
+        content="""
+        <!DOCTYPE html>
+        <html lang="km">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>មានបញ្ហាបច្ចេកទេស - Error 500</title>
+            <style>
+                body { font-family: system-ui, -apple-system, sans-serif; background: #0f172a; color: #f8fafc; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+                .card { background: #1e293b; border: 1px solid #334155; border-radius: 20px; padding: 36px; max-width: 520px; width: 100%; text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+                .icon { font-size: 48px; margin-bottom: 16px; }
+                h1 { color: #f8fafc; font-size: 20px; margin: 0 0 12px 0; }
+                p { color: #94a3b8; font-size: 14px; line-height: 1.6; margin: 0 0 24px 0; }
+                .btn { display: inline-flex; align-items: center; gap: 8px; background: #2563eb; color: white; padding: 12px 28px; border-radius: 12px; text-decoration: none; font-weight: bold; font-size: 14px; transition: background 0.2s; }
+                .btn:hover { background: #1d4ed8; }
+            </style>
+        </head>
+        <body>
+            <div class="card">
+                <div class="icon">⚠️</div>
+                <h1>មានបញ្ហាបច្ចេកទេសបណ្ដោះអាសន្ន</h1>
+                <p>ប្រព័ន្ធបានជួបប្រទះបញ្ហាបច្ចេកទេសបណ្ដោះអាសន្ន។ សូមចុចប៊ូតុងខាងក្រោមដើម្បីត្រឡប់ទៅទំព័រដើម ឬចូលប្រើប្រាស់ឡើងវិញ។</p>
+                <a href="/voters" class="btn">🔄 ត្រឡប់ទៅបញ្ជីឈ្មោះអ្នកបោះឆ្នោត</a>
+            </div>
+        </body>
+        </html>
+        """,
+        status_code=500
+    )
 
 if __name__ == "__main__":
     port = 8000

@@ -61,8 +61,10 @@ def voter_list_page(
     date_created: str = Query("", description="Registration date filter YYYY-MM-DD"),
     reg_type_filter: str = Query("", description="Registration type filter (new, legacy, transferred)"),
     reg_year_filter: str = Query("", description="Registration year filter"),
-    page: int = Query(1, ge=1),
-    limit: int = Query(15, ge=1, le=200),
+    _type_filter: str = Query("", description="Legacy alias for reg_type_filter"),
+    _year_filter: str = Query("", description="Legacy alias for reg_year_filter"),
+    page: int = Query(1),
+    limit: int = Query(15),
     db: Session = Depends(get_db)
 ):
     current_user = get_current_user_optional(request, db)
@@ -70,6 +72,18 @@ def voter_list_page(
         return RedirectResponse(url="/login", status_code=302)
     if current_user.role == "viewer":
         return RedirectResponse(url="/reports", status_code=302)
+
+    # Safe pagination bounds
+    if page < 1:
+        page = 1
+    if limit < 1:
+        limit = 15
+    elif limit > 200:
+        limit = 200
+
+    # Fallback to legacy aliases if primary not set
+    effective_reg_type = (reg_type_filter or _type_filter or "").strip()
+    effective_reg_year = (reg_year_filter or _year_filter or "").strip()
 
     query = db.query(Voter)
 
@@ -115,20 +129,31 @@ def voter_list_page(
     elif voted_filter == "not_voted":
         query = query.filter(Voter.has_voted == False)
 
-    # Registration date filter
+    # Registration date filter (safe ISO date parsing)
     if date_created and date_created.strip():
-        query = query.filter(func.date(Voter.created_at) == date_created.strip())
+        clean_date = date_created.strip()
+        try:
+            # Validate ISO date format YYYY-MM-DD
+            datetime.date.fromisoformat(clean_date)
+            query = query.filter(func.date(Voter.created_at) == clean_date)
+        except ValueError:
+            # Ignore invalid date filter gracefully instead of crashing with 500
+            pass
 
     # Registration Type filter (new, legacy, transferred)
-    if reg_type_filter and reg_type_filter.strip():
-        query = query.filter(Voter.reg_type == reg_type_filter.strip())
+    if effective_reg_type:
+        query = query.filter(Voter.reg_type == effective_reg_type)
 
     # Registration Year filter
-    if reg_year_filter and reg_year_filter.isdigit():
-        query = query.filter(Voter.reg_year == int(reg_year_filter))
+    if effective_reg_year and effective_reg_year.isdigit():
+        query = query.filter(Voter.reg_year == int(effective_reg_year))
 
     total_count = query.count()
     total_pages = (total_count + limit - 1) // limit if total_count > 0 else 1
+
+    # Ensure page does not exceed total_pages when voters exist
+    if total_count > 0 and page > total_pages:
+        page = total_pages
 
     # Order by station, list_no
     voters = (
@@ -161,8 +186,8 @@ def voter_list_page(
         "gender_filter": gender_filter,
         "voted_filter": voted_filter,
         "date_created": date_created,
-        "reg_type_filter": reg_type_filter,
-        "reg_year_filter": reg_year_filter,
+        "reg_type_filter": effective_reg_type,
+        "reg_year_filter": effective_reg_year,
         "available_years": available_years,
         "villages": villages,
         "stations": stations
