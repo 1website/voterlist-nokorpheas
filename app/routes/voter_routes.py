@@ -64,7 +64,7 @@ def voter_list_page(
     _type_filter: str = Query("", description="Legacy alias for reg_type_filter"),
     _year_filter: str = Query("", description="Legacy alias for reg_year_filter"),
     page: int = Query(1),
-    limit: int = Query(15),
+    limit: int = Query(10),
     db: Session = Depends(get_db)
 ):
     current_user = get_current_user_optional(request, db)
@@ -77,7 +77,7 @@ def voter_list_page(
     if page < 1:
         page = 1
     if limit < 1:
-        limit = 15
+        limit = 10
     elif limit > 200:
         limit = 200
 

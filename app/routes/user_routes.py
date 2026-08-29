@@ -1,7 +1,7 @@
 import os
 import uuid
 import shutil
-from fastapi import APIRouter, Request, Depends, HTTPException, Form, UploadFile, File
+from fastapi import APIRouter, Request, Depends, HTTPException, Form, UploadFile, File, Query
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
@@ -126,20 +126,63 @@ async def update_user_profile(
     })
 
 @router.get("/users", response_class=HTMLResponse)
-def list_users(request: Request, db: Session = Depends(get_db)):
+def list_users(
+    request: Request,
+    q: str = Query("", description="Search text"),
+    role_filter: str = Query("", description="Role filter"),
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1, le=100),
+    db: Session = Depends(get_db)
+):
     current_user = get_current_user_optional(request, db)
     if not current_user:
         return RedirectResponse(url="/login", status_code=302)
     if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="មានតែ Admin ប៉ុណ្ណោះដែលអាចមើលគណនីបាន")
 
-    users = db.query(User).order_by(User.role.asc(), User.username.asc()).all()
+    query = db.query(User)
+    if q and q.strip():
+        search = f"%{q.strip()}%"
+        query = query.filter(
+            (User.username.ilike(search)) |
+            (User.full_name.ilike(search)) |
+            (User.phone.ilike(search))
+        )
+    if role_filter and role_filter.strip():
+        query = query.filter(User.role == role_filter.strip())
+
+    total_count = query.count()
+    total_pages = (total_count + limit - 1) // limit if total_count > 0 else 1
+    if page > total_pages and total_count > 0:
+        page = total_pages
+
+    users = (
+        query.order_by(User.role.asc(), User.username.asc())
+        .offset((page - 1) * limit)
+        .limit(limit)
+        .all()
+    )
     stations = db.query(PollingStation).order_by(PollingStation.code).all()
     villages = db.query(Village).order_by(Village.code).all()
+
+    import urllib.parse
+    params = {}
+    if q.strip():
+        params["q"] = q.strip()
+    if role_filter.strip():
+        params["role_filter"] = role_filter.strip()
+    filter_querystring = ("&" + urllib.parse.urlencode(params)) if params else ""
 
     return templates.TemplateResponse(request=request, name="users/index.html", context={
         "current_user": current_user,
         "users": users,
+        "total_count": total_count,
+        "page": page,
+        "limit": limit,
+        "total_pages": total_pages,
+        "q": q,
+        "role_filter": role_filter,
+        "filter_querystring": filter_querystring,
         "stations": stations,
         "villages": villages,
         "preset_avatars": PRESET_AVATARS

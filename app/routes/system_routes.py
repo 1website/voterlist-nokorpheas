@@ -37,7 +37,7 @@ def audit_logs_page(
     role_filter: str = Query("", alias="role"),
     date_filter: str = Query("", alias="date"),
     page: int = Query(1, ge=1),
-    limit: int = Query(25, ge=5, le=100),
+    limit: int = Query(10, ge=5, le=100),
     db: Session = Depends(get_db)
 ):
     current_user = get_current_user_optional(request, db)
