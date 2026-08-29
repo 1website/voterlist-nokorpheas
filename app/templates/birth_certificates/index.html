@@ -8,48 +8,55 @@
     <!-- Top Header & Actions -->
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-            <div class="flex items-center gap-2">
-                <span class="text-2xl sm:text-3xl">📜</span>
-                <h2 class="text-2xl font-bold text-slate-800 font-kh-bold">
+            <div class="flex items-center gap-2.5">
+                <span class="text-3xl">📜</span>
+                <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white font-kh-bold leading-tight">
                     កត់ត្រាសំបុត្រកំណើត & តាមដានយុវជនគ្រប់អាយុ
                 </h2>
             </div>
-            <p class="text-xs sm:text-sm text-slate-500 mt-1">
+            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
                 រដ្ឋបាលឃុំនគរភាស • គ្រប់គ្រងអត្រានុកូលដ្ឋាន និងតាមដានយុវជនគ្រប់អាយុបោះឆ្នោត ១៨ ឆ្នាំ (First-Time Voters)
             </p>
         </div>
 
-        <div class="grid grid-cols-6 sm:flex sm:flex-wrap items-center gap-2">
-            <button onclick="openBirthQrModal()" class="col-span-3 sm:col-auto btn btn-outline border-indigo-400 dark:border-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 text-indigo-900 dark:text-indigo-300 text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 py-2 px-2.5 sm:px-3 shadow-xs">
-                <span>📷</span>
-                <span class="whitespace-nowrap">ស្កេន QR ផ្ទៀងផ្ទាត់</span>
-            </button>
-
+        <!-- 6 Action Cards (Clean, Balanced 2-Column Grid on Mobile, Flex on Desktop) -->
+        <div class="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 sm:gap-2.5">
+            <!-- 1. Add Birth Record (Primary Action) -->
             {% if current_user.role in ['admin', 'officer', 'village_chief'] %}
-            <button onclick="openAddBirthModal()" class="col-span-3 sm:col-auto btn btn-primary text-xs sm:text-sm shadow-md flex items-center justify-center gap-1.5 py-2 px-2.5 sm:px-4">
+            <button type="button" onclick="openAddBirthModal()" class="btn btn-primary text-xs sm:text-sm shadow-md flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white active:scale-95 transition">
                 <span>➕</span>
-                <span class="whitespace-nowrap">កត់ត្រាសំបុត្រកំណើតថ្មី</span>
+                <span class="whitespace-nowrap">កត់ត្រាថ្មី</span>
             </button>
             {% endif %}
-            
-            <button onclick="openMonthlyMatrixModal()" class="col-span-3 sm:col-auto btn bg-indigo-50 dark:bg-indigo-950/60 text-indigo-900 dark:text-indigo-300 border border-indigo-300 dark:border-indigo-700/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 shadow-xs py-2 px-2 sm:px-3">
+
+            <!-- 2. QR Code Scanner -->
+            <button type="button" onclick="openBirthQrModal()" class="btn btn-outline border-indigo-300 dark:border-indigo-700/80 bg-indigo-50/50 dark:bg-indigo-950/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-900 dark:text-sky-300 text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl shadow-2xs active:scale-95 transition">
+                <span>📷</span>
+                <span class="whitespace-nowrap">ស្កេន QR</span>
+            </button>
+
+            <!-- 3. Monthly/Yearly Statistics -->
+            <button type="button" onclick="openMonthlyMatrixModal()" class="btn btn-outline border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-750 text-slate-800 dark:text-slate-200 text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl shadow-2xs active:scale-95 transition">
                 <span>📈</span>
                 <span class="whitespace-nowrap">ស្ថិតិប្រចាំខែ & ឆ្នាំ</span>
             </button>
 
-            <a href="/birth-certificates/youth-pipeline" class="col-span-2 sm:col-auto btn btn-outline text-blue-900 dark:text-sky-300 border-blue-300 dark:border-sky-700 hover:bg-blue-50 dark:hover:bg-sky-950/60 text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 py-2 px-2 sm:px-3">
+            <!-- 4. Youth Analytics Dashboard -->
+            <a href="/birth-certificates/youth-pipeline" class="btn btn-outline border-sky-300 dark:border-sky-700/80 bg-sky-50/50 dark:bg-sky-950/40 hover:bg-sky-100 dark:hover:bg-sky-900/60 text-sky-900 dark:text-sky-300 text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl shadow-2xs active:scale-95 transition">
                 <span>📊</span>
-                <span class="whitespace-nowrap">ផ្ទាំងវិភាគ<span class="hidden sm:inline">យុវជន</span></span>
+                <span class="whitespace-nowrap">ផ្ទាំងវិភាគយុវជន</span>
             </a>
 
-            <a href="/birth-certificates/print-eligible{% if selected_village_id %}?village_id={{ selected_village_id }}{% endif %}" class="col-span-2 sm:col-auto btn btn-outline text-amber-900 dark:text-amber-300 border-amber-300 dark:border-amber-700 hover:bg-amber-50 dark:hover:bg-amber-950/60 text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 py-2 px-2 sm:px-3" target="_blank">
+            <!-- 5. Print Eligible Youth Sheet -->
+            <a href="/birth-certificates/print-eligible{% if selected_village_id %}?village_id={{ selected_village_id }}{% endif %}" class="btn btn-outline border-amber-300 dark:border-amber-700/80 bg-amber-50/50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/60 text-amber-900 dark:text-amber-300 text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl shadow-2xs active:scale-95 transition" target="_blank">
                 <span>🖨️</span>
-                <span class="whitespace-nowrap">បញ្ជីជំរុញ<span class="hidden sm:inline"> (Print)</span></span>
+                <span class="whitespace-nowrap">បោះពុម្ពបញ្ជីជំរុញ</span>
             </a>
 
-            <a href="/birth-certificates/export-excel?village_id={{ village_id }}&eligibility={{ eligibility }}&reg_status={{ reg_status }}&period={{ period }}&reg_year={{ reg_year }}&reg_month={{ reg_month }}" class="col-span-2 sm:col-auto btn btn-outline text-emerald-900 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 py-2 px-2 sm:px-3">
+            <!-- 6. Export Excel -->
+            <a href="/birth-certificates/export-excel?village_id={{ village_id }}&eligibility={{ eligibility }}&reg_status={{ reg_status }}&period={{ period }}&reg_year={{ reg_year }}&reg_month={{ reg_month }}" class="btn btn-outline border-emerald-300 dark:border-emerald-700/80 bg-emerald-50/50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-900 dark:text-emerald-300 text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl shadow-2xs active:scale-95 transition">
                 <span>📥</span>
-                <span class="whitespace-nowrap">Export<span class="hidden sm:inline"> Excel</span></span>
+                <span class="whitespace-nowrap">Export Excel</span>
             </a>
         </div>
     </div>
