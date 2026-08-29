@@ -396,14 +396,43 @@
                                     </a>
 
                                     {% if not r.is_registered_voter and (r.is_eligible_now or r.is_turning_18_this_year) and current_user.role in ['admin', 'officer'] %}
-                                    <button onclick="openConvertModal('{{ r.id }}', '{{ r.name_kh }}', '{{ r.name_en }}', '{{ r.dob }}', '{{ r.village_id }}', '{{ r.village.name_kh if r.village else '' }}', '{{ r.address or '' }}')" class="btn btn-sm bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold px-2.5 py-1 rounded-xl shadow-xs text-xs flex items-center gap-1" title="បំប្លែងទៅជាអ្នកបោះឆ្នោត (1-Click Promote to Voter)">
+                                    <button type="button"
+                                            data-id="{{ r.id }}"
+                                            data-name-kh="{{ r.name_kh }}"
+                                            data-name-en="{{ r.name_en or '' }}"
+                                            data-dob="{{ r.dob }}"
+                                            data-village-id="{{ r.village_id }}"
+                                            data-village-name="{{ r.village.name_kh if r.village else '' }}"
+                                            data-address="{{ r.address or '' }}"
+                                            onclick="openConvertModalFromBtn(this)" 
+                                            class="btn btn-sm bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 active:scale-95 text-white font-bold px-2.5 py-1 rounded-xl shadow-xs text-xs flex items-center gap-1 cursor-pointer transition" 
+                                            title="បំប្លែងទៅជាអ្នកបោះឆ្នោត (1-Click Promote to Voter)">
                                         <span>⚡</span>
                                         <span>ចុះជា Voter</span>
                                     </button>
                                     {% endif %}
 
                                     {% if current_user.role in ['admin', 'officer', 'village_chief'] %}
-                                    <button onclick="openEditBirthModal('{{ r.id }}', '{{ r.certificate_no }}', '{{ r.book_no or '' }}', '{{ r.name_kh }}', '{{ r.name_en }}', '{{ r.gender }}', '{{ r.dob }}', '{{ r.pob or '' }}', '{{ r.father_name or '' }}', '{{ r.mother_name or '' }}', '{{ r.address or '' }}', '{{ r.village_id }}', '{{ r.notes or '' }}', '{{ r.attachment_url or '' }}', {{ 'true' if r.is_pdf else 'false' }}, '{{ r.registered_date_effective or '' }}')" class="p-1.5 rounded-xl border border-slate-200 text-slate-600 hover:text-blue-900 hover:bg-blue-50 transition" title="កែប្រែ">
+                                    <button type="button"
+                                            data-id="{{ r.id }}"
+                                            data-cert-no="{{ r.certificate_no }}"
+                                            data-book-no="{{ r.book_no or '' }}"
+                                            data-name-kh="{{ r.name_kh }}"
+                                            data-name-en="{{ r.name_en or '' }}"
+                                            data-gender="{{ r.gender }}"
+                                            data-dob="{{ r.dob }}"
+                                            data-pob="{{ r.pob or '' }}"
+                                            data-father="{{ r.father_name or '' }}"
+                                            data-mother="{{ r.mother_name or '' }}"
+                                            data-address="{{ r.address or '' }}"
+                                            data-village-id="{{ r.village_id }}"
+                                            data-notes="{{ r.notes or '' }}"
+                                            data-attachment-url="{{ r.attachment_url or '' }}"
+                                            data-is-pdf="{{ 'true' if r.is_pdf else 'false' }}"
+                                            data-reg-date="{{ r.registered_date_effective or '' }}"
+                                            onclick="openEditBirthModalFromBtn(this)" 
+                                            class="p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-blue-900 hover:bg-blue-50 dark:hover:bg-slate-800 transition cursor-pointer" 
+                                            title="កែប្រែ">
                                         ✏️
                                     </button>
                                     {% endif %}
@@ -1020,20 +1049,61 @@ function openAddBirthModal() {
     }
 }
 
-function closeAddBirthModal() {
-    const modal = document.getElementById('addBirthModal');
-    if (modal) {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-        modal.style.display = 'none';
+function showBirthModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    modal.classList.add('active');
+    modal.classList.add('flex');
+    modal.style.display = 'flex';
+    modal.style.opacity = '1';
+    modal.style.visibility = 'visible';
+    modal.style.pointerEvents = 'auto';
+    document.body.style.overflow = 'hidden';
+}
+
+function hideBirthModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    modal.classList.remove('active');
+    modal.classList.remove('flex');
+    modal.classList.add('hidden');
+    modal.style.display = 'none';
+    modal.style.opacity = '';
+    modal.style.visibility = '';
+    modal.style.pointerEvents = '';
+    document.body.style.overflow = '';
+}
+
+function openAddBirthModal() {
+    const form = document.getElementById('addBirthForm');
+    if (form) form.reset();
+    const feedback = document.getElementById('addBirthDupFeedback');
+    if (feedback) feedback.innerHTML = '';
+    const certInput = document.getElementById('add_cert_no');
+    const bookInput = document.getElementById('add_book_no');
+    if (certInput) certInput.classList.remove('border-red-500', 'ring-2', 'ring-red-200', 'bg-red-50/30', 'border-emerald-500', 'ring-1', 'ring-emerald-200');
+    if (bookInput) bookInput.classList.remove('border-red-500', 'ring-2', 'ring-red-200', 'bg-red-50/30', 'border-emerald-500', 'ring-1', 'ring-emerald-200');
+    const submitBtn = document.getElementById('addBirthSubmitBtn');
+    if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
     }
+    const label = document.getElementById('add_attachment_label');
+    if (label) label.innerText = 'ចុចទីនេះដើម្បីជ្រើសរើសឯកសារចម្លង (រូបថត ឬ PDF)';
+
+    showBirthModal('addBirthModal');
+}
+
+function closeAddBirthModal() {
+    hideBirthModal('addBirthModal');
 }
 
 function updateAddFileLabel(input) {
     const label = document.getElementById('add_attachment_label');
     if (input.files && input.files[0]) {
         const file = input.files[0];
-        label.innerHTML = `✅ បានជ្រើសរើស៖ <span class="text-blue-900 font-mono">${file.name}</span> (${(file.size / 1024).toFixed(1)} KB)`;
+        label.innerHTML = `✅ បានជ្រើសរើស៖ <span class="text-blue-900 dark:text-sky-300 font-mono">${file.name}</span> (${(file.size / 1024).toFixed(1)} KB)`;
     } else {
         label.innerText = 'ចុចទីនេះដើម្បីជ្រើសរើសឯកសារចម្លង (រូបថត ឬ PDF)';
     }
@@ -1041,29 +1111,51 @@ function updateAddFileLabel(input) {
 
 function openEditBirthModal(id, certNo, bookNo, nameKh, nameEn, gender, dob, pob, father, mother, address, villageId, notes, attachmentUrl, isPdf, registeredDate) {
     currentEditBirthId = id;
-    document.getElementById('editBirthForm').action = `/birth-certificates/edit/${id}`;
-    document.getElementById('edit_cert_no').value = certNo;
-    document.getElementById('edit_book_no').value = bookNo || '';
-    document.getElementById('edit_name_kh').value = nameKh;
-    document.getElementById('edit_name_en').value = nameEn;
-    document.getElementById('edit_gender').value = gender;
-    document.getElementById('edit_dob').value = dob;
+    const form = document.getElementById('editBirthForm');
+    if (form) form.action = `/birth-certificates/edit/${id}`;
+    
+    const certInput = document.getElementById('edit_cert_no');
+    if (certInput) certInput.value = certNo || '';
+    
+    const bookInput = document.getElementById('edit_book_no');
+    if (bookInput) bookInput.value = bookNo || '';
+    
+    const nameKhInput = document.getElementById('edit_name_kh');
+    if (nameKhInput) nameKhInput.value = nameKh || '';
+    
+    const nameEnInput = document.getElementById('edit_name_en');
+    if (nameEnInput) nameEnInput.value = nameEn || '';
+    
+    const genderSelect = document.getElementById('edit_gender');
+    if (genderSelect) genderSelect.value = gender || 'ប្រុស';
+    
+    const dobInput = document.getElementById('edit_dob');
+    if (dobInput) dobInput.value = dob || '';
+    
     const regDateInput = document.getElementById('edit_registered_date');
-    if (regDateInput) {
-        regDateInput.value = registeredDate || '';
-    }
-    document.getElementById('edit_pob').value = pob || '';
-    document.getElementById('edit_father_name').value = father || '';
-    document.getElementById('edit_mother_name').value = mother || '';
-    document.getElementById('edit_address').value = address || '';
-    document.getElementById('edit_village_id').value = villageId;
-    document.getElementById('edit_notes').value = notes || '';
+    if (regDateInput) regDateInput.value = registeredDate || '';
+    
+    const pobInput = document.getElementById('edit_pob');
+    if (pobInput) pobInput.value = pob || '';
+    
+    const fatherInput = document.getElementById('edit_father_name');
+    if (fatherInput) fatherInput.value = father || '';
+    
+    const motherInput = document.getElementById('edit_mother_name');
+    if (motherInput) motherInput.value = mother || '';
+    
+    const addrInput = document.getElementById('edit_address');
+    if (addrInput) addrInput.value = address || '';
+    
+    const villageSelect = document.getElementById('edit_village_id');
+    if (villageSelect) villageSelect.value = villageId || '';
+    
+    const notesInput = document.getElementById('edit_notes');
+    if (notesInput) notesInput.value = notes || '';
 
     // Clear duplicate feedback & styles
     const feedback = document.getElementById('editBirthDupFeedback');
     if (feedback) feedback.innerHTML = '';
-    const certInput = document.getElementById('edit_cert_no');
-    const bookInput = document.getElementById('edit_book_no');
     if (certInput) certInput.classList.remove('border-red-500', 'ring-2', 'ring-red-200', 'bg-red-50/30', 'border-emerald-500', 'ring-1', 'ring-emerald-200');
     if (bookInput) bookInput.classList.remove('border-red-500', 'ring-2', 'ring-red-200', 'bg-red-50/30', 'border-emerald-500', 'ring-1', 'ring-emerald-200');
     const submitBtn = document.getElementById('editBirthSubmitBtn');
@@ -1073,45 +1165,46 @@ function openEditBirthModal(id, certNo, bookNo, nameKh, nameEn, gender, dob, pob
     }
 
     // Reset file input and label
-    document.getElementById('edit_attachment_input').value = '';
-    document.getElementById('edit_attachment_label').innerText = 'ជ្រើសរើសឯកសារថ្មីដើម្បីជំនួស (Click to replace file)';
-    document.getElementById('edit_remove_attachment').checked = false;
+    const attachInput = document.getElementById('edit_attachment_input');
+    if (attachInput) attachInput.value = '';
+    const attachLabel = document.getElementById('edit_attachment_label');
+    if (attachLabel) attachLabel.innerText = 'ជ្រើសរើសឯកសារថ្មីដើម្បីជំនួស (Click to replace file)';
+    const removeAttach = document.getElementById('edit_remove_attachment');
+    if (removeAttach) removeAttach.checked = false;
 
     // Show/hide current attachment preview box
     const currentBox = document.getElementById('edit_current_attachment_box');
     if (attachmentUrl && attachmentUrl.trim()) {
-        currentBox.classList.remove('hidden');
-        document.getElementById('edit_attachment_link').href = attachmentUrl;
-        document.getElementById('edit_attachment_icon').innerText = isPdf ? '📄' : '🖼️';
+        if (currentBox) currentBox.classList.remove('hidden');
+        const attachLink = document.getElementById('edit_attachment_link');
+        if (attachLink) attachLink.href = attachmentUrl;
+        const attachIcon = document.getElementById('edit_attachment_icon');
+        if (attachIcon) attachIcon.innerText = isPdf ? '📄' : '🖼️';
     } else {
-        currentBox.classList.add('hidden');
+        if (currentBox) currentBox.classList.add('hidden');
     }
 
-    const modal = document.getElementById('editBirthModal');
-    if (modal) {
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        modal.style.display = 'flex';
-    }
+    showBirthModal('editBirthModal');
+}
+
+function openEditBirthModalFromBtn(btn) {
+    if (!btn || !btn.dataset) return;
+    const d = btn.dataset;
+    openEditBirthModal(d.id, d.certNo, d.bookNo, d.nameKh, d.nameEn, d.gender, d.dob, d.pob, d.father, d.mother, d.address, d.villageId, d.notes, d.attachmentUrl, d.isPdf === 'true', d.regDate);
 }
 
 function updateEditFileLabel(input) {
     const label = document.getElementById('edit_attachment_label');
     if (input.files && input.files[0]) {
         const file = input.files[0];
-        label.innerHTML = `✅ បានជ្រើសរើស៖ <span class="text-blue-900 font-mono">${file.name}</span> (${(file.size / 1024).toFixed(1)} KB)`;
+        label.innerHTML = `✅ បានជ្រើសរើស៖ <span class="text-blue-900 dark:text-sky-300 font-mono">${file.name}</span> (${(file.size / 1024).toFixed(1)} KB)`;
     } else {
         label.innerText = 'ជ្រើសរើសឯកសារថ្មីដើម្បីជំនួស (Click to replace file)';
     }
 }
 
 function closeEditBirthModal() {
-    const modal = document.getElementById('editBirthModal');
-    if (modal) {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-        modal.style.display = 'none';
-    }
+    hideBirthModal('editBirthModal');
 }
 
 function openPreviewModal(url, title, isPdf) {
@@ -1136,75 +1229,64 @@ function openPreviewModal(url, title, isPdf) {
         imgEl.src = url;
     }
 
-    const modal = document.getElementById('previewModal');
-    if (modal) {
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        modal.style.display = 'flex';
-    }
+    showBirthModal('previewModal');
 }
 
 function closePreviewModal() {
     const iframeEl = document.getElementById('previewModalIframe');
     if (iframeEl) iframeEl.src = '';
-    const modal = document.getElementById('previewModal');
-    if (modal) {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-        modal.style.display = 'none';
-    }
+    hideBirthModal('previewModal');
 }
 
 function openMonthlyMatrixModal() {
-    const m = document.getElementById('monthlyMatrixModal');
-    if (m) {
-        m.classList.remove('hidden');
-        m.classList.add('flex');
-        m.style.display = 'flex';
-    }
+    showBirthModal('monthlyMatrixModal');
 }
 
 function closeMonthlyMatrixModal() {
-    const m = document.getElementById('monthlyMatrixModal');
-    if (m) {
-        m.classList.add('hidden');
-        m.classList.remove('flex');
-        m.style.display = 'none';
-    }
+    hideBirthModal('monthlyMatrixModal');
 }
 
 function openConvertModal(id, nameKh, nameEn, dob, villageId, villageName, address) {
-    document.getElementById('convertForm').action = `/birth-certificates/convert-to-voter/${id}`;
-    document.getElementById('cv_name_kh').innerText = nameKh;
-    document.getElementById('cv_name_en').innerText = nameEn;
-    document.getElementById('cv_dob').innerText = dob;
-    document.getElementById('cv_village_name').innerText = villageName;
-    document.getElementById('cv_address').value = address;
+    const form = document.getElementById('convertForm');
+    if (form) form.action = `/birth-certificates/convert-to-voter/${id}`;
+    
+    const nameKhEl = document.getElementById('cv_name_kh');
+    if (nameKhEl) nameKhEl.textContent = nameKh || '';
+    
+    const nameEnEl = document.getElementById('cv_name_en');
+    if (nameEnEl) nameEnEl.textContent = nameEn || '';
+    
+    const dobEl = document.getElementById('cv_dob');
+    if (dobEl) dobEl.textContent = dob || '';
+    
+    const villageEl = document.getElementById('cv_village_name');
+    if (villageEl) villageEl.textContent = villageName || '';
+    
+    const addrInput = document.getElementById('cv_address');
+    if (addrInput) addrInput.value = address || '';
 
     // Auto-select station belonging to this village if possible
     const select = document.getElementById('cv_station_select');
-    for (let opt of select.options) {
-        if (opt.getAttribute('data-village-id') === villageId) {
-            opt.selected = true;
-            break;
+    if (select) {
+        for (let opt of select.options) {
+            if (opt.getAttribute('data-village-id') == villageId) {
+                opt.selected = true;
+                break;
+            }
         }
     }
 
-    const modal = document.getElementById('convertModal');
-    if (modal) {
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        modal.style.display = 'flex';
-    }
+    showBirthModal('convertModal');
+}
+
+function openConvertModalFromBtn(btn) {
+    if (!btn || !btn.dataset) return;
+    const d = btn.dataset;
+    openConvertModal(d.id, d.nameKh, d.nameEn, d.dob, d.villageId, d.villageName, d.address);
 }
 
 function closeConvertModal() {
-    const modal = document.getElementById('convertModal');
-    if (modal) {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-        modal.style.display = 'none';
-    }
+    hideBirthModal('convertModal');
 }
 
 // =========================================================================
@@ -1213,24 +1295,14 @@ function closeConvertModal() {
 let birthHtml5Qr = null;
 
 function openBirthQrModal() {
-    const modal = document.getElementById('birthQrScannerModal');
-    if (modal) {
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        modal.style.display = 'flex';
-    }
+    showBirthModal('birthQrScannerModal');
     resetBirthQrView();
     startBirthQrScanner();
 }
 
 function closeBirthQrModal() {
     stopBirthQrScanner();
-    const modal = document.getElementById('birthQrScannerModal');
-    if (modal) {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-        modal.style.display = 'none';
-    }
+    hideBirthModal('birthQrScannerModal');
 }
 
 async function startBirthQrScanner() {
