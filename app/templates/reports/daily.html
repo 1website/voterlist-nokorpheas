@@ -225,7 +225,7 @@
                 <span>📋</span> <span>បញ្ជីអ្នកបានចុះឈ្មោះក្នុងថ្ងៃទី {{ selected_date }}</span>
             </h3>
             <span class="text-xs font-bold text-blue-900 dark:text-sky-300 bg-blue-100 dark:bg-sky-950/60 border border-blue-200 dark:border-sky-800/60 px-3 py-1 rounded-full self-start sm:self-auto shadow-xs">
-                រកឃើញសរុប {{ voters|length }} នាក់
+                រកឃើញសរុប {{ total_count }} នាក់
             </span>
         </div>
 
@@ -249,7 +249,7 @@
                     {% if voters %}
                     {% for v in voters %}
                     <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition">
-                        <td class="font-bold text-center text-slate-500 dark:text-slate-400">{{ loop.index }}</td>
+                        <td class="font-bold text-center text-slate-500 dark:text-slate-400 font-mono">{{ (page - 1) * limit + loop.index }}</td>
                         <td class="hidden sm:table-cell col-reg-time font-mono text-xs font-bold text-blue-800 dark:text-sky-300">
                             {{ v.created_at.strftime('%H:%M:%S') if v.created_at else '' }}
                         </td>
@@ -315,6 +315,51 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- Pagination -->
+        {% if total_pages > 1 %}
+        <div class="p-4 sm:p-4.5 bg-slate-50/80 dark:bg-slate-800/80 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
+            <div>
+                បង្ហាញពី <span class="font-bold text-slate-800 dark:text-slate-200 font-mono">{{ (page - 1) * limit + 1 }}</span> ដល់ <span class="font-bold text-slate-800 dark:text-slate-200 font-mono">{{ [page * limit, total_count]|min }}</span> នៃ <span class="font-bold text-blue-700 dark:text-sky-400 font-mono">{{ total_count }}</span> នាក់ (១០ នាក់ក្នុង ១ ទំព័រ)
+            </div>
+            <div class="flex items-center gap-1.5 flex-wrap">
+                {% if page > 1 %}
+                <a href="/reports/daily?page=1{{ filter_querystring }}" class="btn btn-sm btn-outline flex items-center justify-center px-2.5 py-1.5" title="ទំព័រដំបូង">
+                    ⏮️
+                </a>
+                <a href="/reports/daily?page={{ page - 1 }}{{ filter_querystring }}" class="btn btn-sm btn-outline flex items-center gap-1">
+                    ⬅️ <span>ថយក្រោយ</span>
+                </a>
+                {% endif %}
+
+                <!-- Page Numbers -->
+                <div class="flex items-center gap-1">
+                    {% for p in range(1, total_pages + 1) %}
+                        {% if p == 1 or p == total_pages or (p >= page - 2 and p <= page + 2) %}
+                            {% if p == page %}
+                                <span class="px-3 py-1 bg-blue-700 text-white rounded-lg font-mono font-bold shadow-xs">{{ p }}</span>
+                            {% else %}
+                                <a href="/reports/daily?page={{ p }}{{ filter_querystring }}" class="px-2.5 py-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-blue-50 dark:hover:bg-slate-700 rounded-lg font-mono font-semibold text-slate-700 dark:text-slate-200 transition">{{ p }}</a>
+                            {% endif %}
+                        {% elif p == 2 and page > 4 %}
+                            <span class="px-1 text-slate-400">...</span>
+                        {% elif p == total_pages - 1 and page < total_pages - 3 %}
+                            <span class="px-1 text-slate-400">...</span>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                {% if page < total_pages %}
+                <a href="/reports/daily?page={{ page + 1 }}{{ filter_querystring }}" class="btn btn-sm btn-outline flex items-center gap-1">
+                    <span>បន្ទាប់</span> ➡️
+                </a>
+                <a href="/reports/daily?page={{ total_pages }}{{ filter_querystring }}" class="btn btn-sm btn-outline flex items-center justify-center px-2.5 py-1.5" title="ទំព័រចុងក្រោយ">
+                    ⏭️
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
     </div>
 
 </div>

@@ -107,11 +107,20 @@ def run_tests():
     assert res.status_code == 200
     print("[PASS] 12. 14 Polling Stations and 10 Villages pages loaded")
 
-    # 13. Test Daily Registration Report Page
+    # 13. Test Daily Registration Report Page & Pagination
     res = client.get("/reports/daily", cookies=cookies)
     assert res.status_code == 200
     assert "របាយការណ៍អ្នកចុះឈ្មោះប្រចាំថ្ងៃ" in res.text
-    print("[PASS] 13. Daily Registration Report page rendered")
+    
+    # Test Pagination (10 voters per page) on 2026-08-24 (which has 14 voters)
+    res_p1 = client.get("/reports/daily?date=2026-08-24&page=1&limit=10", cookies=cookies)
+    assert res_p1.status_code == 200
+    assert "១០ នាក់ក្នុង ១ ទំព័រ" in res_p1.text
+    assert "page=2" in res_p1.text
+    res_p2 = client.get("/reports/daily?date=2026-08-24&page=2&limit=10", cookies=cookies)
+    assert res_p2.status_code == 200
+    assert "page=1" in res_p2.text
+    print("[PASS] 13. Daily Registration Report page & 10-per-page Pagination rendered successfully")
 
     # 14. Test Daily Registration Excel Export
     res = client.get("/reports/daily/export/excel?date=2026-08-24", cookies=cookies)

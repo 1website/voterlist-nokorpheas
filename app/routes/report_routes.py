@@ -1,5 +1,7 @@
 import os
 import io
+import math
+import urllib.parse
 import datetime
 import calendar
 from fastapi import APIRouter, Request, Depends, HTTPException, Query
@@ -43,27 +45,42 @@ def reports_hub(request: Request, db: Session = Depends(get_db)):
     current_year = get_cambodia_now().year
     age_groups = {"18-30": 0, "31-45": 0, "46-60": 0, "60+": 0}
     for v in voters:
-        try:
-            birth_year = int(v.dob[:4])
-            age = current_year - birth_year
-            if age <= 30:
-                age_groups["18-30"] += 1
-            elif age <= 45:
-                age_groups["31-45"] += 1
-            elif age <= 60:
-                age_groups["46-60"] += 1
-            else:
-                age_groups["60+"] += 1
-        except Exception:
-            pass
+        if v.dob:
+            try:
+                birth_year = int(str(v.dob)[:4])
+                age = current_year - birth_year
+                if age <= 30:
+                    age_groups["18-30"] += 1
+                elif age <= 45:
+                    age_groups["31-45"] += 1
+                elif age <= 60:
+                    age_groups["46-60"] += 1
+                else:
+                    age_groups["60+"] += 1
+            except (ValueError, IndexError):
+                pass
+
+    # Station stats
+    station_stats = []
+    for s in stations:
+        st_voters = [v for v in voters if v.station_id == s.id]
+        st_total = len(st_voters)
+        st_voted = len([v for v in st_voters if v.has_voted])
+        turnout = round((st_voted / st_total * 100), 1) if st_total > 0 else 0
+        station_stats.append({
+            "station": s,
+            "total": st_total,
+            "voted": st_voted,
+            "turnout": turnout
+        })
 
     # Daily Registration Trend (Last 10 Days)
     daily_trends_raw = (
         db.query(
             func.date(Voter.created_at).label("reg_date"),
             func.count(Voter.id).label("total"),
-            func.sum(case((Voter.gender == "ប្រុស", 1), else_=0)).label("male"),
-            func.sum(case((Voter.gender == "ស្រី", 1), else_=0)).label("female")
+            func.sum(case((Voter.gender == "ស្រី", 1), else_=0)).label("female_count"),
+            func.sum(case((Voter.gender == "ប្រុស", 1), else_=0)).label("male_count")
         )
         .group_by(func.date(Voter.created_at))
         .order_by(func.date(Voter.created_at).desc())
@@ -75,14 +92,13 @@ def reports_hub(request: Request, db: Session = Depends(get_db)):
         {
             "date": str(row.reg_date),
             "total": row.total,
-            "male": row.male or 0,
-            "female": row.female or 0
+            "female": row.female_count or 0,
+            "male": row.male_count or 0
         }
         for row in daily_trends_raw if row.reg_date
     ]
 
-    today_str = get_cambodia_today_str()
-    current_month_str = get_cambodia_today().strftime("%Y-%m")
+    current_month_str = get_cambodia_now().strftime("%Y-%m")
 
     return templates.TemplateResponse(request=request, name="reports/index.html", context={
         "current_user": current_user,
@@ -95,8 +111,8 @@ def reports_hub(request: Request, db: Session = Depends(get_db)):
         "male_voted": male_voted,
         "female_voted": female_voted,
         "age_groups": age_groups,
+        "station_stats": station_stats,
         "daily_trends": daily_trends,
-        "today_str": today_str,
         "current_month_str": current_month_str
     })
 
@@ -108,6 +124,8 @@ def daily_registration_report(
     station_id: str = Query("", description="Station ID filter"),
     gender: str = Query("", description="Gender filter"),
     q: str = Query("", description="Search query"),
+    page: int = Query(1, ge=1, description="Page number"),
+    limit: int = Query(10, ge=1, le=100, description="Items per page"),
     db: Session = Depends(get_db)
 ):
     current_user = get_current_user_optional(request, db)
@@ -127,25 +145,23 @@ def daily_registration_report(
     else:
         date = date.strip()
 
-    query = db.query(Voter).filter(func.date(Voter.created_at) == date)
+    base_query = db.query(Voter).filter(func.date(Voter.created_at) == date)
 
     # Role restriction
     if current_user.role == "officer" and current_user.station_id:
-        query = query.filter(Voter.station_id == current_user.station_id)
+        base_query = base_query.filter(Voter.station_id == current_user.station_id)
         station_id = str(current_user.station_id)
     elif current_user.role == "village_chief" and current_user.village_id:
-        query = query.filter(Voter.village_id == current_user.village_id)
+        base_query = base_query.filter(Voter.village_id == current_user.village_id)
         village_id = str(current_user.village_id)
 
     if village_id and village_id.isdigit():
-        query = query.filter(Voter.village_id == int(village_id))
+        base_query = base_query.filter(Voter.village_id == int(village_id))
     if station_id and station_id.isdigit():
-        query = query.filter(Voter.station_id == int(station_id))
-    if gender:
-        query = query.filter(Voter.gender == gender)
+        base_query = base_query.filter(Voter.station_id == int(station_id))
     if q and q.strip():
         search = f"%{q.strip()}%"
-        query = query.filter(
+        base_query = base_query.filter(
             or_(
                 Voter.name_kh.ilike(search),
                 Voter.name_en.ilike(search),
@@ -154,11 +170,36 @@ def daily_registration_report(
             )
         )
 
-    voters = query.order_by(Voter.created_at.desc(), Voter.list_no.asc()).all()
+    # Base counts for the day (for KPI summary cards)
+    total_day = base_query.count()
+    male_day = base_query.filter(Voter.gender == "ប្រុស").count()
+    female_day = base_query.filter(Voter.gender == "ស្រី").count()
 
-    total_day = len(voters)
-    male_day = len([v for v in voters if v.gender == "ប្រុស"])
-    female_day = len([v for v in voters if v.gender == "ស្រី"])
+    # Query with gender filter if selected
+    query = base_query
+    if gender:
+        query = query.filter(Voter.gender == gender)
+
+    total_count = query.count()
+
+    # Safe pagination bounds (10 items per page by default)
+    if page < 1:
+        page = 1
+    if limit < 1:
+        limit = 10
+    elif limit > 100:
+        limit = 100
+
+    total_pages = math.ceil(total_count / limit) if total_count > 0 else 1
+    if page > total_pages:
+        page = total_pages
+
+    voters = (
+        query.order_by(Voter.created_at.desc(), Voter.list_no.asc())
+        .offset((page - 1) * limit)
+        .limit(limit)
+        .all()
+    )
 
     # Recent 10 dates for quick switching
     recent_dates_raw = (
@@ -196,6 +237,23 @@ def daily_registration_report(
     villages = db.query(Village).order_by(Village.code).all()
     stations = db.query(PollingStation).order_by(PollingStation.code).all()
 
+    # Build clean query string for pagination links
+    active_params = {}
+    if date:
+        active_params["date"] = date
+    if village_id:
+        active_params["village_id"] = village_id
+    if station_id:
+        active_params["station_id"] = station_id
+    if gender:
+        active_params["gender"] = gender
+    if q and q.strip():
+        active_params["q"] = q.strip()
+    if limit != 10:
+        active_params["limit"] = str(limit)
+
+    filter_querystring = ("&" + urllib.parse.urlencode(active_params)) if active_params else ""
+
     return templates.TemplateResponse(request=request, name="reports/daily.html", context={
         "current_user": current_user,
         "selected_date": date,
@@ -204,6 +262,11 @@ def daily_registration_report(
         "total_day": total_day,
         "male_day": male_day,
         "female_day": female_day,
+        "total_count": total_count,
+        "page": page,
+        "limit": limit,
+        "total_pages": total_pages,
+        "filter_querystring": filter_querystring,
         "recent_dates": recent_dates,
         "villages": villages,
         "stations": stations,
