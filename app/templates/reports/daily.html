@@ -3,66 +3,83 @@
 {% block title %}របាយការណ៍ចុះឈ្មោះប្រចាំថ្ងៃ ({{ selected_date }}) - រដ្ឋបាលឃុំនគរភាស{% endblock %}
 
 {% block content %}
-<div class="space-y-6">
+<div class="space-y-5 sm:space-y-6 pb-8">
 
     <!-- Top Header & Actions -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-            <div class="flex items-center gap-2 text-xs text-slate-500 mb-1">
-                <a href="/reports" class="hover:text-blue-700">📑 របាយការណ៍</a>
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="space-y-1.5">
+            <!-- Breadcrumb -->
+            <div class="flex items-center gap-1.5 text-xs text-slate-500">
+                <a href="/reports" class="hover:text-blue-600 dark:hover:text-sky-300 transition flex items-center gap-1">
+                    <span>📑</span> <span>របាយការណ៍</span>
+                </a>
                 <span>›</span>
-                <span class="text-blue-700 font-bold">ចុះឈ្មោះប្រចាំថ្ងៃ</span>
+                <span class="text-blue-700 dark:text-sky-400 font-bold">ចុះឈ្មោះប្រចាំថ្ងៃ</span>
             </div>
-            <h2
-                class="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 font-kh-heading flex items-center gap-2">
-                <span>📅</span> របាយការណ៍អ្នកចុះឈ្មោះប្រចាំថ្ងៃ
+
+            <!-- Main Title -->
+            <h2 class="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 dark:text-slate-100 font-kh-heading flex items-center gap-2.5 leading-snug">
+                <span class="text-2xl sm:text-3xl">📅</span>
+                <span>របាយការណ៍អ្នកចុះឈ្មោះប្រចាំថ្ងៃ</span>
             </h2>
-            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 flex items-center gap-1.5 flex-wrap mt-1">
-                • ទិន្នន័យចុះឈ្មោះថ្ងៃទី <span class="font-bold text-blue-700 dark:text-sky-300 font-mono text-sm">{{
-                    selected_date }}</span>
+
+            <!-- Subtitle Badges Row -->
+            <div class="flex items-center gap-2 flex-wrap pt-0.5">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-50 dark:bg-sky-950/60 text-blue-900 dark:text-sky-300 border border-blue-200 dark:border-sky-800/60 font-mono shadow-xs">
+                    <span>🗓️</span> {{ selected_date }}
+                </span>
                 {% if selected_date == today_str %}
-                <span
-                    class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700/60 text-[11px] font-bold">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> ថ្ងៃនេះ (Today)
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700/60 text-xs font-bold">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>ថ្ងៃនេះ</span>
                 </span>
                 {% endif %}
-                (សរុប <span class="font-bold text-blue-900 dark:text-sky-300">{{ total_day }}</span> នាក់)
-            </p>
+                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-xs font-medium">
+                    <span>សរុប</span>
+                    <strong class="text-blue-900 dark:text-sky-300 font-bold font-mono">{{ total_day }}</strong>
+                    <span>នាក់</span>
+                </span>
+            </div>
         </div>
 
-        <div class="flex flex-wrap items-center gap-2">
+        <!-- Action Buttons: Clean 2-column grid on mobile, row on desktop -->
+        <div class="grid grid-cols-2 sm:flex sm:items-center gap-2.5 pt-1 sm:pt-0">
             <a href="/reports/daily/print?date={{ selected_date }}&village_id={{ village_id }}&station_id={{ station_id }}"
-                target="_blank" class="btn btn-primary text-xs shadow-md">
-                🖨️ បោះពុម្ពរបាយការណ៍ (Print)
+                target="_blank" class="btn btn-sm h-10 bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-600 hover:to-indigo-600 text-white font-bold text-xs px-3.5 py-2 rounded-xl flex items-center justify-center gap-1.5 shadow-sm hover:shadow-md transition active:scale-95">
+                <span>🖨️</span>
+                <span>បោះពុម្ព (Print)</span>
             </a>
             <a href="/reports/daily/export/excel?date={{ selected_date }}&village_id={{ village_id }}&station_id={{ station_id }}"
-                class="btn btn-success text-xs shadow-md">
-                📥 Export Excel (.xlsx)
+                class="btn btn-sm h-10 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs px-3.5 py-2 rounded-xl flex items-center justify-center gap-1.5 shadow-sm hover:shadow-md transition active:scale-95">
+                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                <span>Export Excel</span>
             </a>
-            <a href="/reports" class="btn btn-outline text-xs">
-                ← ត្រឡប់ក្រោយ
+            <a href="/reports" class="btn btn-sm h-10 col-span-2 sm:col-span-1 btn-outline text-slate-700 dark:text-slate-300 font-medium text-xs px-3.5 py-2 rounded-xl flex items-center justify-center gap-1 hover:border-slate-400">
+                <span>←</span>
+                <span>ត្រឡប់ក្រោយ</span>
             </a>
         </div>
     </div>
 
     <!-- Quick Date Navigation Pills (Last 10 Days) -->
-    <div class="glass-card p-4">
-        <div class="text-xs font-bold text-slate-900 dark:text-slate-100 mb-2 flex items-center justify-between">
-            <span class="flex items-center gap-1.5">
-                <span>🗓️</span> ជ្រើសរើសកាលបរិច្ឆេទរហ័ស
+    <div class="glass-card p-4 sm:p-5 rounded-2xl">
+        <div class="text-xs font-bold text-slate-900 dark:text-slate-100 mb-2.5 flex items-center justify-between">
+            <span class="flex items-center gap-1.5 font-kh-heading text-[13px]">
+                <span>🗓️</span> <span>ជ្រើសរើសកាលបរិច្ឆេទរហ័ស</span>
+            </span>
+            <span class="text-[11px] text-slate-500 dark:text-slate-400 font-normal hidden sm:inline">
+                ចុចលើថ្ងៃដើម្បីមើលទិន្នន័យ
             </span>
         </div>
-        <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+        <div class="flex items-center gap-2 overflow-x-auto pb-1.5 -mx-1 px-1 text-xs custom-scrollbar">
             {% for r in recent_dates %}
             <a href="/reports/daily?date={{ r.reg_date }}"
-                class="px-3.5 py-2 rounded-xl border transition flex items-center gap-2 flex-shrink-0 font-medium {% if selected_date == r.reg_date|string %}bg-blue-600 dark:bg-blue-600 text-white border-blue-500 shadow-md font-bold{% else %}bg-white dark:bg-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700{% endif %}">
+                class="px-3.5 py-2 rounded-xl border transition-all duration-150 flex items-center gap-2 flex-shrink-0 font-medium {% if selected_date == r.reg_date|string %}bg-blue-600 text-white border-blue-500 shadow-md font-bold{% else %}bg-white dark:bg-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700{% endif %}">
                 <span class="font-mono">{{ r.reg_date }}</span>
                 {% if r.is_today %}
-                <span
-                    class="text-[10px] px-1.5 py-0.5 rounded font-bold {% if selected_date == r.reg_date|string %}bg-emerald-500 text-white shadow-xs{% else %}bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700/60{% endif %}">ថ្ងៃនេះ</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded font-bold {% if selected_date == r.reg_date|string %}bg-emerald-500 text-white shadow-xs{% else %}bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700/60{% endif %}">ថ្ងៃនេះ</span>
                 {% endif %}
-                <span
-                    class="px-2 py-0.5 rounded-full text-[10px] font-bold {% if selected_date == r.reg_date|string %}bg-amber-300 text-slate-950 shadow-xs{% else %}bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600{% endif %}">
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {% if selected_date == r.reg_date|string %}bg-amber-300 text-slate-950 shadow-xs{% else %}bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600{% endif %}">
                     {{ r.total }} នាក់
                 </span>
             </a>
@@ -71,27 +88,27 @@
     </div>
 
     <!-- Filter & Search Toolbar -->
-    <div class="glass-card p-5">
+    <div class="glass-card p-4 sm:p-5 rounded-2xl">
         <form method="GET" action="/reports/daily"
             class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
 
             <!-- Date Picker -->
             <div>
                 <div class="flex items-center justify-between mb-1">
-                    <label class="block text-[11px] font-bold text-slate-500 uppercase">កាលបរិច្ឆេទ *</label>
+                    <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase">កាលបរិច្ឆេទ *</label>
                     {% if selected_date != today_str %}
                     <a href="/reports/daily?date={{ today_str }}"
-                        class="text-[10px] text-blue-600 hover:text-blue-800 font-bold">ទៅថ្ងៃនេះ</a>
+                        class="text-[10px] text-blue-600 dark:text-sky-400 hover:underline font-bold">ទៅថ្ងៃនេះ</a>
                     {% endif %}
                 </div>
                 <input type="date" name="date" value="{{ selected_date }}" required
-                    class="form-control text-sm py-2 font-mono" onchange="this.form.submit()">
+                    class="form-control text-xs sm:text-sm h-10 py-2 px-3 font-mono bg-slate-50 dark:bg-[#0b1329] border border-slate-300 dark:border-slate-700 rounded-xl" onchange="this.form.submit()">
             </div>
 
             <!-- Village Filter -->
             <div>
-                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ភូមិ (១០ ភូមិ)</label>
-                <select name="village_id" id="dailyVillageSelect" class="form-control text-sm py-2"
+                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">ភូមិ (១០ ភូមិ)</label>
+                <select name="village_id" id="dailyVillageSelect" class="form-control text-xs sm:text-sm h-10 py-2 px-3 bg-slate-50 dark:bg-[#0b1329] border border-slate-300 dark:border-slate-700 rounded-xl"
                     onchange="filterDailyStations()" {% if current_user.role=='village_chief' %}disabled{% endif %}>
                     <option value="">-- គ្រប់ភូមិទាំងអស់ --</option>
                     {% for v in villages %}
@@ -103,35 +120,34 @@
 
             <!-- Polling Station Filter -->
             <div>
-                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ការិយាល័យ</label>
-                <select name="station_id" id="dailyStationSelect" class="form-control text-sm py-2" {% if
+                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">ការិយាល័យ</label>
+                <select name="station_id" id="dailyStationSelect" class="form-control text-xs sm:text-sm h-10 py-2 px-3 bg-slate-50 dark:bg-[#0b1329] border border-slate-300 dark:border-slate-700 rounded-xl" {% if
                     current_user.role=='officer' %}disabled{% endif %}>
                     <option value="">-- គ្រប់ការិយាល័យ --</option>
                     {% for s in stations %}
-                    <option value="{{ s.id }}" data-village-id="{{ s.village_id }}" {% if station_id==s.id|string
-                        %}selected{% endif %}>{{ s.code }} - {{ s.name }}</option>
+                    <option value="{{ s.id }}" data-village-id="{{ s.village_id }}" {% if station_id==s.id|string %}selected{% endif %}>{{ s.code }} - {{ s.name }}</option>
                     {% endfor %}
                 </select>
             </div>
 
             <!-- Gender Filter -->
             <div>
-                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ភេទ</label>
-                <select name="gender" class="form-control text-sm py-2">
+                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">ភេទ</label>
+                <select name="gender" class="form-control text-xs sm:text-sm h-10 py-2 px-3 bg-slate-50 dark:bg-[#0b1329] border border-slate-300 dark:border-slate-700 rounded-xl">
                     <option value="">-- ទាំងពីរ --</option>
-                    <option value="ស្រី" {% if gender=='ស្រី' %}selected{% endif %}>ស្រី</option>
-                    <option value="ប្រុស" {% if gender=='ប្រុស' %}selected{% endif %}>ប្រុស</option>
+                    <option value="ស្រី" {% if gender=='ស្រី' %}selected{% endif %}>ស្រី (Female)</option>
+                    <option value="ប្រុស" {% if gender=='ប្រុស' %}selected{% endif %}>ប្រុស (Male)</option>
                 </select>
             </div>
 
             <!-- Search Query & Submit -->
             <div class="flex items-end gap-2">
                 <div class="flex-1">
-                    <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ស្វែងរក</label>
+                    <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">ស្វែងរក</label>
                     <input type="text" name="q" value="{{ q }}" placeholder="ឈ្មោះ ឬលេខ ID..."
-                        class="form-control text-sm py-2">
+                        class="form-control text-xs sm:text-sm h-10 py-2 px-3 bg-slate-50 dark:bg-[#0b1329] border border-slate-300 dark:border-slate-700 rounded-xl">
                 </div>
-                <button type="submit" class="btn btn-primary py-2 px-3 text-sm" title="ស្វែងរក">
+                <button type="submit" class="btn btn-primary h-10 px-3.5 rounded-xl text-sm flex items-center justify-center shrink-0" title="ស្វែងរក">
                     🔍
                 </button>
             </div>
@@ -140,187 +156,195 @@
     </div>
 
     <!-- Daily Summary KPI Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
 
-        <div class="stat-card">
-            <div class="stat-icon bg-blue-50 dark:bg-sky-950/60 text-blue-700 dark:text-sky-300">
+        <div class="stat-card p-3.5 sm:p-5 rounded-2xl flex items-center gap-3">
+            <div class="stat-icon w-11 h-11 sm:w-14 sm:h-14 text-xl sm:text-2xl rounded-xl bg-blue-50 dark:bg-sky-950/60 text-blue-700 dark:text-sky-300 shrink-0">
                 📝
             </div>
-            <div>
-                <span class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase">ចុះឈ្មោះសរុបថ្ងៃនេះ</span>
-                <div class="text-2xl font-black text-slate-900 dark:text-slate-100 font-mono">{{ total_day }} <span
-                        class="text-xs font-normal text-slate-400 dark:text-slate-500 font-sans">នាក់</span></div>
-                <span class="text-[10px] text-blue-700 dark:text-sky-300 font-semibold">{{ selected_date }}</span>
+            <div class="min-w-0 flex-1">
+                <span class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-bold uppercase truncate block">ចុះឈ្មោះសរុប</span>
+                <div class="text-xl sm:text-2xl font-black text-slate-900 dark:text-slate-100 font-mono mt-0.5 leading-tight">
+                    {{ total_day }} <span class="text-xs font-normal text-slate-400 dark:text-slate-500 font-sans">នាក់</span>
+                </div>
+                <span class="text-[10px] text-blue-700 dark:text-sky-300 font-semibold font-mono truncate block mt-0.5">{{ selected_date }}</span>
             </div>
         </div>
 
-        <div class="stat-card">
-            <div class="stat-icon bg-pink-50 dark:bg-pink-950/60 text-pink-600 dark:text-pink-300">
+        <div class="stat-card p-3.5 sm:p-5 rounded-2xl flex items-center gap-3">
+            <div class="stat-icon w-11 h-11 sm:w-14 sm:h-14 text-xl sm:text-2xl rounded-xl bg-pink-50 dark:bg-pink-950/60 text-pink-600 dark:text-pink-300 shrink-0">
                 👩
             </div>
-            <div>
-                <span class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase">ស្រ្តី</span>
-                <div class="text-2xl font-black text-pink-600 dark:text-pink-400 font-mono">{{ female_day }} <span
-                        class="text-xs font-normal text-slate-400 dark:text-slate-500 font-sans">នាក់</span></div>
-                <span class="text-[10px] text-pink-700 dark:text-pink-300 font-semibold">{% if total_day > 0 %}{{
-                    (female_day / total_day * 100)|round(1) }}{% else %}0{% endif %}% នៃសរុប</span>
+            <div class="min-w-0 flex-1">
+                <span class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-bold uppercase truncate block">ស្រ្តី (Female)</span>
+                <div class="text-xl sm:text-2xl font-black text-pink-600 dark:text-pink-400 font-mono mt-0.5 leading-tight">
+                    {{ female_day }} <span class="text-xs font-normal text-slate-400 dark:text-slate-500 font-sans">នាក់</span>
+                </div>
+                <span class="text-[10px] text-pink-700 dark:text-pink-300 font-semibold truncate block mt-0.5">
+                    {% if total_day > 0 %}{{ (female_day / total_day * 100)|round(1) }}{% else %}0{% endif %}% នៃសរុប
+                </span>
             </div>
         </div>
 
-        <div class="stat-card">
-            <div class="stat-icon bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300">
+        <div class="stat-card p-3.5 sm:p-5 rounded-2xl flex items-center gap-3">
+            <div class="stat-icon w-11 h-11 sm:w-14 sm:h-14 text-xl sm:text-2xl rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 shrink-0">
                 👨
             </div>
-            <div>
-                <span class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase">បុរស</span>
-                <div class="text-2xl font-black text-indigo-700 dark:text-indigo-300 font-mono">{{ male_day }} <span
-                        class="text-xs font-normal text-slate-400 dark:text-slate-500 font-sans">នាក់</span></div>
-                <span class="text-[10px] text-indigo-700 dark:text-indigo-300 font-semibold">{% if total_day > 0 %}{{
-                    (male_day / total_day * 100)|round(1) }}{% else %}0{% endif %}% នៃសរុប</span>
+            <div class="min-w-0 flex-1">
+                <span class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-bold uppercase truncate block">បុរស (Male)</span>
+                <div class="text-xl sm:text-2xl font-black text-indigo-700 dark:text-indigo-300 font-mono mt-0.5 leading-tight">
+                    {{ male_day }} <span class="text-xs font-normal text-slate-400 dark:text-slate-500 font-sans">នាក់</span>
+                </div>
+                <span class="text-[10px] text-indigo-700 dark:text-indigo-300 font-semibold truncate block mt-0.5">
+                    {% if total_day > 0 %}{{ (male_day / total_day * 100)|round(1) }}{% else %}0{% endif %}% នៃសរុប
+                </span>
             </div>
         </div>
 
-        <div class="stat-card">
-            <div class="stat-icon bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">
+        <div class="stat-card p-3.5 sm:p-5 rounded-2xl flex items-center gap-3">
+            <div class="stat-icon w-11 h-11 sm:w-14 sm:h-14 text-xl sm:text-2xl rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 shrink-0">
                 🏡
             </div>
-            <div>
-                <span class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase">ភូមិ / ការិយាល័យ</span>
-                <div class="text-xl font-bold text-slate-900 dark:text-slate-100">ឃុំនគរភាស</div>
-                <span class="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">១០ ភូមិ • ១៤
-                    ការិយាល័យ</span>
+            <div class="min-w-0 flex-1">
+                <span class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-bold uppercase truncate block">ទីតាំង</span>
+                <div class="text-base sm:text-xl font-bold text-slate-900 dark:text-slate-100 mt-0.5 leading-tight truncate font-kh-heading">
+                    ឃុំនគរភាស
+                </div>
+                <span class="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold truncate block mt-0.5">
+                    ១០ ភូមិ • ១៤ ការិយាល័យ
+                </span>
             </div>
         </div>
 
     </div>
 
     <!-- Voters Registered Table -->
-    <div class="data-table-container">
-        <div
-            class="p-4 bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+    <div class="data-table-container rounded-2xl shadow-md overflow-hidden">
+        <div class="p-4 sm:p-5 bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
             <h3 class="font-bold text-slate-900 dark:text-slate-100 text-base font-kh-heading flex items-center gap-2">
-                <span>📋</span> បញ្ជីអ្នកបានចុះឈ្មោះក្នុងថ្ងៃទី {{ selected_date }}
+                <span>📋</span> <span>បញ្ជីអ្នកបានចុះឈ្មោះក្នុងថ្ងៃទី {{ selected_date }}</span>
             </h3>
-            <span
-                class="text-xs font-bold text-blue-900 dark:text-sky-300 bg-blue-100 dark:bg-sky-950/60 border border-blue-200 dark:border-sky-800/60 px-3 py-1 rounded-full">
+            <span class="text-xs font-bold text-blue-900 dark:text-sky-300 bg-blue-100 dark:bg-sky-950/60 border border-blue-200 dark:border-sky-800/60 px-3 py-1 rounded-full self-start sm:self-auto shadow-xs">
                 រកឃើញសរុប {{ voters|length }} នាក់
             </span>
         </div>
 
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>ល.រ</th>
-                    <th class="col-reg-time">ម៉ោងចុះឈ្មោះ</th>
-                    <th class="hidden sm:table-cell col-voter-code">កូដអ្នកបោះឆ្នោត</th>
-                    <th class="col-national-id">លេខអត្តសញ្ញាណប័ណ្ណ</th>
-                    <th class="col-photo-name">រូបថត & ឈ្មោះ</th>
-                    <th class="col-gender-dob">ភេទ / ថ្ងៃកំណើត</th>
-                    <th>ភូមិទីលំនៅ</th>
-                    <th>ការិយាល័យបោះឆ្នោត</th>
-                    <th>ស្ថានភាព</th>
-                    <th class="text-right">សកម្មភាព</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% if voters %}
-                {% for v in voters %}
-                <tr>
-                    <td class="font-bold text-center text-slate-500">{{ loop.index }}</td>
-                    <td class="col-reg-time font-mono text-xs font-bold text-blue-800">
-                        {{ v.created_at.strftime('%H:%M:%S') if v.created_at else '' }}
-                    </td>
-                    <td class="hidden sm:table-cell col-voter-code font-mono text-xs font-bold text-blue-900">{{
-                        v.voter_code }}</td>
-                    <td class="col-national-id font-mono text-xs font-semibold text-slate-700">{{ v.national_id }}</td>
-                    <td class="col-photo-name">
-                        <div class="flex items-center gap-3">
-                            <img src="{{ v.photo_display }}" alt="{{ v.name_kh }}"
-                                class="w-10 h-10 rounded-full object-cover border-2 border-blue-200 shadow-sm bg-slate-100 cursor-pointer flex-shrink-0"
-                                onclick="previewLargePhoto('{{ v.photo_display }}', '{{ v.name_kh }}', '{{ v.voter_code }}')"
-                                title="ចុចដើម្បីមើលរូប"
-                                onerror="this.onerror=null; this.src='/static/images/avatars/{{ 'female_1.jpg' if v.gender == 'ស្រី' else 'male_1.jpg' }}';">
-                            <div>
-                                <div class="font-bold text-slate-900 voter-name-kh whitespace-nowrap">{{ v.name_kh }}
+        <div class="overflow-x-auto">
+            <table class="data-table text-xs">
+                <thead>
+                    <tr class="bg-slate-50/50 dark:bg-slate-900/50">
+                        <th class="text-center w-12">ល.រ</th>
+                        <th class="col-reg-time">ម៉ោង</th>
+                        <th class="hidden sm:table-cell col-voter-code">កូដអ្នកបោះឆ្នោត</th>
+                        <th class="col-national-id">លេខអត្តសញ្ញាណប័ណ្ណ</th>
+                        <th class="col-photo-name">រូបថត & ឈ្មោះ</th>
+                        <th class="col-gender-dob">ភេទ / ថ្ងៃកំណើត</th>
+                        <th>ភូមិទីលំនៅ</th>
+                        <th>ការិយាល័យបោះឆ្នោត</th>
+                        <th>ស្ថានភាព</th>
+                        <th class="text-right">សកម្មភាព</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                    {% if voters %}
+                    {% for v in voters %}
+                    <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition">
+                        <td class="font-bold text-center text-slate-500 dark:text-slate-400">{{ loop.index }}</td>
+                        <td class="col-reg-time font-mono text-xs font-bold text-blue-800 dark:text-sky-300">
+                            {{ v.created_at.strftime('%H:%M:%S') if v.created_at else '' }}
+                        </td>
+                        <td class="hidden sm:table-cell col-voter-code font-mono text-xs font-bold text-blue-900 dark:text-blue-300">
+                            {{ v.voter_code }}
+                        </td>
+                        <td class="col-national-id font-mono text-xs font-semibold text-slate-700 dark:text-slate-300">
+                            {{ v.national_id }}
+                        </td>
+                        <td class="col-photo-name">
+                            <div class="flex items-center gap-2.5">
+                                <img src="{{ v.photo_display }}" alt="{{ v.name_kh }}"
+                                    class="w-10 h-10 rounded-xl object-cover border-2 border-blue-200 dark:border-blue-700 shadow-sm bg-slate-100 dark:bg-slate-800 cursor-pointer flex-shrink-0"
+                                    onclick="previewLargePhoto('{{ v.photo_display }}', '{{ v.name_kh }}', '{{ v.voter_code }}')"
+                                    title="ចុចដើម្បីមើលរូប"
+                                    onerror="this.onerror=null; this.src='/static/images/avatars/{{ 'female_1.jpg' if v.gender == 'ស្រី' else 'male_1.jpg' }}';">
+                                <div class="min-w-0">
+                                    <div class="font-bold text-slate-900 dark:text-slate-100 voter-name-kh whitespace-nowrap font-kh-heading">{{ v.name_kh }}</div>
+                                    <div class="hidden sm:block voter-latin-name text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider font-semibold">{{ v.name_en }}</div>
                                 </div>
-                                <div
-                                    class="hidden sm:block voter-latin-name text-xs text-slate-400 uppercase tracking-wider font-semibold">
-                                    {{ v.name_en }}</div>
                             </div>
-                        </div>
-                    </td>
-                    <td class="col-gender-dob">
-                        <span class="font-semibold text-slate-700">{{ v.gender }}</span>
-                        <span class="text-xs text-slate-400 block">{{ v.dob }}</span>
-                    </td>
-                    <td>
-                        <span class="text-slate-700 font-medium">{{ v.village.name_kh if v.village else '' }}</span>
-                    </td>
-                    <td>
-                        <span class="font-bold text-blue-800">{{ v.station.code if v.station else '' }}</span>
-                        <span class="text-[11px] text-slate-400 block truncate max-w-[130px]">{{ v.station.name if
-                            v.station else '' }}</span>
-                    </td>
-                    <td>
-                        {% if v.status == 'active' %}
-                        <span class="badge badge-success">សកម្ម</span>
-                        {% elif v.status == 'moved' %}
-                        <span class="badge badge-warning">ផ្លាស់ចេញ</span>
-                        {% elif v.status == 'deceased' %}
-                        <span class="badge badge-danger">មរណភាព</span>
-                        {% else %}
-                        <span class="badge badge-secondary">{{ v.status }}</span>
-                        {% endif %}
-                    </td>
-                    <td class="text-right">
-                        <div class="inline-flex items-center gap-1.5">
-                            <a href="/voters/{{ v.id }}/card" target="_blank" class="btn btn-sm btn-outline"
-                                title="ប័ណ្ណព័ត៌មាន">
-                                🪪 ប័ណ្ណ
-                            </a>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-                {% else %}
-                <tr>
-                    <td colspan="10" class="text-center py-12 text-slate-400 text-sm">
-                        <div class="text-3xl mb-2">📭</div>
-                        ពុំមានទិន្នន័យអ្នកចុះឈ្មោះបោះឆ្នោតក្នុងថ្ងៃទី <strong class="text-slate-700 font-mono">{{
-                            selected_date }}</strong> ស្របតាមលក្ខខណ្ឌស្វែងរកនេះឡើយ។
-                    </td>
-                </tr>
-                {% endif %}
-            </tbody>
-        </table>
+                        </td>
+                        <td class="col-gender-dob">
+                            <span class="font-semibold text-slate-700 dark:text-slate-300">{{ v.gender }}</span>
+                            <span class="text-[11px] text-slate-400 dark:text-slate-500 block font-mono">{{ v.dob }}</span>
+                        </td>
+                        <td>
+                            <span class="text-slate-700 dark:text-slate-300 font-medium">{{ v.village.name_kh if v.village else '' }}</span>
+                        </td>
+                        <td>
+                            <span class="font-bold text-blue-800 dark:text-sky-300 font-mono">{{ v.station.code if v.station else '' }}</span>
+                            <span class="text-[11px] text-slate-400 dark:text-slate-500 block truncate max-w-[130px]">{{ v.station.name if v.station else '' }}</span>
+                        </td>
+                        <td>
+                            {% if v.status == 'active' %}
+                            <span class="badge badge-success text-[10px] px-2 py-0.5">សកម្ម</span>
+                            {% elif v.status == 'moved' %}
+                            <span class="badge badge-warning text-[10px] px-2 py-0.5">ផ្លាស់ចេញ</span>
+                            {% elif v.status == 'deceased' %}
+                            <span class="badge badge-danger text-[10px] px-2 py-0.5">មរណភាព</span>
+                            {% else %}
+                            <span class="badge badge-secondary text-[10px] px-2 py-0.5">{{ v.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-right">
+                            <div class="inline-flex items-center gap-1.5 justify-end">
+                                <a href="/voters/{{ v.id }}/card" target="_blank" class="btn btn-sm btn-outline text-purple-700 dark:text-purple-300 font-bold px-2.5 py-1.5 rounded-lg hover:border-purple-400 flex items-center gap-1" title="ប័ណ្ណព័ត៌មាន">
+                                    <span>🪪</span>
+                                    <span>ប័ណ្ណ</span>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="10" class="text-center py-12 text-slate-400 text-sm">
+                            <div class="text-3xl mb-2">📭</div>
+                            ពុំមានទិន្នន័យអ្នកចុះឈ្មោះបោះឆ្នោតក្នុងថ្ងៃទី <strong class="text-slate-700 dark:text-slate-300 font-mono">{{ selected_date }}</strong> ស្របតាមលក្ខខណ្ឌស្វែងរកនេះឡើយ។
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
     </div>
 
 </div>
 
 <!-- Modal: Large Photo Preview -->
 <div id="largePhotoModal" class="modal-overlay">
-    <div class="modal-card max-w-sm text-center">
-        <div class="modal-header">
-            <h3 class="font-bold text-base font-kh-heading">រូបថតអ្នកបោះឆ្នោត</h3>
+    <div class="modal-card max-w-sm text-center p-0 overflow-hidden rounded-3xl">
+        <div class="modal-header bg-gradient-to-r from-blue-900 to-indigo-900 text-white p-4 flex items-center justify-between">
+            <h3 class="font-bold text-base font-kh-heading flex items-center gap-2">
+                <span>🖼️</span> <span>រូបថតអ្នកបោះឆ្នោត</span>
+            </h3>
             <button type="button" onclick="closeModal('largePhotoModal')"
                 class="text-white/80 hover:text-white text-xl p-1 leading-none">✕</button>
         </div>
         <div class="modal-body p-6 space-y-3">
             <div class="flex justify-center">
                 <img id="largePhotoImg" src="" alt="Voter Portrait"
-                    class="w-56 h-56 rounded-3xl object-cover border-4 border-blue-900 shadow-2xl bg-white"
+                    class="w-52 h-52 sm:w-56 sm:h-56 rounded-2xl object-cover border-4 border-blue-900/40 shadow-2xl bg-white"
                     onerror="this.onerror=null; this.src='/static/images/avatars/male_1.jpg';">
             </div>
             <div>
-                <h4 id="largePhotoName" class="font-bold text-slate-900 text-lg font-kh-heading mt-2"></h4>
+                <h4 id="largePhotoName" class="font-bold text-slate-900 dark:text-slate-100 text-lg font-kh-heading mt-2"></h4>
                 <p id="largePhotoCode"
-                    class="font-mono text-xs font-bold text-blue-800 bg-blue-50 py-1 px-3 rounded-full inline-block mt-1">
+                    class="font-mono text-xs font-bold text-blue-800 dark:text-sky-300 bg-blue-50 dark:bg-sky-950/60 py-1 px-3 rounded-full inline-block mt-1 border border-blue-200 dark:border-sky-800/60">
                 </p>
             </div>
         </div>
-        <div class="modal-footer justify-center">
+        <div class="modal-footer justify-center p-4 border-t border-slate-100 dark:border-slate-800">
             <button type="button" onclick="closeModal('largePhotoModal')"
-                class="btn btn-primary text-sm py-2 px-6">បិទ</button>
+                class="btn btn-primary text-sm py-2 px-6 rounded-xl">បិទ</button>
         </div>
     </div>
 </div>
