@@ -956,3 +956,133 @@ def print_eligible_action_list(
             "current_year": get_cambodia_now().year
         }
     )
+
+@router.get("/verify/birth/{identifier}", response_class=HTMLResponse)
+def public_verify_birth_certificate(
+    identifier: str,
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    current_user = get_current_user_optional(request, db)
+    ident = identifier.strip()
+
+    record = None
+    if ident.isdigit():
+        record = db.query(BirthCertificate).filter(BirthCertificate.id == int(ident)).first()
+    
+    if not record:
+        record = db.query(BirthCertificate).filter(
+            or_(
+                BirthCertificate.certificate_no.ilike(ident),
+                BirthCertificate.certificate_no == ident
+            )
+        ).first()
+
+    voter = None
+    if record and record.is_registered_voter and record.voter_id:
+        voter = db.query(Voter).filter(Voter.id == record.voter_id).first()
+
+    return templates.TemplateResponse(
+        request=request,
+        name="birth_certificates/verify.html",
+        context={
+            "current_user": current_user,
+            "record": record,
+            "voter": voter,
+            "identifier": identifier
+        }
+    )
+
+@router.get("/api/birth-certificates/lookup-qr")
+def api_lookup_birth_qr(
+    code: str = Query("", description="QR Code or Certificate number or ID"),
+    db: Session = Depends(get_db)
+):
+    clean_code = (code or "").strip()
+    if not clean_code:
+        return JSONResponse({"found": False, "message": "សូមបញ្ចូលកូដ ឬស្កេន QR សំបុត្រកំណើត"})
+
+    # Check if full URL was scanned (e.g. https://domain/verify/birth/45)
+    m = re.search(r"/verify/birth/([^/?#]+)", clean_code)
+    if m:
+        clean_code = m.group(1).strip()
+
+    record = None
+    if clean_code.isdigit():
+        record = db.query(BirthCertificate).filter(BirthCertificate.id == int(clean_code)).first()
+
+    if not record:
+        record = db.query(BirthCertificate).filter(
+            or_(
+                BirthCertificate.certificate_no.ilike(clean_code),
+                BirthCertificate.certificate_no == clean_code
+            )
+        ).first()
+
+    if not record:
+        return JSONResponse({"found": False, "message": f"រកមិនឃើញសំបុត្រកំណើតដែលមានកូដ '{clean_code}' ឡើយ"})
+
+    voter_info = None
+    if record.is_registered_voter and record.voter:
+        voter_info = {
+            "id": record.voter.id,
+            "voter_code": record.voter.voter_code,
+            "station_code": record.voter.station.code if record.voter.station else "",
+            "station_name": record.voter.station.name if record.voter.station else "",
+            "has_voted": record.voter.has_voted
+        }
+
+    return JSONResponse({
+        "found": True,
+        "record": {
+            "id": record.id,
+            "certificate_no": record.certificate_no,
+            "book_no": record.book_no or "",
+            "year": record.registered_year or "",
+            "name_kh": record.name_kh,
+            "name_en": record.name_en or "",
+            "gender": record.gender,
+            "dob": record.dob,
+            "age": record.age,
+            "pob": record.pob or "",
+            "father_name": record.father_name or "",
+            "mother_name": record.mother_name or "",
+            "address": record.address or "",
+            "village_id": record.village_id,
+            "village_name": record.village.name_kh if record.village else "",
+            "village_code": record.village.code if record.village else "",
+            "is_registered_voter": record.is_registered_voter,
+            "voter": voter_info,
+            "is_eligible_now": record.is_eligible_now,
+            "eligibility_badge": record.eligibility_badge,
+            "registered_date": record.registered_date_effective,
+            "attachment_url": record.attachment_url,
+            "verify_url": f"/verify/birth/{record.id}"
+        }
+    })
+
+@router.get("/birth-certificates/{id}/print-card", response_class=HTMLResponse)
+def print_birth_certificate_card(
+    id: int,
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    current_user = get_current_user_optional(request, db)
+    record = db.query(BirthCertificate).filter(BirthCertificate.id == id).first()
+    if not record:
+        raise HTTPException(status_code=404, detail="រកមិនឃើញសំបុត្រកំណើតឡើយ")
+
+    voter = None
+    if record.is_registered_voter and record.voter_id:
+        voter = db.query(Voter).filter(Voter.id == record.voter_id).first()
+
+    return templates.TemplateResponse(
+        request=request,
+        name="birth_certificates/card.html",
+        context={
+            "current_user": current_user,
+            "record": record,
+            "voter": voter,
+            "print_date": get_cambodia_today()
+        }
+    )

@@ -356,9 +356,28 @@ def run_tests():
     assert ocr_data["gender"] == "ប្រុស"
     assert ocr_data["dob"] == "1995-05-15"
     assert ocr_data["is_eligible_18"] == True
-    print(f"[PASS] 31. Khmer ID Card OCR Scanner endpoint tested & verified (Extracted ID: {ocr_data['national_id']}, Name: {ocr_data['name_kh']})")
+    # 32. Test Birth Certificate QR Lookup, Public Verification Page, and Printable Card
+    # A. Public Verification Page (/verify/birth/1)
+    res_b_verify = client.get("/verify/birth/1")
+    assert res_b_verify.status_code == 200
+    assert "ផ្ទាំងផ្ទៀងផ្ទាត់សំបុត្រកំណើតឌីជីថល" in res_b_verify.text
+    assert "រដ្ឋបាលឃុំនគរភាស" in res_b_verify.text
 
-    print("\n ALL 31 SYSTEM TESTS PASSED SUCCESSFULLY! ")
+    # B. API Lookup QR by ID & by Certificate Number (/api/birth-certificates/lookup-qr)
+    res_b_lookup = client.get("/api/birth-certificates/lookup-qr?code=1")
+    assert res_b_lookup.status_code == 200
+    b_data = res_b_lookup.json()
+    assert b_data["found"] == True
+    assert "name_kh" in b_data["record"]
+    assert "certificate_no" in b_data["record"]
+
+    # C. Printable Card with dynamic QR (/birth-certificates/1/print-card)
+    res_b_card = client.get("/birth-certificates/1/print-card")
+    assert res_b_card.status_code == 200
+    assert "ប័ណ្ណសង្ខេបសំបុត្រកំណើតឌីជីថល" in res_b_card.text
+    print(f"[PASS] 32. Digital Birth Certificate QR Verification & Printable Card tested & verified (/verify/birth/1, Certificate No: {b_data['record']['certificate_no']})")
+
+    print("\n ALL 32 SYSTEM TESTS PASSED SUCCESSFULLY! ")
 
 def test_system():
     # Save safety backup of DB before tests

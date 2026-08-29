@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}ប័ណ្ណសង្ខេបសំបុត្រកំណើត - {{ record.name_kh }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto space-y-6 pb-12">
+
+    <!-- Actions Toolbar (No Print) -->
+    <div class="flex items-center justify-between no-print gap-2">
+        <a href="/birth-certificates" class="btn btn-outline text-xs sm:text-sm py-2 px-4 flex items-center gap-1">
+            <span>←</span> <span>ត្រឡប់ទៅបញ្ជីសំបុត្រកំណើត</span>
+        </a>
+        <div class="flex gap-2">
+            <button onclick="window.print()" class="btn btn-primary text-xs sm:text-sm shadow-md flex items-center gap-1.5 font-bold">
+                <span>🖨️</span> <span>បោះពុម្ពប័ណ្ណ (Print Card)</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Official Birth Certificate Summary Card (Printable) -->
+    <div class="bg-white rounded-3xl p-6 sm:p-8 border-2 border-indigo-900 shadow-2xl relative overflow-hidden text-slate-900 print:border-indigo-900 print:shadow-none">
+        
+        <!-- Watermark / Decorative Seal -->
+        <div class="absolute -right-8 -bottom-8 opacity-5 text-9xl select-none pointer-events-none font-serif">
+            🇰🇭
+        </div>
+
+        <!-- Official Header -->
+        <div class="text-center border-b-2 border-amber-400 pb-4 mb-6">
+            <div class="inline-flex flex-col items-center justify-center mb-1">
+                <span class="text-xs sm:text-sm font-bold text-slate-800 kh-moul">ព្រះរាជាណាចក្រកម្ពុជា</span>
+                <span class="text-[11px] sm:text-xs font-bold text-slate-700 font-kh-heading mt-0.5">ជាតិ សាសនា ព្រះមហាក្សត្រ</span>
+            </div>
+            <h1 class="text-xl sm:text-2xl font-normal text-indigo-950 kh-moul mt-1.5">
+                ប័ណ្ណសង្ខេបសំបុត្រកំណើតឌីជីថល
+            </h1>
+            <p class="text-xs font-bold text-amber-700 mt-0.5">
+                រដ្ឋបាលឃុំនគរភាស • ស្រុកអង្គរជុំ ខេត្តសៀមរាប
+            </p>
+        </div>
+
+        <!-- Card Content: 3 Columns Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
+            
+            <!-- Left: Official Emblem & Registry No (3 Cols) -->
+            <div class="md:col-span-3 flex flex-col items-center justify-center p-3 bg-slate-50 rounded-2xl border border-slate-200 text-center space-y-2">
+                <div class="w-16 h-16 rounded-full bg-indigo-50 border-2 border-indigo-200 flex items-center justify-center text-3xl shadow-inner">
+                    📜
+                </div>
+                <div class="w-full">
+                    <span class="text-[10px] text-slate-500 font-bold uppercase block">លេខសំបុត្រកំណើត</span>
+                    <div class="font-mono text-xs font-bold text-indigo-950 bg-white px-2 py-0.5 rounded-lg border border-indigo-200 mt-0.5 truncate">
+                        {{ record.certificate_no }}
+                    </div>
+                </div>
+                <div class="text-[10px] text-slate-600 space-y-0.5">
+                    <div>សៀវភៅលេខ៖ <strong>{{ record.book_no or '---' }}</strong></div>
+                    <div>ឆ្នាំចុះបញ្ជី៖ <strong>{{ record.registered_year or '---' }}</strong></div>
+                </div>
+            </div>
+
+            <!-- Middle: Personal & Parents Details (6 Cols) -->
+            <div class="md:col-span-6 space-y-2.5 text-xs">
+                <div>
+                    <span class="text-[10px] text-slate-400 font-bold uppercase">សាមីខ្លួន</span>
+                    <h3 class="text-lg font-bold text-slate-900 font-kh-heading leading-tight">{{ record.name_kh }}</h3>
+                    <p class="text-[11px] font-semibold text-slate-500 uppercase font-mono">{{ record.name_en or '---' }}</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="p-2 bg-slate-50 rounded-xl border border-slate-200">
+                        <span class="text-slate-500 text-[10px] block font-semibold">ភេទ</span>
+                        <strong class="text-slate-800 text-xs">{{ record.gender }}</strong>
+                    </div>
+                    <div class="p-2 bg-slate-50 rounded-xl border border-slate-200">
+                        <span class="text-slate-500 text-[10px] block font-semibold">ថ្ងៃខែឆ្នាំកំណើត</span>
+                        <strong class="font-mono text-slate-900 text-xs">{{ record.dob }}</strong>
+                    </div>
+                </div>
+
+                <div class="p-2 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+                    <div class="flex justify-between">
+                        <span class="text-slate-500 text-[10px]">ឪពុក៖</span>
+                        <strong class="text-slate-800 font-kh-heading">{{ record.father_name or '---' }}</strong>
+                    </div>
+                    <div class="flex justify-between border-t border-slate-200 pt-1">
+                        <span class="text-slate-500 text-[10px]">ម្តាយ៖</span>
+                        <strong class="text-slate-800 font-kh-heading">{{ record.mother_name or '---' }}</strong>
+                    </div>
+                </div>
+
+                <div class="text-[11px] bg-indigo-50/60 p-2 rounded-xl border border-indigo-100 space-y-0.5">
+                    <div>
+                        <span class="text-slate-500 font-semibold">ភូមិ៖</span>
+                        <strong class="text-slate-900">{{ record.village.name_kh if record.village else '' }} ({{ record.village.code if record.village else '' }})</strong>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 font-semibold">ទីកន្លែងកំណើត៖</span>
+                        <span class="text-slate-800">{{ record.pob or '---' }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: High Resolution Dynamic QR Code (3 Cols) -->
+            <div class="md:col-span-3 flex flex-col items-center justify-center p-3 bg-slate-50 rounded-2xl border border-slate-200 text-center">
+                <div class="p-1.5 bg-white rounded-xl border border-slate-300 shadow-sm">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={{ request.base_url }}verify/birth/{{ record.id }}" 
+                         alt="QR Code {{ record.certificate_no }}" 
+                         class="w-28 h-28 object-contain">
+                </div>
+                <span class="font-mono text-[9px] font-bold text-slate-700 mt-1 truncate max-w-[110px]">{{ record.certificate_no }}</span>
+                <span class="text-[9px] text-indigo-700 font-bold block mt-0.5">
+                    🔗 ផ្ទៀងផ្ទាត់ Digital
+                </span>
+                <span class="text-[8px] text-slate-400 mt-0.5">ស្កេនតាមកាមេរ៉ាទូរស័ព្ទ</span>
+            </div>
+
+        </div>
+
+        <!-- Card Official Footer & Signature Stamp Area -->
+        <div class="mt-6 pt-4 border-t border-slate-200 flex items-center justify-between text-xs text-slate-600">
+            <div class="text-[10px] text-slate-500">
+                <span>កាលបរិច្ឆេទចេញប័ណ្ណ៖ </span>
+                <strong class="font-mono">{{ print_date }}</strong>
+                <div class="text-emerald-700 font-bold mt-0.5">✓ ផ្ទៀងផ្ទាត់ដោយប្រព័ន្ធអត្រានុកូលដ្ឋានឃុំនគរភាស</div>
+            </div>
+            <div class="text-center font-kh-heading text-xs font-bold text-indigo-950">
+                <span>មន្ត្រីអត្រានុកូលដ្ឋាន / មេឃុំ</span>
+                <div class="h-10"></div>
+                <span class="text-[10px] text-slate-400 font-normal">(ហត្ថលេខា និងត្រា)</span>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

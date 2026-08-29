@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block title %}
+{% if record %}ផ្ទៀងផ្ទាត់សំបុត្រកំណើត - {{ record.name_kh }} ({{ record.certificate_no }}){% else %}ផ្ទៀងផ្ទាត់សំបុត្រកំណើត{% endif %} - រដ្ឋបាលឃុំនគរភាស
+{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6 pb-12">
+
+    <!-- Top Action Bar (No Print) -->
+    <div class="flex items-center justify-between no-print gap-2 flex-wrap">
+        <a href="{% if current_user %}/birth-certificates{% else %}/login{% endif %}" class="btn btn-outline text-xs sm:text-sm py-2 px-4 flex items-center gap-1.5">
+            <span>←</span> <span>ត្រឡប់ក្រោយ</span>
+        </a>
+        <div class="flex items-center gap-2">
+            {% if record %}
+            <button type="button" onclick="copyBirthVerificationLink()" class="btn btn-sm btn-outline text-blue-900 dark:text-sky-300 border-blue-300 dark:border-sky-700 hover:bg-blue-50 dark:hover:bg-blue-950 font-bold flex items-center gap-1">
+                <span>🔗</span> <span>ចម្លង Link</span>
+            </button>
+            <a href="/birth-certificates/{{ record.id }}/print-card" target="_blank" class="btn btn-sm btn-primary text-xs sm:text-sm font-bold flex items-center gap-1 shadow-sm">
+                <span>🖨️</span> <span>បោះពុម្ពប័ណ្ណសង្ខេប</span>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if record %}
+    <!-- ========================================================================= -->
+    <!-- OFFICIAL DIGITAL BIRTH CERTIFICATE VERIFICATION CARD -->
+    <!-- ========================================================================= -->
+    <div class="bg-white dark:bg-[#0b1329] rounded-3xl p-6 sm:p-8 border-2 border-indigo-900 dark:border-indigo-700/80 shadow-2xl relative overflow-hidden">
+        
+        <!-- Watermark / Decorative Seal -->
+        <div class="absolute -right-10 -bottom-10 opacity-5 text-9xl select-none pointer-events-none font-serif">
+            🇰🇭
+        </div>
+
+        <!-- Official National Header -->
+        <div class="text-center border-b-2 border-amber-400 pb-5 mb-6">
+            <div class="inline-flex flex-col items-center justify-center px-4 py-1.5 rounded-2xl bg-indigo-50/80 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 text-indigo-950 dark:text-indigo-200 mb-2 shadow-2xs">
+                <span class="text-xs sm:text-sm font-bold kh-moul text-slate-800 dark:text-slate-200">ព្រះរាជាណាចក្រកម្ពុជា</span>
+                <span class="text-[11px] sm:text-xs font-bold font-kh-heading text-slate-700 dark:text-slate-300 mt-0.5">ជាតិ សាសនា ព្រះមហាក្សត្រ</span>
+            </div>
+            <h1 class="text-xl sm:text-3xl font-normal text-indigo-950 dark:text-sky-200 kh-moul mt-1">
+                ផ្ទាំងផ្ទៀងផ្ទាត់សំបុត្រកំណើតឌីជីថល
+            </h1>
+            <p class="text-xs sm:text-sm font-bold text-amber-700 dark:text-amber-400 mt-1">
+                រដ្ឋបាលឃុំនគរភាស ស្រុកអង្គរជុំ ខេត្តសៀមរាប
+            </p>
+        </div>
+
+        <!-- Real-Time Voter Status Integration Banner -->
+        <div class="mb-6 p-4 rounded-2xl border-2 {% if record.is_registered_voter %}bg-emerald-50 dark:bg-emerald-950/40 border-emerald-400 text-emerald-950 dark:text-emerald-200{% elif record.is_eligible_now %}bg-amber-50 dark:bg-amber-950/40 border-amber-400 text-amber-950 dark:text-amber-200{% else %}bg-blue-50 dark:bg-sky-950/40 border-blue-300 dark:border-sky-800 text-blue-950 dark:text-sky-200{% endif %} flex flex-col sm:flex-row items-center justify-between gap-3 shadow-sm">
+            <div class="flex items-center gap-3 text-center sm:text-left">
+                <span class="text-3xl flex-shrink-0">
+                    {% if record.is_registered_voter %}✅{% elif record.is_eligible_now %}⚠️{% else %}👶{% endif %}
+                </span>
+                <div>
+                    <div class="text-base font-bold font-kh-heading flex items-center gap-2 flex-wrap">
+                        {% if record.is_registered_voter %}
+                            <span>🎉 បានចុះឈ្មោះបោះឆ្នោតរួចរាល់ (REGISTERED VOTER)</span>
+                        {% elif record.is_eligible_now %}
+                            <span>⚠️ គ្រប់អាយុបោះឆ្នោត (១៨+) ប៉ុន្តែមិនទាន់ចុះឈ្មោះនៅឡើយ</span>
+                        {% elif record.is_turning_18_this_year %}
+                            <span>⏳ នឹងគ្រប់អាយុ ១៨ ឆ្នាំក្នុងឆ្នាំ {{ current_year }} នេះ</span>
+                        {% else %}
+                            <span>👶 អនីតិជន (អាយុ {{ record.age }} ឆ្នាំ)</span>
+                        {% endif %}
+                    </div>
+                    <div class="text-xs font-medium mt-0.5 opacity-90">
+                        {% if record.is_registered_voter and voter %}
+                            កូដអ្នកបោះឆ្នោត៖ <strong class="font-mono text-blue-800 dark:text-sky-300 font-bold">{{ voter.voter_code }}</strong> 
+                            • ការិយាល័យ៖ <strong class="font-bold">{{ voter.station.code if voter.station else '' }} - {{ voter.station.name if voter.station else '' }}</strong>
+                        {% elif record.is_eligible_now %}
+                            ពលរដ្ឋមានអាយុ <strong class="font-mono">{{ record.age }}</strong> ឆ្នាំ និងមានសិទ្ធិស្របច្បាប់ក្នុងការចុះឈ្មោះបោះឆ្នោត
+                        {% else %}
+                            ស្ថិតក្នុងបញ្ជីអត្រានុកូលដ្ឋានផ្លូវការ នៃរដ្ឋបាលឃុំនគរភាស
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {% if voter %}
+            <a href="/voters/{{ voter.id }}/card" target="_blank" class="btn btn-sm btn-outline text-xs px-3.5 py-2 font-bold flex-shrink-0 flex items-center gap-1 shadow-2xs">
+                <span>🪪</span> <span>មើលប័ណ្ណបោះឆ្នោត</span>
+            </a>
+            {% elif record.is_eligible_now and current_user and current_user.role in ['admin', 'officer'] %}
+            <a href="/voters" class="btn btn-sm btn-primary text-xs px-4 py-2 font-bold flex-shrink-0 flex items-center gap-1 shadow-sm">
+                <span>✨</span> <span>ចុះឈ្មោះបោះឆ្នោត</span>
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Main Details Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+            
+            <!-- Left: Digital Seal & QR Code (4 Cols) -->
+            <div class="md:col-span-4 flex flex-col items-center justify-center p-4 bg-slate-50 dark:bg-slate-850 rounded-2xl border border-slate-200 dark:border-slate-800 text-center space-y-3 shadow-xs">
+                <div class="relative p-2 bg-white rounded-2xl border border-slate-300 dark:border-slate-700 shadow-sm">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={{ request.base_url }}verify/birth/{{ record.id }}" 
+                         alt="QR Code {{ record.certificate_no }}" 
+                         class="w-36 h-36 rounded-xl object-contain">
+                </div>
+                <div>
+                    <span class="font-mono text-xs font-bold text-indigo-900 dark:text-sky-300 bg-indigo-50 dark:bg-indigo-950/80 px-2.5 py-1 rounded-lg border border-indigo-200 dark:border-indigo-800 block">
+                        {{ record.certificate_no }}
+                    </span>
+                    <span class="text-[10px] text-slate-500 dark:text-slate-400 mt-1 block">
+                        ស្កេនដើម្បីផ្ទៀងផ្ទាត់ភាពត្រឹមត្រូវ
+                    </span>
+                </div>
+                <div class="pt-2 border-t border-slate-200 dark:border-slate-700 w-full text-[11px] text-emerald-700 dark:text-emerald-400 font-bold flex items-center justify-center gap-1">
+                    <span>✓</span> <span>ទិន្នន័យបានផ្ទៀងផ្ទាត់</span>
+                </div>
+            </div>
+
+            <!-- Right: Detailed Information Fields (8 Cols) -->
+            <div class="md:col-span-8 space-y-3.5">
+                
+                <!-- Registration Meta -->
+                <div class="flex items-center justify-between gap-2 p-3 bg-indigo-50/50 dark:bg-slate-800/60 rounded-xl border border-indigo-100 dark:border-slate-700 text-xs">
+                    <div>
+                        <span class="text-slate-500 dark:text-slate-400">សៀវភៅលេខ៖</span>
+                        <strong class="font-mono text-slate-900 dark:text-slate-100 font-bold ml-1">{{ record.book_no or '---' }}</strong>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 dark:text-slate-400">ឆ្នាំចុះបញ្ជី៖</span>
+                        <strong class="font-mono text-slate-900 dark:text-slate-100 font-bold ml-1">{{ record.registered_year or '---' }}</strong>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 dark:text-slate-400">កាលបរិច្ឆេទ៖</span>
+                        <strong class="font-mono text-slate-900 dark:text-slate-100 font-bold ml-1">{{ record.registered_date_effective or '---' }}</strong>
+                    </div>
+                </div>
+
+                <!-- Names & Gender -->
+                <div class="space-y-1">
+                    <span class="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">សាមីខ្លួន (Child Name)</span>
+                    <div class="flex items-center justify-between flex-wrap gap-2">
+                        <div>
+                            <h3 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 font-kh-heading">
+                                {{ record.name_kh }}
+                            </h3>
+                            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider font-mono">
+                                {{ record.name_en or '---' }}
+                            </p>
+                        </div>
+                        <span class="px-3 py-1 rounded-full text-xs font-bold {% if record.gender == 'ស្រី' %}bg-pink-100 text-pink-800 dark:bg-pink-950/70 dark:text-pink-300 border border-pink-300{% else %}bg-blue-100 text-blue-800 dark:bg-blue-950/70 dark:text-blue-300 border border-blue-300{% endif %}">
+                            {{ record.gender }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- DOB & POB -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                    <div class="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700">
+                        <span class="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold">ថ្ងៃខែឆ្នាំកំណើត</span>
+                        <strong class="font-mono text-sm text-slate-900 dark:text-slate-100">{{ record.dob }}</strong>
+                        <span class="text-[11px] text-indigo-700 dark:text-sky-300 font-semibold ml-1.5">({{ record.age }} ឆ្នាំ)</span>
+                    </div>
+                    <div class="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700">
+                        <span class="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold">ទីកន្លែងកំណើត</span>
+                        <strong class="text-slate-900 dark:text-slate-100 truncate block">{{ record.pob or '---' }}</strong>
+                    </div>
+                </div>
+
+                <!-- Parents Info -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                    <div class="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700">
+                        <span class="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold">ឪពុកបង្កើត</span>
+                        <strong class="text-slate-900 dark:text-slate-100 font-kh-heading">{{ record.father_name or '---' }}</strong>
+                    </div>
+                    <div class="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700">
+                        <span class="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold">ម្តាយបង្កើត</span>
+                        <strong class="text-slate-900 dark:text-slate-100 font-kh-heading">{{ record.mother_name or '---' }}</strong>
+                    </div>
+                </div>
+
+                <!-- Village & Address -->
+                <div class="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
+                    <span class="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold">ភូមិទីលំនៅ</span>
+                    <div class="flex items-center justify-between flex-wrap gap-1 mt-0.5">
+                        <strong class="text-slate-900 dark:text-slate-100">
+                            {{ record.village.name_kh if record.village else '---' }} ({{ record.village.code if record.village else '' }})
+                        </strong>
+                        <span class="text-slate-500 dark:text-slate-400 font-medium text-[11px]">
+                            ឃុំនគរភាស ស្រុកអង្គរជុំ ខេត្តសៀមរាប
+                        </span>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Card Official Footer -->
+        <div class="mt-8 pt-5 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 dark:text-slate-400 gap-2">
+            <div>
+                <span>កាលបរិច្ឆេទផ្ទៀងផ្ទាត់៖ </span>
+                <strong class="font-mono text-slate-800 dark:text-slate-200">{{ print_date }}</strong>
+            </div>
+            <div class="font-bold text-indigo-900 dark:text-sky-300 flex items-center gap-1.5">
+                <span>🏛️</span> <span>រដ្ឋបាលឃុំនគរភាស • ប្រព័ន្ធឌីជីថល</span>
+            </div>
+        </div>
+
+    </div>
+
+    {% else %}
+    <!-- Not Found Card -->
+    <div class="glass-card p-12 text-center rounded-3xl space-y-4 max-w-lg mx-auto">
+        <div class="text-6xl">🔍</div>
+        <h3 class="text-xl font-bold text-slate-800 dark:text-slate-200 font-kh-heading">
+            រកមិនឃើញសំបុត្រកំណើតឡើយ
+        </h3>
+        <p class="text-sm text-slate-500 dark:text-slate-400">
+            មិនមានទិន្នន័យសំបុត្រកំណើតដែលត្រូវនឹងកូដ <strong class="font-mono text-slate-800 dark:text-slate-200">{{ identifier }}</strong> ក្នុងប្រព័ន្ធឡើយ។
+        </p>
+        <div class="pt-3">
+            <a href="/birth-certificates" class="btn btn-primary text-sm py-2 px-6">
+                ← ត្រឡប់ទៅបញ្ជីសំបុត្រកំណើត
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function copyBirthVerificationLink() {
+    const url = window.location.href;
+    navigator.clipboard.writeText(url).then(() => {
+        showToast("បានចម្លង Link ផ្ទៀងផ្ទាត់សំបុត្រកំណើតដោយជោគជ័យ! 🔗", "success");
+    }).catch(() => {
+        prompt("សូមចម្លង Link នេះ៖", url);
+    });
+}
+</script>
+{% endblock %}
