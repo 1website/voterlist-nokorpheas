@@ -204,7 +204,7 @@
     <!-- 2. ឯកសារចុះឈ្មោះបោះឆ្នោត គ.ជ.ប (5 VOTER REGISTER HUB CARDS) -->
     <!-- ========================================================================= -->
     <div class="space-y-4">
-        <div class="flex items-center justify-between pb-1 border-b border-slate-200/80 dark:border-slate-800">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-200/80 dark:border-slate-800">
             <div class="flex items-center gap-2.5">
                 <span class="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-sm shadow-amber-500/50"></span>
                 <h3 class="font-bold text-slate-900 dark:text-slate-100 text-base sm:text-lg font-kh-heading">
@@ -216,104 +216,139 @@
             </span>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4.5 w-full">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5 gap-5 w-full">
 
             <!-- 0. Annual Summary Report -->
-            <div class="glass-card relative overflow-hidden p-5 flex flex-col justify-between shadow-md hover:shadow-xl transition-all duration-300 border border-slate-200/80 dark:border-slate-800 bg-white/95 dark:bg-[#131f37] group rounded-2xl hover:-translate-y-1">
+            <div class="glass-card relative overflow-hidden p-5 sm:p-6 flex flex-col justify-between shadow-md hover:shadow-xl transition-all duration-300 border border-slate-200/80 dark:border-slate-800 bg-white/95 dark:bg-[#131f37] group rounded-2xl hover:-translate-y-1">
                 <div class="absolute top-0 left-0 right-0 h-1 bg-amber-500"></div>
                 <div>
-                    <div class="w-11 h-11 rounded-2xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xl font-black mb-3 border border-amber-200 dark:border-amber-500/30 shadow-inner group-hover:scale-105 transition duration-200">
-                        📊
+                    <div class="flex items-center justify-between mb-3.5">
+                        <div class="w-12 h-12 rounded-2xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center text-2xl border border-amber-200 dark:border-amber-500/30 shadow-inner group-hover:scale-105 transition duration-200">
+                            📊
+                        </div>
+                        <span class="badge text-[11px] bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 font-bold border border-amber-200 dark:border-amber-800 px-2.5 py-0.5">
+                            ទម្រង់ គ.ជ.ប
+                        </span>
                     </div>
-                    <h4 class="text-sm sm:text-[15px] font-bold text-slate-900 dark:text-slate-100 font-kh-heading leading-snug">បូកសរុបប្រចាំឆ្នាំ</h4>
-                    <p class="text-xs text-slate-600 dark:text-slate-300 mt-1.5 leading-relaxed min-h-[44px]">
-                        ញែកស្ថិតិអ្នកចុះថ្មី vs បញ្ជីចាស់ និងផ្ទេរចូល តាមទម្រង់ គ.ជ.ប។
+                    <h4 class="text-base font-bold text-slate-900 dark:text-slate-100 font-kh-heading leading-snug">
+                        បូកសរុបប្រចាំឆ្នាំ
+                    </h4>
+                    <p class="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed min-h-[42px]">
+                        ញែកស្ថិតិអ្នកចុះថ្មី vs បញ្ជីចាស់ និងផ្ទេរចូល តាមទម្រង់ស្តង់ដារ គ.ជ.ប។
                     </p>
                 </div>
-                <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
-                    <a href="/reports/annual-summary" class="btn btn-sm w-full h-9.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white text-xs font-bold shadow-sm hover:shadow-md rounded-xl flex items-center justify-center gap-1.5 transition active:scale-95">
-                        <span>📈</span>
+                <div class="mt-5 pt-3.5 border-t border-slate-100 dark:border-slate-800">
+                    <a href="/reports/annual-summary" class="btn btn-sm w-full h-10 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white text-xs font-bold shadow-sm hover:shadow-md rounded-xl flex items-center justify-center gap-2 transition active:scale-95">
+                        <span class="text-sm">📈</span>
                         <span>បើករបាយការណ៍</span>
                     </a>
                 </div>
             </div>
             
             <!-- 1. Daily Registration Report -->
-            <div class="glass-card relative overflow-hidden p-5 flex flex-col justify-between shadow-md hover:shadow-xl transition-all duration-300 border border-slate-200/80 dark:border-slate-800 bg-white/95 dark:bg-[#131f37] group rounded-2xl hover:-translate-y-1">
+            <div class="glass-card relative overflow-hidden p-5 sm:p-6 flex flex-col justify-between shadow-md hover:shadow-xl transition-all duration-300 border border-slate-200/80 dark:border-slate-800 bg-white/95 dark:bg-[#131f37] group rounded-2xl hover:-translate-y-1">
                 <div class="absolute top-0 left-0 right-0 h-1 bg-indigo-600"></div>
                 <div>
-                    <div class="w-11 h-11 rounded-2xl bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xl font-black mb-3 border border-indigo-200 dark:border-indigo-500/30 shadow-inner group-hover:scale-105 transition duration-200">
-                        📅
+                    <div class="flex items-center justify-between mb-3.5">
+                        <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-2xl border border-indigo-200 dark:border-indigo-500/30 shadow-inner group-hover:scale-105 transition duration-200">
+                            📅
+                        </div>
+                        <span class="badge text-[11px] bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300 font-bold border border-indigo-200 dark:border-indigo-800 px-2.5 py-0.5">
+                            ប្រចាំថ្ងៃ
+                        </span>
                     </div>
-                    <h4 class="text-sm sm:text-[15px] font-bold text-slate-900 dark:text-slate-100 font-kh-heading leading-snug">ចុះឈ្មោះប្រចាំថ្ងៃ</h4>
-                    <p class="text-xs text-slate-600 dark:text-slate-300 mt-1.5 leading-relaxed min-h-[44px]">
-                        ស្វែងរក និងតាមដានអ្នកចុះឈ្មោះតាមថ្ងៃជាក់លាក់ ជាមួយ Print/Export។
+                    <h4 class="text-base font-bold text-slate-900 dark:text-slate-100 font-kh-heading leading-snug">
+                        ចុះឈ្មោះប្រចាំថ្ងៃ
+                    </h4>
+                    <p class="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed min-h-[42px]">
+                        ស្វែងរក និងតាមដានអ្នកចុះឈ្មោះតាមថ្ងៃជាក់លាក់ ជាមួយមុខងារ Print & Export។
                     </p>
                 </div>
-                <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
-                    <a href="/reports/daily" class="btn btn-sm w-full h-9.5 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white text-xs font-bold shadow-sm hover:shadow-md rounded-xl flex items-center justify-center gap-1.5 transition active:scale-95">
-                        <span>🔍</span>
+                <div class="mt-5 pt-3.5 border-t border-slate-100 dark:border-slate-800">
+                    <a href="/reports/daily" class="btn btn-sm w-full h-10 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white text-xs font-bold shadow-sm hover:shadow-md rounded-xl flex items-center justify-center gap-2 transition active:scale-95">
+                        <span class="text-sm">🔍</span>
                         <span>មើលតាមថ្ងៃ</span>
                     </a>
                 </div>
             </div>
 
             <!-- 2. Full Voter Excel Export -->
-            <div class="glass-card relative overflow-hidden p-5 flex flex-col justify-between shadow-md hover:shadow-xl transition-all duration-300 border border-slate-200/80 dark:border-slate-800 bg-white/95 dark:bg-[#131f37] group rounded-2xl hover:-translate-y-1">
+            <div class="glass-card relative overflow-hidden p-5 sm:p-6 flex flex-col justify-between shadow-md hover:shadow-xl transition-all duration-300 border border-slate-200/80 dark:border-slate-800 bg-white/95 dark:bg-[#131f37] group rounded-2xl hover:-translate-y-1">
                 <div class="absolute top-0 left-0 right-0 h-1 bg-emerald-600"></div>
                 <div>
-                    <div class="w-11 h-11 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl font-black mb-3 border border-emerald-200 dark:border-emerald-500/30 shadow-inner group-hover:scale-105 transition duration-200">
-                        📑
+                    <div class="flex items-center justify-between mb-3.5">
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-2xl border border-emerald-200 dark:border-emerald-500/30 shadow-inner group-hover:scale-105 transition duration-200">
+                            📑
+                        </div>
+                        <span class="badge text-[11px] bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-bold border border-emerald-200 dark:border-emerald-800 px-2.5 py-0.5">
+                            ទិន្នន័យពេញលេញ
+                        </span>
                     </div>
-                    <h4 class="text-sm sm:text-[15px] font-bold text-slate-900 dark:text-slate-100 font-kh-heading leading-snug">បញ្ជីឈ្មោះឃុំទាំងមូល</h4>
-                    <p class="text-xs text-slate-600 dark:text-slate-300 mt-1.5 leading-relaxed min-h-[44px]">
-                        ទាញយកបញ្ជីអ្នកបោះឆ្នោតពេញលេញគ្រប់ភូមិ និងការិយាល័យ។
+                    <h4 class="text-base font-bold text-slate-900 dark:text-slate-100 font-kh-heading leading-snug">
+                        បញ្ជីឈ្មោះឃុំទាំងមូល
+                    </h4>
+                    <p class="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed min-h-[42px]">
+                        ទាញយកបញ្ជីអ្នកបោះឆ្នោតពេញលេញគ្រប់ភូមិ និងការិយាល័យទាំងអស់ជា Excel។
                     </p>
                 </div>
-                <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
-                    <a href="/reports/export/excel" class="btn btn-sm w-full h-9.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-sm hover:shadow-md rounded-xl flex items-center justify-center gap-1.5 transition active:scale-95">
-                        <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                <div class="mt-5 pt-3.5 border-t border-slate-100 dark:border-slate-800">
+                    <a href="/reports/export/excel" class="btn btn-sm w-full h-10 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-sm hover:shadow-md rounded-xl flex items-center justify-center gap-2 transition active:scale-95">
+                        <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
                         <span>ទាញយក .xlsx</span>
                     </a>
                 </div>
             </div>
 
             <!-- 3. Official Printable Voter Register -->
-            <div class="glass-card relative overflow-hidden p-5 flex flex-col justify-between shadow-md hover:shadow-xl transition-all duration-300 border border-slate-200/80 dark:border-slate-800 bg-white/95 dark:bg-[#131f37] group rounded-2xl hover:-translate-y-1">
+            <div class="glass-card relative overflow-hidden p-5 sm:p-6 flex flex-col justify-between shadow-md hover:shadow-xl transition-all duration-300 border border-slate-200/80 dark:border-slate-800 bg-white/95 dark:bg-[#131f37] group rounded-2xl hover:-translate-y-1">
                 <div class="absolute top-0 left-0 right-0 h-1 bg-blue-600"></div>
                 <div>
-                    <div class="w-11 h-11 rounded-2xl bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-sky-400 flex items-center justify-center text-xl font-black mb-3 border border-blue-200 dark:border-blue-500/30 shadow-inner group-hover:scale-105 transition duration-200">
-                        🖨️
+                    <div class="flex items-center justify-between mb-3.5">
+                        <div class="w-12 h-12 rounded-2xl bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-sky-400 flex items-center justify-center text-2xl border border-blue-200 dark:border-blue-500/30 shadow-inner group-hover:scale-105 transition duration-200">
+                            🖨️
+                        </div>
+                        <span class="badge text-[11px] bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 font-bold border border-blue-200 dark:border-blue-800 px-2.5 py-0.5">
+                            បិទផ្សាយ
+                        </span>
                     </div>
-                    <h4 class="text-sm sm:text-[15px] font-bold text-slate-900 dark:text-slate-100 font-kh-heading leading-snug">បញ្ជីបោះឆ្នោតផ្លូវការ</h4>
-                    <p class="text-xs text-slate-600 dark:text-slate-300 mt-1.5 leading-relaxed min-h-[44px]">
-                        ទម្រង់ស្តង់ដារផ្លូវការសម្រាប់បោះពុម្ពបិទផ្សាយតាមការិយាល័យ។
+                    <h4 class="text-base font-bold text-slate-900 dark:text-slate-100 font-kh-heading leading-snug">
+                        បញ្ជីបោះឆ្នោតផ្លូវការ
+                    </h4>
+                    <p class="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed min-h-[42px]">
+                        ទម្រង់ស្តង់ដារផ្លូវការសម្រាប់បោះពុម្ពបិទផ្សាយតាមការិយាល័យទាំង ១៤។
                     </p>
                 </div>
-                <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
-                    <a href="/reports/official-list" target="_blank" class="btn btn-sm w-full h-9.5 bg-gradient-to-r from-blue-600 to-sky-600 hover:from-blue-500 hover:to-sky-500 text-white text-xs font-bold shadow-sm hover:shadow-md rounded-xl flex items-center justify-center gap-1.5 transition active:scale-95">
-                        <span>📄</span>
+                <div class="mt-5 pt-3.5 border-t border-slate-100 dark:border-slate-800">
+                    <a href="/reports/official-list" target="_blank" class="btn btn-sm w-full h-10 bg-gradient-to-r from-blue-600 to-sky-600 hover:from-blue-500 hover:to-sky-500 text-white text-xs font-bold shadow-sm hover:shadow-md rounded-xl flex items-center justify-center gap-2 transition active:scale-95">
+                        <span class="text-sm">📄</span>
                         <span>បើកផ្ទាំងបោះពុម្ព</span>
                     </a>
                 </div>
             </div>
 
             <!-- 4. Batch Voter Cards -->
-            <div class="glass-card relative overflow-hidden p-5 flex flex-col justify-between shadow-md hover:shadow-xl transition-all duration-300 border border-slate-200/80 dark:border-slate-800 bg-white/95 dark:bg-[#131f37] group rounded-2xl hover:-translate-y-1">
+            <div class="glass-card relative overflow-hidden p-5 sm:p-6 flex flex-col justify-between shadow-md hover:shadow-xl transition-all duration-300 border border-slate-200/80 dark:border-slate-800 bg-white/95 dark:bg-[#131f37] group rounded-2xl hover:-translate-y-1 sm:col-span-2 lg:col-span-1 2xl:col-span-1">
                 <div class="absolute top-0 left-0 right-0 h-1 bg-purple-600"></div>
                 <div>
-                    <div class="w-11 h-11 rounded-2xl bg-purple-500/10 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl font-black mb-3 border border-purple-200 dark:border-purple-500/30 shadow-inner group-hover:scale-105 transition duration-200">
-                        🪪
+                    <div class="flex items-center justify-between mb-3.5">
+                        <div class="w-12 h-12 rounded-2xl bg-purple-500/10 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center text-2xl border border-purple-200 dark:border-purple-500/30 shadow-inner group-hover:scale-105 transition duration-200">
+                            🪪
+                        </div>
+                        <span class="badge text-[11px] bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300 font-bold border border-purple-200 dark:border-purple-800 px-2.5 py-0.5">
+                            ប័ណ្ណព័ត៌មាន
+                        </span>
                     </div>
-                    <h4 class="text-sm sm:text-[15px] font-bold text-slate-900 dark:text-slate-100 font-kh-heading leading-snug">ប័ណ្ណបោះឆ្នោតជាបាច់</h4>
-                    <p class="text-xs text-slate-600 dark:text-slate-300 mt-1.5 leading-relaxed min-h-[44px]">
-                        បោះពុម្ពប័ណ្ណព័ត៌មានអ្នកបោះឆ្នោតមាន QR (៤ ប័ណ្ណ/A4)។
+                    <h4 class="text-base font-bold text-slate-900 dark:text-slate-100 font-kh-heading leading-snug">
+                        ប័ណ្ណព័ត៌មានអ្នកបោះឆ្នោត
+                    </h4>
+                    <p class="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed min-h-[42px]">
+                        បោះពុម្ពប័ណ្ណព័ត៌មានអ្នកបោះឆ្នោតជាបាច់មាន QR កូដ (៤ ប័ណ្ណ/ទំព័រ A4)។
                     </p>
                 </div>
-                <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
-                    <a href="/reports/batch-cards" target="_blank" class="btn btn-sm w-full h-9.5 bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-500 hover:to-violet-500 text-white text-xs font-bold shadow-sm hover:shadow-md rounded-xl flex items-center justify-center gap-1.5 transition active:scale-95">
-                        <span>🖨️</span>
-                        <span>បើកប័ណ្ណជាបាច់</span>
+                <div class="mt-5 pt-3.5 border-t border-slate-100 dark:border-slate-800">
+                    <a href="/reports/batch-cards" target="_blank" class="btn btn-sm w-full h-10 bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-500 hover:to-violet-500 text-white text-xs font-bold shadow-sm hover:shadow-md rounded-xl flex items-center justify-center gap-2 transition active:scale-95">
+                        <span class="text-sm">🖨️</span>
+                        <span>បើកប័ណ្ណបោះពុម្ព</span>
                     </a>
                 </div>
             </div>
