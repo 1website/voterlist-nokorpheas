@@ -18,6 +18,10 @@
 
         <div class="flex flex-wrap items-center gap-2">
             {% if current_user.role in ['admin', 'officer'] %}
+            <button type="button" onclick="openIdCardOcrModal()" class="btn btn-outline border-blue-400 dark:border-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/60 text-blue-800 dark:text-sky-300 text-sm font-bold flex items-center gap-1.5 shadow-sm transition active:scale-95">
+                <span>📷</span> <span>ស្កេនអត្តសញ្ញាណប័ណ្ណ (OCR)</span>
+            </button>
+
             <button onclick="openAddVoterModal()" class="btn btn-primary text-sm shadow-md flex items-center gap-1.5">
                 <span>➕</span> ចុះឈ្មោះអ្នកបោះឆ្នោតថ្មី
             </button>
@@ -251,6 +255,20 @@
         </div>
         <form id="addVoterForm" onsubmit="submitAddVoter(event)" enctype="multipart/form-data">
             <div class="modal-body space-y-4">
+
+                <!-- Quick OCR ID Card Auto-Fill Banner -->
+                <div class="p-3 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 rounded-2xl text-white flex items-center justify-between gap-3 shadow-sm">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <span class="text-2xl shrink-0">📷</span>
+                        <div class="min-w-0">
+                            <h4 class="text-xs sm:text-sm font-bold font-kh-heading truncate">ស្កេនអានអត្តសញ្ញាណប័ណ្ណស្វ័យប្រវត្តិ (OCR)</h4>
+                            <p class="text-[10px] text-blue-100 truncate">ប្រើកាមេរ៉ា ឬ Upload រូបថតដើម្បីបំពេញឈ្មោះ ID ថ្ងៃខែ និងរូបថតភ្លាមៗ</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="openIdCardOcrModal()" class="btn btn-sm bg-white text-blue-900 hover:bg-blue-50 text-xs font-bold px-3 py-1.5 rounded-xl shadow-sm shrink-0 flex items-center gap-1">
+                        <span>⚡</span> <span>ស្កេន OCR</span>
+                    </button>
+                </div>
 
                 <!-- Registration Type Selector Box (New vs Legacy vs Transferred) -->
                 <div class="p-3.5 bg-gradient-to-r from-blue-50/90 to-indigo-50/90 dark:from-slate-800/90 dark:to-slate-850/90 rounded-2xl border border-blue-200 dark:border-slate-700/80 shadow-xs">
@@ -726,6 +744,179 @@
         </div>
         <div class="modal-footer justify-center p-4 border-t border-slate-100 dark:border-slate-800">
             <button type="button" onclick="closeModal('largePhotoModal')" class="btn btn-primary text-sm py-2 px-8 rounded-xl shadow-md font-bold">បិទ</button>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODAL: KHMER ID CARD OCR CAMERA SCANNER -->
+<!-- ========================================================================= -->
+<div id="ocrScannerModal" class="modal-overlay">
+    <div class="modal-card max-w-2xl overflow-hidden p-0 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800">
+        <!-- Header -->
+        <div class="modal-header bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white p-4 sm:p-5 flex items-center justify-between">
+            <h3 class="font-bold text-base sm:text-lg font-kh-heading flex items-center gap-2">
+                <span class="text-xl sm:text-2xl">📷</span> <span>ស្កេនអានអត្តសញ្ញាណប័ណ្ណសញ្ជាតិខ្មែរ (Khmer ID OCR)</span>
+            </h3>
+            <button type="button" onclick="closeIdCardOcrModal()" class="text-white/80 hover:text-white rounded-lg text-xl p-1 leading-none transition" title="បិទ">✕</button>
+        </div>
+
+        <div class="modal-body p-4 sm:p-6 space-y-4 max-h-[80vh] overflow-y-auto custom-scrollbar">
+
+            <!-- Tabs: Camera vs Upload -->
+            <div class="flex items-center justify-center p-1 bg-slate-100 dark:bg-slate-800/80 rounded-2xl max-w-md mx-auto">
+                <button type="button" id="ocrTabCamBtn" onclick="switchOcrTab('camera')" class="px-4 py-2 text-xs sm:text-sm font-bold rounded-xl bg-blue-600 text-white shadow-sm transition flex-1 flex items-center justify-center gap-1.5">
+                    <span>📹</span> <span>កាមេរ៉ាផ្ទាល់ (Live Camera)</span>
+                </button>
+                <button type="button" id="ocrTabUploadBtn" onclick="switchOcrTab('upload')" class="px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition flex-1 flex items-center justify-center gap-1.5">
+                    <span>📁</span> <span>បង្ហោះរូបថត (Upload File)</span>
+                </button>
+            </div>
+
+            <!-- TAB 1: LIVE CAMERA VIEWPORT -->
+            <div id="ocrCameraSection" class="space-y-3">
+                <div class="relative overflow-hidden rounded-2xl bg-slate-950 border-2 border-slate-700/80 shadow-inner flex items-center justify-center min-h-[260px] sm:min-h-[320px]">
+                    <video id="ocrCameraVideo" autoplay playsinline muted class="w-full h-full max-h-[360px] object-cover"></video>
+
+                    <!-- Card Guide Overlay Frame -->
+                    <div class="absolute inset-0 pointer-events-none flex items-center justify-center p-4">
+                        <div class="w-full max-w-[340px] sm:max-w-[420px] aspect-[85.6/53.98] border-2 border-dashed border-sky-400/90 rounded-2xl bg-sky-500/10 shadow-2xl relative flex flex-col items-center justify-between p-3">
+                            <!-- Corner Accents -->
+                            <div class="absolute -top-1 -left-1 w-4 h-4 border-t-3 border-l-3 border-sky-300 rounded-tl-lg"></div>
+                            <div class="absolute -top-1 -right-1 w-4 h-4 border-t-3 border-r-3 border-sky-300 rounded-tr-lg"></div>
+                            <div class="absolute -bottom-1 -left-1 w-4 h-4 border-b-3 border-l-3 border-sky-300 rounded-bl-lg"></div>
+                            <div class="absolute -bottom-1 -right-1 w-4 h-4 border-b-3 border-r-3 border-sky-300 rounded-br-lg"></div>
+
+                            <!-- Animated Scanning Laser Beam -->
+                            <div class="w-full h-0.5 bg-gradient-to-r from-transparent via-cyan-300 to-transparent shadow-[0_0_12px_#06b6d4] animate-pulse"></div>
+
+                            <span class="text-[10px] sm:text-xs text-white bg-slate-900/80 px-3 py-1 rounded-full border border-white/20 font-medium">
+                                🪪 តម្រង់អត្តសញ្ញាណប័ណ្ណក្នុងស៊ុមនេះ
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Camera Controls Row -->
+                <div class="flex items-center justify-between gap-2">
+                    <span id="ocrCameraStatus" class="text-[11px] text-slate-500 dark:text-slate-400">
+                        កំពុងរៀបចំកាមេរ៉ា...
+                    </span>
+                    <button type="button" onclick="switchOcrCameraFacing()" class="btn btn-sm btn-outline text-xs px-3 py-1.5 flex items-center gap-1.5" title="ប្តូរកាមេរ៉ាមុខ/ក្រោយ">
+                        <span>🔄</span> <span>ប្តូរកាមេរ៉ា</span>
+                    </button>
+                </div>
+
+                <!-- Big Capture & Scan Button -->
+                <button type="button" onclick="captureAndScanIdCard()" class="btn btn-primary w-full py-3 rounded-2xl text-sm sm:text-base font-bold shadow-lg flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-500 transition active:scale-98">
+                    <span>📸</span> <span>ថតរូប & វិភាគអត្តសញ្ញាណប័ណ្ណ (Capture & Scan)</span>
+                </button>
+            </div>
+
+            <!-- TAB 2: UPLOAD IMAGE VIEWPORT -->
+            <div id="ocrUploadSection" class="hidden space-y-3">
+                <div class="border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-400 rounded-2xl p-6 sm:p-8 text-center bg-slate-50/50 dark:bg-slate-800/40 transition cursor-pointer" onclick="document.getElementById('ocrFileInput').click()">
+                    <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-blue-100 dark:bg-sky-950/80 text-blue-600 dark:text-sky-300 flex items-center justify-center text-2xl shadow-xs">
+                        📁
+                    </div>
+                    <h4 class="font-bold text-slate-800 dark:text-slate-200 text-sm font-kh-heading mb-1">
+                        ចុចទីនេះដើម្បីជ្រើសរើសរូបថតអត្តសញ្ញាណប័ណ្ណ
+                    </h4>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">
+                        គាំទ្រទម្រង់ JPG, PNG, WEBP (ថតពីទូរស័ព្ទ ឬកុំព្យូទ័រ)
+                    </p>
+                    <input type="file" id="ocrFileInput" accept="image/*" class="hidden" onchange="handleOcrFileUpload(this)">
+                </div>
+            </div>
+
+            <!-- PROCESSING OVERLAY (PROGRESS STATE) -->
+            <div id="ocrProcessingOverlay" class="hidden p-6 bg-blue-50/80 dark:bg-slate-800/90 rounded-2xl border border-blue-200 dark:border-slate-700 text-center space-y-3">
+                <div class="w-12 h-12 mx-auto rounded-full border-4 border-blue-200 dark:border-blue-900 border-t-blue-600 dark:border-t-sky-400 animate-spin"></div>
+                <h4 id="ocrProgressStatus" class="text-sm font-bold text-slate-900 dark:text-slate-100 font-kh-heading">
+                    កំពុងអានអក្សរ និងកាត់យករូបថតមុខ...
+                </h4>
+                <p class="text-xs text-slate-500 dark:text-slate-400">
+                    សូមរង់ចាំមួយភ្លែត ប្រព័ន្ធកំពុងទាញយកទិន្នន័យដោយស្វ័យប្រវត្តិ
+                </p>
+            </div>
+
+            <!-- ERROR ALERT BOX -->
+            <div id="ocrErrorBox" class="hidden p-3.5 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800/80 rounded-2xl text-rose-700 dark:text-rose-300 text-xs flex items-center gap-2">
+                <span>⚠️</span> <span id="ocrErrorMsg">មិនអាចអានទិន្នន័យបានពេញលេញឡើយ</span>
+            </div>
+
+            <!-- RESULTS VERIFICATION CARD -->
+            <div id="ocrResultBox" class="hidden p-4 sm:p-5 bg-gradient-to-r from-blue-50/60 to-indigo-50/60 dark:from-slate-800/80 dark:to-slate-850/80 rounded-2xl border border-blue-200 dark:border-slate-700 space-y-4 shadow-sm">
+                <div class="flex items-center justify-between border-b border-blue-200/80 dark:border-slate-700 pb-2.5">
+                    <h4 class="font-bold text-slate-900 dark:text-slate-100 text-sm font-kh-heading flex items-center gap-2">
+                        <span>✨</span> <span>លទ្ធផលទាញយកពីអត្តសញ្ញាណប័ណ្ណ</span>
+                    </h4>
+                    <span id="ocrAgeBadge" class="badge badge-success text-xs px-2 py-0.5"></span>
+                </div>
+
+                <!-- Duplicate Warning Alert -->
+                <div id="ocrDuplicateAlert" class="hidden p-2.5 bg-amber-100 dark:bg-amber-950/70 border border-amber-300 dark:border-amber-700/80 rounded-xl text-amber-900 dark:text-amber-200 text-xs font-bold flex items-center gap-2">
+                    <span>⚠️</span> <span id="ocrDuplicateText"></span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
+                    <!-- Photo Previews (Extracted Face & Card Snapshot) -->
+                    <div class="space-y-2 text-center">
+                        <span class="text-[11px] font-bold text-slate-600 dark:text-slate-400 block">រូបថតមុខ (Cropped)</span>
+                        <img id="ocrExtractedPhoto" src="/static/images/avatars/male_1.jpg" alt="Face" class="w-24 h-28 mx-auto rounded-2xl object-cover border-2 border-blue-400 shadow-md bg-white dark:bg-slate-900">
+                        <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold block">✓ កាត់ចេញពីប័ណ្ណស្វ័យប្រវត្តិ</span>
+                    </div>
+
+                    <!-- Editable Fields for Review -->
+                    <div class="sm:col-span-2 space-y-2.5">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">គោត្តនាម-នាម (ខ្មែរ) *</label>
+                                <input type="text" id="ocrFieldNameKh" class="form-control text-xs font-bold" placeholder="ឈ្មោះខ្មែរ">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">ឈ្មោះជាអក្សរឡាតាំង *</label>
+                                <input type="text" id="ocrFieldNameEn" class="form-control text-xs font-bold uppercase" placeholder="LATIN NAME">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">ភេទ *</label>
+                                <select id="ocrFieldGender" class="form-control text-xs font-semibold">
+                                    <option value="ប្រុស">ប្រុស (Male)</option>
+                                    <option value="ស្រី">ស្រី (Female)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">ថ្ងៃខែឆ្នាំកំណើត *</label>
+                                <input type="date" id="ocrFieldDob" class="form-control text-xs font-mono">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">លេខអត្តសញ្ញាណប័ណ្ណ *</label>
+                                <input type="text" id="ocrFieldNationalId" class="form-control text-xs font-mono font-bold" placeholder="020491001">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Apply Button -->
+                <div class="pt-2 border-t border-blue-200/80 dark:border-slate-700 flex flex-col sm:flex-row items-center justify-end gap-2">
+                    <button type="button" onclick="resetOcrResults()" class="btn btn-outline text-xs py-2 px-3 w-full sm:w-auto">
+                        🔄 ស្កេនម្តងទៀត
+                    </button>
+                    <button type="button" onclick="applyOcrDataToVoterForm()" class="btn btn-primary text-xs sm:text-sm py-2 px-5 rounded-xl font-bold shadow-md bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white w-full sm:w-auto flex items-center justify-center gap-1.5">
+                        <span>✨</span> <span>បំពេញចូលក្នុងទម្រង់ចុះឈ្មោះ (Apply to Form)</span>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="modal-footer p-4 border-t border-slate-100 dark:border-slate-800 justify-end">
+            <button type="button" onclick="closeIdCardOcrModal()" class="btn btn-outline text-sm py-2 px-6 rounded-xl font-semibold">
+                បិទ
+            </button>
         </div>
     </div>
 </div>

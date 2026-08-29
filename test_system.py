@@ -335,9 +335,30 @@ def run_tests():
         res_guest = guest_client.get(route, follow_redirects=False)
         assert res_guest.status_code in [302, 303], f"Route {route} failed to redirect guest: {res_guest.status_code}"
         assert "/login" in res_guest.headers.get("location", "")
-    print(f"[PASS] 30. Strict login enforcement verified across all {len(protected_routes)} protected routes (All 100% redirect to /login)")
+    # 31. Test Khmer National ID Card OCR Auto-Scanner Endpoint (/api/voters/ocr-id-card)
+    sample_card_text = """
+    KINGDOM OF CAMBODIA
+    ជាតិ សាសនា ព្រះមហាក្សត្រ
+    អត្តសញ្ញាណប័ណ្ណសញ្ជាតិខ្មែរ
+    020491001
+    គោត្តនាម និង នាម: ស៊ឹម ចាន់ថន
+    Name: SIM CHANTHORN
+    ភេទ: ប្រុស / M
+    ថ្ងៃខែឆ្នាំកំណើត: 15.05.1995
+    ទីកន្លែងកំណើត: ភូមិរមៀត ឃុំនគរភាស
+    """
+    res_ocr = client.post("/api/voters/ocr-id-card", data={"client_text": sample_card_text}, cookies=cookies)
+    assert res_ocr.status_code == 200
+    ocr_data = res_ocr.json()["data"]
+    assert ocr_data["national_id"] == "020491001"
+    assert "ស៊ឹម" in ocr_data["name_kh"]
+    assert "SIM" in ocr_data["name_en"]
+    assert ocr_data["gender"] == "ប្រុស"
+    assert ocr_data["dob"] == "1995-05-15"
+    assert ocr_data["is_eligible_18"] == True
+    print(f"[PASS] 31. Khmer ID Card OCR Scanner endpoint tested & verified (Extracted ID: {ocr_data['national_id']}, Name: {ocr_data['name_kh']})")
 
-    print("\n ALL 30 SYSTEM TESTS PASSED SUCCESSFULLY! ")
+    print("\n ALL 31 SYSTEM TESTS PASSED SUCCESSFULLY! ")
 
 def test_system():
     # Save safety backup of DB before tests

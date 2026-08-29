@@ -1,7 +1,8 @@
 import os
 import re
-import shutil
+import io
 import uuid
+import base64
 import datetime
 from fastapi import APIRouter, Request, Depends, HTTPException, Query, Form, File, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
@@ -15,6 +16,7 @@ from app.auth import get_current_user_optional, get_current_user, require_admin,
 from app.schemas import VoterCreateSchema, VoterUpdateSchema
 from app.audit import log_activity
 from app.timezone_utils import get_cambodia_now, get_cambodia_today
+from app.ocr_utils import parse_khmer_id_text, extract_id_card_face_portrait
 
 router = APIRouter()
 
@@ -727,4 +729,83 @@ def voter_card_view(voter_id: int, request: Request, db: Session = Depends(get_d
     return templates.TemplateResponse(request=request, name="voters/card.html", context={
         "current_user": current_user,
         "voter": voter
+    })
+
+@router.post("/api/voters/ocr-id-card")
+async def ocr_khmer_id_card(
+    request: Request,
+    image: UploadFile = File(None),
+    image_base64: str = Form(None),
+    client_text: str = Form(None),
+    db: Session = Depends(get_db)
+):
+    current_user = get_current_user_optional(request, db)
+    if not current_user:
+        raise HTTPException(status_code=401, detail="សូមចូលប្រើប្រព័ន្ធជាមុនសិន")
+
+    img_bytes = None
+    if image and image.filename:
+        try:
+            img_bytes = await image.read()
+        except Exception:
+            pass
+    elif image_base64 and image_base64.strip():
+        try:
+            raw_b64 = image_base64.strip()
+            if "," in raw_b64:
+                raw_b64 = raw_b64.split(",", 1)[1]
+            img_bytes = base64.b64decode(raw_b64)
+        except Exception as e:
+            print(f"Base64 decode note: {e}")
+
+    # Extract portrait face photo
+    portrait_url = None
+    if img_bytes:
+        portrait_url = extract_id_card_face_portrait(img_bytes, subfolder="voters")
+
+    # Parse text
+    parsed = parse_khmer_id_text(client_text or "")
+    national_id = parsed.get("national_id", "")
+    name_kh = parsed.get("name_kh", "")
+    name_en = parsed.get("name_en", "")
+    gender = parsed.get("gender", "ប្រុស")
+    dob = parsed.get("dob", "1995-05-15")
+    address = parsed.get("address", "")
+
+    # Duplicate ID check
+    is_duplicate = False
+    duplicate_name = ""
+    if national_id:
+        existing = db.query(Voter).filter(Voter.national_id == national_id).first()
+        if existing:
+            is_duplicate = True
+            duplicate_name = existing.name_kh
+
+    # Age calculation
+    age = 0
+    is_eligible_18 = True
+    if dob:
+        try:
+            birth_year = int(dob[:4])
+            current_year = datetime.date.today().year
+            age = current_year - birth_year
+            is_eligible_18 = (age >= 18)
+        except Exception:
+            pass
+
+    return JSONResponse({
+        "success": True,
+        "data": {
+            "national_id": national_id,
+            "name_kh": name_kh,
+            "name_en": name_en,
+            "gender": gender,
+            "dob": dob,
+            "photo_url": portrait_url,
+            "address": address,
+            "is_duplicate": is_duplicate,
+            "duplicate_name": duplicate_name,
+            "age": age,
+            "is_eligible_18": is_eligible_18
+        }
     })
