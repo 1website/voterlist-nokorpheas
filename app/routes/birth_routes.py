@@ -1057,6 +1057,7 @@ def api_lookup_birth_qr(
             "eligibility_badge": record.eligibility_badge,
             "registered_date": record.registered_date_effective,
             "attachment_url": record.attachment_url,
+            "photo_url": record.photo_display,
             "verify_url": f"/verify/birth/{record.id}"
         }
     })

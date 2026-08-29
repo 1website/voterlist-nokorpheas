@@ -1321,6 +1321,8 @@ function displayBirthQrResult(r) {
 
     document.getElementById('bqrCertNo').textContent = r.certificate_no;
     document.getElementById('bqrBookNo').textContent = r.book_no || '---';
+    const photoEl = document.getElementById('bqrPhoto');
+    if (photoEl) photoEl.src = r.photo_url || '/static/images/avatars/male_1.jpg';
     document.getElementById('bqrNameKh').textContent = r.name_kh;
     document.getElementById('bqrNameEn').textContent = r.name_en || '---';
     document.getElementById('bqrGender').textContent = r.gender;
@@ -1418,16 +1420,18 @@ function resetBirthQrView() {
                     </div>
                 </div>
 
-                <!-- Personal Info -->
+                <!-- Top Profile & Personal Info Row -->
+                <div class="flex items-center gap-3 p-2 bg-white/70 dark:bg-slate-900/70 rounded-xl border border-indigo-100 dark:border-slate-750">
+                    <img id="bqrPhoto" src="/static/images/avatars/male_1.jpg" alt="Profile" class="w-16 h-18 rounded-xl object-cover border-2 border-indigo-600 shadow-sm shrink-0 bg-slate-900">
+                    <div class="min-w-0 flex-1 space-y-0.5">
+                        <span class="text-[9px] text-slate-400 font-bold uppercase">សាមីខ្លួន</span>
+                        <h4 id="bqrNameKh" class="text-sm font-bold text-slate-900 dark:text-slate-100 font-kh-heading truncate"></h4>
+                        <p id="bqrNameEn" class="font-mono text-xs font-bold text-indigo-700 dark:text-sky-300 uppercase truncate"></p>
+                    </div>
+                </div>
+
+                <!-- Personal Info Details -->
                 <div class="space-y-1.5 text-xs">
-                    <div class="flex items-center justify-between">
-                        <span class="text-slate-500">សាមីខ្លួន៖</span>
-                        <strong id="bqrNameKh" class="text-slate-900 dark:text-slate-100 font-kh-heading text-sm"></strong>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-slate-500">អក្សរឡាតាំង៖</span>
-                        <span id="bqrNameEn" class="font-mono font-bold text-slate-700 dark:text-slate-300 uppercase"></span>
-                    </div>
                     <div class="flex items-center justify-between">
                         <span class="text-slate-500">ភេទ / ថ្ងៃកំណើត៖</span>
                         <span class="font-semibold text-slate-800 dark:text-slate-200">

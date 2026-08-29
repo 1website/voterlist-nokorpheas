@@ -5,20 +5,20 @@
 {% endblock %}
 
 {% block content %}
-<div class="max-w-3xl mx-auto space-y-6 pb-12">
+<div class="max-w-2xl sm:max-w-3xl mx-auto space-y-4 sm:space-y-6 pb-12 px-1 sm:px-0">
 
     <!-- Top Action Bar (No Print) -->
-    <div class="flex items-center justify-between no-print gap-2 flex-wrap">
-        <a href="{% if current_user %}/birth-certificates{% else %}/login{% endif %}" class="btn btn-outline text-xs sm:text-sm py-2 px-4 flex items-center gap-1.5">
+    <div class="flex items-center justify-between no-print gap-2">
+        <a href="{% if current_user %}/birth-certificates{% else %}/login{% endif %}" class="btn btn-outline text-xs sm:text-sm py-2 px-3 sm:px-4 flex items-center gap-1.5 rounded-xl">
             <span>←</span> <span>ត្រឡប់ក្រោយ</span>
         </a>
         <div class="flex items-center gap-2">
             {% if record %}
-            <button type="button" onclick="copyBirthVerificationLink()" class="btn btn-sm btn-outline text-blue-900 dark:text-sky-300 border-blue-300 dark:border-sky-700 hover:bg-blue-50 dark:hover:bg-blue-950 font-bold flex items-center gap-1">
-                <span>🔗</span> <span>ចម្លង Link</span>
+            <button type="button" onclick="copyBirthVerificationLink()" class="btn btn-sm btn-outline text-xs sm:text-sm text-blue-900 dark:text-sky-300 border-blue-300 dark:border-sky-700 hover:bg-blue-50 dark:hover:bg-blue-950 font-bold flex items-center gap-1 rounded-xl py-2 px-2.5 sm:px-3.5">
+                <span>🔗</span> <span class="hidden xs:inline">ចម្លង</span> <span>Link</span>
             </button>
-            <a href="/birth-certificates/{{ record.id }}/print-card" target="_blank" class="btn btn-sm btn-primary text-xs sm:text-sm font-bold flex items-center gap-1 shadow-sm">
-                <span>🖨️</span> <span>បោះពុម្ពប័ណ្ណសង្ខេប</span>
+            <a href="/birth-certificates/{{ record.id }}/print-card" target="_blank" class="btn btn-sm btn-primary text-xs sm:text-sm font-bold flex items-center gap-1 shadow-sm rounded-xl py-2 px-3 sm:px-4">
+                <span>🖨️</span> <span>បោះពុម្ពប័ណ្ណ</span>
             </a>
             {% endif %}
         </div>
@@ -26,50 +26,92 @@
 
     {% if record %}
     <!-- ========================================================================= -->
-    <!-- OFFICIAL DIGITAL BIRTH CERTIFICATE VERIFICATION CARD -->
+    <!-- OFFICIAL DIGITAL BIRTH CERTIFICATE CARD (MOBILE & DESKTOP OPTIMIZED) -->
     <!-- ========================================================================= -->
-    <div class="bg-white dark:bg-[#0b1329] rounded-3xl p-6 sm:p-8 border-2 border-indigo-900 dark:border-indigo-700/80 shadow-2xl relative overflow-hidden">
+    <div class="bg-white dark:bg-[#0b1329] rounded-3xl p-4 sm:p-8 border-2 border-indigo-900/80 dark:border-indigo-600/80 shadow-2xl relative overflow-hidden text-slate-900 dark:text-slate-100">
         
         <!-- Watermark / Decorative Seal -->
-        <div class="absolute -right-10 -bottom-10 opacity-5 text-9xl select-none pointer-events-none font-serif">
+        <div class="absolute -right-8 -bottom-8 opacity-5 text-9xl select-none pointer-events-none font-serif">
             🇰🇭
         </div>
 
         <!-- Official National Header -->
-        <div class="text-center border-b-2 border-amber-400 pb-5 mb-6">
-            <div class="inline-flex flex-col items-center justify-center px-4 py-1.5 rounded-2xl bg-indigo-50/80 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 text-indigo-950 dark:text-indigo-200 mb-2 shadow-2xs">
+        <div class="text-center border-b-2 border-amber-400/90 pb-4 mb-5 sm:mb-6">
+            <div class="inline-flex flex-col items-center justify-center px-3.5 py-1 rounded-xl bg-indigo-50/90 dark:bg-indigo-950/70 border border-indigo-200 dark:border-indigo-800 text-indigo-950 dark:text-indigo-200 mb-1.5 shadow-2xs">
                 <span class="text-xs sm:text-sm font-bold kh-moul text-slate-800 dark:text-slate-200">ព្រះរាជាណាចក្រកម្ពុជា</span>
-                <span class="text-[11px] sm:text-xs font-bold font-kh-heading text-slate-700 dark:text-slate-300 mt-0.5">ជាតិ សាសនា ព្រះមហាក្សត្រ</span>
+                <span class="text-[10px] sm:text-xs font-bold font-kh-heading text-slate-700 dark:text-slate-300 mt-0.5">ជាតិ សាសនា ព្រះមហាក្សត្រ</span>
             </div>
-            <h1 class="text-xl sm:text-3xl font-normal text-indigo-950 dark:text-sky-200 kh-moul mt-1">
+            <h1 class="text-lg sm:text-2xl font-normal text-indigo-950 dark:text-sky-200 kh-moul mt-1 leading-snug">
                 ផ្ទាំងផ្ទៀងផ្ទាត់សំបុត្រកំណើតឌីជីថល
             </h1>
-            <p class="text-xs sm:text-sm font-bold text-amber-700 dark:text-amber-400 mt-1">
+            <p class="text-[11px] sm:text-xs font-bold text-amber-700 dark:text-amber-400 mt-0.5">
                 រដ្ឋបាលឃុំនគរភាស ស្រុកអង្គរជុំ ខេត្តសៀមរាប
             </p>
         </div>
 
+        <!-- HERO PROFILE SECTION (WITH OFFICIAL PROFILE PHOTO) -->
+        <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-b sm:bg-gradient-to-r from-slate-50 to-indigo-50/60 dark:from-slate-850 dark:to-slate-800/80 border border-indigo-100 dark:border-slate-700/80 mb-5 shadow-xs flex flex-col sm:flex-row items-center gap-4 sm:gap-6 text-center sm:text-left">
+            
+            <!-- Profile Photo with Gold Ring & Badge -->
+            <div class="relative shrink-0">
+                <img src="{{ record.photo_display }}" 
+                     alt="{{ record.name_kh }}" 
+                     class="w-28 h-32 sm:w-32 sm:h-38 rounded-2xl object-cover border-2 sm:border-3 border-amber-400 shadow-lg bg-slate-900 mx-auto"
+                     onerror="this.onerror=null; this.src='/static/images/avatars/{{ 'female_1.jpg' if record.gender == 'ស្រី' else 'male_1.jpg' }}';">
+                <span class="absolute -bottom-2 inset-x-0 mx-auto w-max bg-indigo-900 dark:bg-indigo-700 text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow-md border border-white/20">
+                    រូបថតសាមីខ្លួន
+                </span>
+            </div>
+
+            <!-- Identity Info -->
+            <div class="flex-1 min-w-0 space-y-1.5">
+                <div class="space-y-0.5">
+                    <span class="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider block">ឈ្មោះសាមីខ្លួន (Child Name)</span>
+                    <h2 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 font-kh-heading leading-tight">
+                        {{ record.name_kh }}
+                    </h2>
+                    <p class="text-xs sm:text-sm font-bold text-indigo-700 dark:text-sky-300 uppercase tracking-wider font-mono">
+                        {{ record.name_en or '---' }}
+                    </p>
+                </div>
+
+                <!-- Pills: Gender, Age, Certificate ID -->
+                <div class="flex flex-wrap items-center justify-center sm:justify-start gap-1.5 pt-1">
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold {% if record.gender == 'ស្រី' %}bg-pink-100 text-pink-800 dark:bg-pink-950/70 dark:text-pink-300 border border-pink-300{% else %}bg-blue-100 text-blue-800 dark:bg-blue-950/70 dark:text-blue-300 border border-blue-300{% endif %}">
+                        {{ record.gender }}
+                    </span>
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-900 dark:bg-amber-950/70 dark:text-amber-300 border border-amber-300">
+                        អាយុ {{ record.age }} ឆ្នាំ
+                    </span>
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-indigo-100 text-indigo-900 dark:bg-indigo-950/70 dark:text-sky-300 border border-indigo-300">
+                        {{ record.certificate_no }}
+                    </span>
+                </div>
+            </div>
+
+        </div>
+
         <!-- Real-Time Voter Status Integration Banner -->
-        <div class="mb-6 p-4 rounded-2xl border-2 {% if record.is_registered_voter %}bg-emerald-50 dark:bg-emerald-950/40 border-emerald-400 text-emerald-950 dark:text-emerald-200{% elif record.is_eligible_now %}bg-amber-50 dark:bg-amber-950/40 border-amber-400 text-amber-950 dark:text-amber-200{% else %}bg-blue-50 dark:bg-sky-950/40 border-blue-300 dark:border-sky-800 text-blue-950 dark:text-sky-200{% endif %} flex flex-col sm:flex-row items-center justify-between gap-3 shadow-sm">
+        <div class="mb-5 p-3.5 sm:p-4 rounded-2xl border-2 {% if record.is_registered_voter %}bg-emerald-50 dark:bg-emerald-950/40 border-emerald-400 text-emerald-950 dark:text-emerald-200{% elif record.is_eligible_now %}bg-amber-50 dark:bg-amber-950/40 border-amber-400 text-amber-950 dark:text-amber-200{% else %}bg-blue-50 dark:bg-sky-950/40 border-blue-300 dark:border-sky-800 text-blue-950 dark:text-sky-200{% endif %} flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
             <div class="flex items-center gap-3 text-center sm:text-left">
-                <span class="text-3xl flex-shrink-0">
+                <span class="text-2xl sm:text-3xl flex-shrink-0">
                     {% if record.is_registered_voter %}✅{% elif record.is_eligible_now %}⚠️{% else %}👶{% endif %}
                 </span>
-                <div>
-                    <div class="text-base font-bold font-kh-heading flex items-center gap-2 flex-wrap">
+                <div class="min-w-0">
+                    <div class="text-xs sm:text-sm font-bold font-kh-heading">
                         {% if record.is_registered_voter %}
-                            <span>🎉 បានចុះឈ្មោះបោះឆ្នោតរួចរាល់ (REGISTERED VOTER)</span>
+                            🎉 បានចុះឈ្មោះបោះឆ្នោតរួចរាល់ (REGISTERED VOTER)
                         {% elif record.is_eligible_now %}
-                            <span>⚠️ គ្រប់អាយុបោះឆ្នោត (១៨+) ប៉ុន្តែមិនទាន់ចុះឈ្មោះនៅឡើយ</span>
+                            ⚠️ គ្រប់អាយុបោះឆ្នោត (១៨+) មិនទាន់ចុះឈ្មោះនៅឡើយ
                         {% elif record.is_turning_18_this_year %}
-                            <span>⏳ នឹងគ្រប់អាយុ ១៨ ឆ្នាំក្នុងឆ្នាំ {{ current_year }} នេះ</span>
+                            ⏳ នឹងគ្រប់អាយុ ១៨ ឆ្នាំក្នុងឆ្នាំនេះ
                         {% else %}
-                            <span>👶 អនីតិជន (អាយុ {{ record.age }} ឆ្នាំ)</span>
+                            👶 អនីតិជន (អាយុ {{ record.age }} ឆ្នាំ)
                         {% endif %}
                     </div>
-                    <div class="text-xs font-medium mt-0.5 opacity-90">
+                    <div class="text-[11px] sm:text-xs font-medium mt-0.5 opacity-90">
                         {% if record.is_registered_voter and voter %}
-                            កូដអ្នកបោះឆ្នោត៖ <strong class="font-mono text-blue-800 dark:text-sky-300 font-bold">{{ voter.voter_code }}</strong> 
+                            កូដ៖ <strong class="font-mono text-blue-800 dark:text-sky-300">{{ voter.voter_code }}</strong> 
                             • ការិយាល័យ៖ <strong class="font-bold">{{ voter.station.code if voter.station else '' }} - {{ voter.station.name if voter.station else '' }}</strong>
                         {% elif record.is_eligible_now %}
                             ពលរដ្ឋមានអាយុ <strong class="font-mono">{{ record.age }}</strong> ឆ្នាំ និងមានសិទ្ធិស្របច្បាប់ក្នុងការចុះឈ្មោះបោះឆ្នោត
@@ -81,120 +123,122 @@
             </div>
 
             {% if voter %}
-            <a href="/voters/{{ voter.id }}/card" target="_blank" class="btn btn-sm btn-outline text-xs px-3.5 py-2 font-bold flex-shrink-0 flex items-center gap-1 shadow-2xs">
+            <a href="/voters/{{ voter.id }}/card" target="_blank" class="btn btn-sm btn-outline text-xs px-3 py-1.5 font-bold flex-shrink-0 flex items-center gap-1 shadow-2xs w-full sm:w-auto justify-center">
                 <span>🪪</span> <span>មើលប័ណ្ណបោះឆ្នោត</span>
             </a>
             {% elif record.is_eligible_now and current_user and current_user.role in ['admin', 'officer'] %}
-            <a href="/voters" class="btn btn-sm btn-primary text-xs px-4 py-2 font-bold flex-shrink-0 flex items-center gap-1 shadow-sm">
+            <a href="/voters" class="btn btn-sm btn-primary text-xs px-4 py-1.5 font-bold flex-shrink-0 flex items-center gap-1 shadow-sm w-full sm:w-auto justify-center">
                 <span>✨</span> <span>ចុះឈ្មោះបោះឆ្នោត</span>
             </a>
             {% endif %}
         </div>
 
-        <!-- Main Details Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+        <!-- 2-COLUMN STRUCTURED INFORMATION CARDS -->
+        <div class="space-y-3 sm:space-y-4">
             
-            <!-- Left: Digital Seal & QR Code (4 Cols) -->
-            <div class="md:col-span-4 flex flex-col items-center justify-center p-4 bg-slate-50 dark:bg-slate-850 rounded-2xl border border-slate-200 dark:border-slate-800 text-center space-y-3 shadow-xs">
-                <div class="relative p-2 bg-white rounded-2xl border border-slate-300 dark:border-slate-700 shadow-sm">
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={{ request.base_url }}verify/birth/{{ record.id }}" 
-                         alt="QR Code {{ record.certificate_no }}" 
-                         class="w-36 h-36 rounded-xl object-contain">
+            <!-- Section 1: Registry Metadata -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                <div class="p-2.5 bg-slate-50 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <span class="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold">លេខសំបុត្រកំណើត</span>
+                    <strong class="font-mono text-indigo-900 dark:text-sky-300 font-bold block truncate">{{ record.certificate_no }}</strong>
                 </div>
-                <div>
-                    <span class="font-mono text-xs font-bold text-indigo-900 dark:text-sky-300 bg-indigo-50 dark:bg-indigo-950/80 px-2.5 py-1 rounded-lg border border-indigo-200 dark:border-indigo-800 block">
-                        {{ record.certificate_no }}
-                    </span>
-                    <span class="text-[10px] text-slate-500 dark:text-slate-400 mt-1 block">
-                        ស្កេនដើម្បីផ្ទៀងផ្ទាត់ភាពត្រឹមត្រូវ
-                    </span>
+                <div class="p-2.5 bg-slate-50 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <span class="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold">សៀវភៅលេខ</span>
+                    <strong class="font-mono text-slate-800 dark:text-slate-200 font-bold block truncate">{{ record.book_no or '---' }}</strong>
                 </div>
-                <div class="pt-2 border-t border-slate-200 dark:border-slate-700 w-full text-[11px] text-emerald-700 dark:text-emerald-400 font-bold flex items-center justify-center gap-1">
-                    <span>✓</span> <span>ទិន្នន័យបានផ្ទៀងផ្ទាត់</span>
+                <div class="p-2.5 bg-slate-50 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <span class="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold">ឆ្នាំចុះបញ្ជី</span>
+                    <strong class="font-mono text-slate-800 dark:text-slate-200 font-bold block truncate">{{ record.registered_year or '---' }}</strong>
+                </div>
+                <div class="p-2.5 bg-slate-50 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <span class="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold">កាលបរិច្ឆេទ</span>
+                    <strong class="font-mono text-slate-800 dark:text-slate-200 font-bold block truncate">{{ record.registered_date_effective or '---' }}</strong>
                 </div>
             </div>
 
-            <!-- Right: Detailed Information Fields (8 Cols) -->
-            <div class="md:col-span-8 space-y-3.5">
-                
-                <!-- Registration Meta -->
-                <div class="flex items-center justify-between gap-2 p-3 bg-indigo-50/50 dark:bg-slate-800/60 rounded-xl border border-indigo-100 dark:border-slate-700 text-xs">
-                    <div>
-                        <span class="text-slate-500 dark:text-slate-400">សៀវភៅលេខ៖</span>
-                        <strong class="font-mono text-slate-900 dark:text-slate-100 font-bold ml-1">{{ record.book_no or '---' }}</strong>
-                    </div>
-                    <div>
-                        <span class="text-slate-500 dark:text-slate-400">ឆ្នាំចុះបញ្ជី៖</span>
-                        <strong class="font-mono text-slate-900 dark:text-slate-100 font-bold ml-1">{{ record.registered_year or '---' }}</strong>
-                    </div>
-                    <div>
-                        <span class="text-slate-500 dark:text-slate-400">កាលបរិច្ឆេទ៖</span>
-                        <strong class="font-mono text-slate-900 dark:text-slate-100 font-bold ml-1">{{ record.registered_date_effective or '---' }}</strong>
+            <!-- Section 2: DOB & POB -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <div class="p-3 bg-slate-50 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <span class="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold flex items-center gap-1">
+                        <span>🎂</span> <span>ថ្ងៃខែឆ្នាំកំណើត</span>
+                    </span>
+                    <div class="mt-0.5">
+                        <strong class="font-mono text-sm text-slate-900 dark:text-slate-100 font-bold">{{ record.dob }}</strong>
+                        <span class="text-xs text-indigo-700 dark:text-sky-300 font-semibold ml-2">({{ record.age }} ឆ្នាំ)</span>
                     </div>
                 </div>
-
-                <!-- Names & Gender -->
-                <div class="space-y-1">
-                    <span class="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">សាមីខ្លួន (Child Name)</span>
-                    <div class="flex items-center justify-between flex-wrap gap-2">
-                        <div>
-                            <h3 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 font-kh-heading">
-                                {{ record.name_kh }}
-                            </h3>
-                            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider font-mono">
-                                {{ record.name_en or '---' }}
-                            </p>
-                        </div>
-                        <span class="px-3 py-1 rounded-full text-xs font-bold {% if record.gender == 'ស្រី' %}bg-pink-100 text-pink-800 dark:bg-pink-950/70 dark:text-pink-300 border border-pink-300{% else %}bg-blue-100 text-blue-800 dark:bg-blue-950/70 dark:text-blue-300 border border-blue-300{% endif %}">
-                            {{ record.gender }}
-                        </span>
-                    </div>
+                <div class="p-3 bg-slate-50 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <span class="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold flex items-center gap-1">
+                        <span>🏥</span> <span>ទីកន្លែងកំណើត</span>
+                    </span>
+                    <strong class="text-slate-900 dark:text-slate-100 text-xs mt-0.5 block truncate">{{ record.pob or '---' }}</strong>
                 </div>
+            </div>
 
-                <!-- DOB & POB -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                    <div class="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700">
-                        <span class="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold">ថ្ងៃខែឆ្នាំកំណើត</span>
-                        <strong class="font-mono text-sm text-slate-900 dark:text-slate-100">{{ record.dob }}</strong>
-                        <span class="text-[11px] text-indigo-700 dark:text-sky-300 font-semibold ml-1.5">({{ record.age }} ឆ្នាំ)</span>
-                    </div>
-                    <div class="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700">
-                        <span class="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold">ទីកន្លែងកំណើត</span>
-                        <strong class="text-slate-900 dark:text-slate-100 truncate block">{{ record.pob or '---' }}</strong>
-                    </div>
+            <!-- Section 3: Parents Information -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <div class="p-3 bg-slate-50 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <span class="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold flex items-center gap-1">
+                        <span>👨</span> <span>ឪពុកបង្កើត</span>
+                    </span>
+                    <strong class="text-slate-900 dark:text-slate-100 font-kh-heading text-xs mt-0.5 block">{{ record.father_name or '---' }}</strong>
                 </div>
-
-                <!-- Parents Info -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                    <div class="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700">
-                        <span class="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold">ឪពុកបង្កើត</span>
-                        <strong class="text-slate-900 dark:text-slate-100 font-kh-heading">{{ record.father_name or '---' }}</strong>
-                    </div>
-                    <div class="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700">
-                        <span class="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold">ម្តាយបង្កើត</span>
-                        <strong class="text-slate-900 dark:text-slate-100 font-kh-heading">{{ record.mother_name or '---' }}</strong>
-                    </div>
+                <div class="p-3 bg-slate-50 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <span class="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold flex items-center gap-1">
+                        <span>👩</span> <span>ម្តាយបង្កើត</span>
+                    </span>
+                    <strong class="text-slate-900 dark:text-slate-100 font-kh-heading text-xs mt-0.5 block">{{ record.mother_name or '---' }}</strong>
                 </div>
+            </div>
 
-                <!-- Village & Address -->
-                <div class="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
-                    <span class="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold">ភូមិទីលំនៅ</span>
-                    <div class="flex items-center justify-between flex-wrap gap-1 mt-0.5">
-                        <strong class="text-slate-900 dark:text-slate-100">
-                            {{ record.village.name_kh if record.village else '---' }} ({{ record.village.code if record.village else '' }})
-                        </strong>
-                        <span class="text-slate-500 dark:text-slate-400 font-medium text-[11px]">
-                            ឃុំនគរភាស ស្រុកអង្គរជុំ ខេត្តសៀមរាប
-                        </span>
-                    </div>
+            <!-- Section 4: Village & Official Address -->
+            <div class="p-3 bg-slate-50 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
+                <span class="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold flex items-center gap-1">
+                    <span>🏡</span> <span>ភូមិទីលំនៅ & អាសយដ្ឋាន</span>
+                </span>
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mt-0.5">
+                    <strong class="text-slate-900 dark:text-slate-100">
+                        {{ record.village.name_kh if record.village else '---' }} ({{ record.village.code if record.village else '' }})
+                    </strong>
+                    <span class="text-slate-500 dark:text-slate-400 font-medium text-[11px]">
+                        ឃុំនគរភាស ស្រុកអង្គរជុំ ខេត្តសៀមរាប
+                    </span>
                 </div>
+            </div>
 
+        </div>
+
+        <!-- BOTTOM QR CODE VERIFICATION & DIGITAL SEAL SECTION -->
+        <div class="mt-6 p-4 rounded-2xl bg-gradient-to-r from-indigo-900/10 to-blue-900/10 dark:from-indigo-950/60 dark:to-blue-950/60 border border-indigo-200 dark:border-indigo-800/60 flex flex-col sm:flex-row items-center justify-between gap-4">
+            
+            <div class="flex items-center gap-3.5 text-center sm:text-left">
+                <div class="p-1.5 bg-white rounded-xl border border-slate-300 shadow-sm shrink-0">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data={{ request.base_url }}verify/birth/{{ record.id }}" 
+                         alt="QR Code {{ record.certificate_no }}" 
+                         class="w-20 h-20 sm:w-24 sm:h-24 object-contain">
+                </div>
+                <div class="space-y-0.5">
+                    <span class="font-mono text-xs font-bold text-indigo-900 dark:text-sky-300 bg-indigo-50 dark:bg-indigo-950 px-2 py-0.5 rounded-md border border-indigo-200 dark:border-indigo-800 inline-block">
+                        {{ record.certificate_no }}
+                    </span>
+                    <p class="text-xs font-bold text-slate-800 dark:text-slate-200 mt-0.5">
+                        QR Code ផ្ទៀងផ្ទាត់ផ្លូវការ
+                    </p>
+                    <p class="text-[10px] text-slate-500 dark:text-slate-400">
+                        ស្កេនដោយកាមេរ៉ាទូរស័ព្ទដើម្បីបើកផ្ទាំងផ្ទៀងផ្ទាត់នេះ
+                    </p>
+                </div>
+            </div>
+
+            <div class="shrink-0 text-center sm:text-right text-[11px] text-emerald-700 dark:text-emerald-400 font-bold flex items-center sm:flex-col gap-1">
+                <span>✓ ទិន្នន័យបានផ្ទៀងផ្ទាត់ផ្លូវការ</span>
+                <span class="text-[10px] text-slate-400 font-normal">ប្រព័ន្ធឌីជីថលឃុំនគរភាស</span>
             </div>
 
         </div>
 
         <!-- Card Official Footer -->
-        <div class="mt-8 pt-5 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 dark:text-slate-400 gap-2">
+        <div class="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 dark:text-slate-400 gap-2">
             <div>
                 <span>កាលបរិច្ឆេទផ្ទៀងផ្ទាត់៖ </span>
                 <strong class="font-mono text-slate-800 dark:text-slate-200">{{ print_date }}</strong>
@@ -208,16 +252,16 @@
 
     {% else %}
     <!-- Not Found Card -->
-    <div class="glass-card p-12 text-center rounded-3xl space-y-4 max-w-lg mx-auto">
-        <div class="text-6xl">🔍</div>
-        <h3 class="text-xl font-bold text-slate-800 dark:text-slate-200 font-kh-heading">
+    <div class="glass-card p-8 sm:p-12 text-center rounded-3xl space-y-4 max-w-lg mx-auto">
+        <div class="text-5xl sm:text-6xl">🔍</div>
+        <h3 class="text-lg sm:text-xl font-bold text-slate-800 dark:text-slate-200 font-kh-heading">
             រកមិនឃើញសំបុត្រកំណើតឡើយ
         </h3>
-        <p class="text-sm text-slate-500 dark:text-slate-400">
+        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
             មិនមានទិន្នន័យសំបុត្រកំណើតដែលត្រូវនឹងកូដ <strong class="font-mono text-slate-800 dark:text-slate-200">{{ identifier }}</strong> ក្នុងប្រព័ន្ធឡើយ។
         </p>
-        <div class="pt-3">
-            <a href="/birth-certificates" class="btn btn-primary text-sm py-2 px-6">
+        <div class="pt-2">
+            <a href="/birth-certificates" class="btn btn-primary text-xs sm:text-sm py-2 px-6 rounded-xl">
                 ← ត្រឡប់ទៅបញ្ជីសំបុត្រកំណើត
             </a>
         </div>

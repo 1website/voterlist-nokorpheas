@@ -303,6 +303,20 @@ class BirthCertificate(Base):
         return False
 
     @property
+    def photo_display(self):
+        """Returns official photo, attached image, or smart default avatar"""
+        if self.voter and self.voter.photo_display:
+            return self.voter.photo_display
+        if self.is_image:
+            return self.attachment_url
+        if self.gender == "ស្រី":
+            idx = ((self.id or 1) % 3) + 1
+            return f"/static/images/avatars/female_{idx}.jpg"
+        else:
+            idx = ((self.id or 1) % 4) + 1
+            return f"/static/images/avatars/male_{idx}.jpg"
+
+    @property
     def age(self):
         try:
             today = get_cambodia_now().date()

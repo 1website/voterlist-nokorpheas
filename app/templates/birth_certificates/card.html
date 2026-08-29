@@ -42,18 +42,24 @@
         <!-- Card Content: 3 Columns Grid -->
         <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
             
-            <!-- Left: Official Emblem & Registry No (3 Cols) -->
+            <!-- Left: Official Profile Photo & Registry No (3 Cols) -->
             <div class="md:col-span-3 flex flex-col items-center justify-center p-3 bg-slate-50 rounded-2xl border border-slate-200 text-center space-y-2">
-                <div class="w-16 h-16 rounded-full bg-indigo-50 border-2 border-indigo-200 flex items-center justify-center text-3xl shadow-inner">
-                    📜
+                <div class="relative">
+                    <img src="{{ record.photo_display }}" 
+                         alt="{{ record.name_kh }}" 
+                         class="w-24 h-28 rounded-xl object-cover border-2 border-indigo-900 shadow-md bg-slate-900"
+                         onerror="this.onerror=null; this.src='/static/images/avatars/{{ 'female_1.jpg' if record.gender == 'ស្រី' else 'male_1.jpg' }}';">
+                    <span class="absolute bottom-1 right-1 bg-indigo-900 text-white text-[8px] font-bold px-1.5 py-0.5 rounded">
+                        រូបថត
+                    </span>
                 </div>
                 <div class="w-full">
-                    <span class="text-[10px] text-slate-500 font-bold uppercase block">លេខសំបុត្រកំណើត</span>
-                    <div class="font-mono text-xs font-bold text-indigo-950 bg-white px-2 py-0.5 rounded-lg border border-indigo-200 mt-0.5 truncate">
+                    <span class="text-[9px] text-slate-500 font-bold uppercase block">លេខសំបុត្រកំណើត</span>
+                    <div class="font-mono text-[11px] font-bold text-indigo-950 bg-white px-2 py-0.5 rounded-lg border border-indigo-200 mt-0.5 truncate">
                         {{ record.certificate_no }}
                     </div>
                 </div>
-                <div class="text-[10px] text-slate-600 space-y-0.5">
+                <div class="text-[9px] text-slate-600 space-y-0.5">
                     <div>សៀវភៅលេខ៖ <strong>{{ record.book_no or '---' }}</strong></div>
                     <div>ឆ្នាំចុះបញ្ជី៖ <strong>{{ record.registered_year or '---' }}</strong></div>
                 </div>
