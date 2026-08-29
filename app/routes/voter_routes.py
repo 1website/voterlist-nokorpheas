@@ -81,9 +81,53 @@ def voter_list_page(
     elif limit > 200:
         limit = 200
 
-    # Fallback to legacy aliases if primary not set
-    effective_reg_type = (reg_type_filter or _type_filter or "").strip()
-    effective_reg_year = (reg_year_filter or _year_filter or "").strip()
+    # Safe parameter normalization (handling HTML entity collision e.g. &reg -> ®)
+    qp = request.query_params
+    raw_date = (date_created or qp.get("date_created") or "").strip()
+    clean_date = ""
+    effective_reg_type = ""
+    effective_reg_year = ""
+
+    # Check if date_created was polluted by browser HTML entity parser (e.g. &reg consumed into ®_type_filter)
+    if "®" in raw_date or "\u00ae" in raw_date or "_type_filter" in raw_date or "=" in raw_date or len(raw_date) > 10:
+        # Extract any parameters trapped inside date_created
+        if "type_filter=" in raw_date:
+            m_t = re.search(r"type_filter=([^&]*)", raw_date)
+            if m_t and m_t.group(1):
+                effective_reg_type = m_t.group(1)
+        if "year_filter=" in raw_date:
+            m_y = re.search(r"year_filter=([^&]*)", raw_date)
+            if m_y and m_y.group(1):
+                effective_reg_year = m_y.group(1)
+        # Attempt to get clean date before junk if any
+        date_match = re.match(r"^(\d{4}-\d{2}-\d{2})", raw_date)
+        if date_match:
+            clean_date = date_match.group(1)
+    else:
+        clean_date = raw_date
+
+    # Fallback to legacy & entity aliases if primary not set
+    if not effective_reg_type:
+        effective_reg_type = (
+            reg_type_filter or 
+            qp.get("reg_type_filter") or 
+            qp.get("type_filter") or 
+            qp.get("_type_filter") or 
+            qp.get("®_type_filter") or 
+            qp.get("\u00ae_type_filter") or 
+            ""
+        ).strip()
+
+    if not effective_reg_year:
+        effective_reg_year = (
+            reg_year_filter or 
+            qp.get("reg_year_filter") or 
+            qp.get("year_filter") or 
+            qp.get("_year_filter") or 
+            qp.get("®_year_filter") or 
+            qp.get("\u00ae_year_filter") or 
+            ""
+        ).strip()
 
     query = db.query(Voter)
 
@@ -130,15 +174,14 @@ def voter_list_page(
         query = query.filter(Voter.has_voted == False)
 
     # Registration date filter (safe ISO date parsing)
-    if date_created and date_created.strip():
-        clean_date = date_created.strip()
+    if clean_date:
         try:
             # Validate ISO date format YYYY-MM-DD
             datetime.date.fromisoformat(clean_date)
             query = query.filter(func.date(Voter.created_at) == clean_date)
         except ValueError:
             # Ignore invalid date filter gracefully instead of crashing with 500
-            pass
+            clean_date = ""
 
     # Registration Type filter (new, legacy, transferred)
     if effective_reg_type:
