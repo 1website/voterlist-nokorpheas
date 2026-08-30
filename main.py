@@ -128,20 +128,28 @@ async def custom_500_handler(request: Request, exc):
             <title>មានបញ្ហាបច្ចេកទេស - Error 500</title>
             <style>
                 body { font-family: system-ui, -apple-system, sans-serif; background: #0f172a; color: #f8fafc; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
-                .card { background: #1e293b; border: 1px solid #334155; border-radius: 20px; padding: 36px; max-width: 520px; width: 100%; text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
-                .icon { font-size: 48px; margin-bottom: 16px; }
-                h1 { color: #f8fafc; font-size: 20px; margin: 0 0 12px 0; }
-                p { color: #94a3b8; font-size: 14px; line-height: 1.6; margin: 0 0 24px 0; }
-                .btn { display: inline-flex; align-items: center; gap: 8px; background: #2563eb; color: white; padding: 12px 28px; border-radius: 12px; text-decoration: none; font-weight: bold; font-size: 14px; transition: background 0.2s; }
+                .card { background: #1e293b; border: 1px solid #334155; border-radius: 24px; padding: 36px 28px; max-width: 520px; width: 100%; text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+                .icon { font-size: 52px; margin-bottom: 16px; }
+                h1 { color: #f8fafc; font-size: 20px; font-weight: bold; margin: 0 0 12px 0; }
+                p { color: #94a3b8; font-size: 13px; line-height: 1.6; margin: 0 0 24px 0; }
+                .btn-group { display: flex; flex-direction: column; gap: 10px; }
+                .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #2563eb; color: white; padding: 12px 24px; border-radius: 12px; text-decoration: none; font-weight: bold; font-size: 13px; border: none; cursor: pointer; transition: all 0.2s; }
                 .btn:hover { background: #1d4ed8; }
+                .btn-outline { background: transparent; border: 1px solid #475569; color: #cbd5e1; }
+                .btn-outline:hover { background: #334155; color: white; border-color: #64748b; }
             </style>
         </head>
         <body>
             <div class="card">
                 <div class="icon">⚠️</div>
                 <h1>មានបញ្ហាបច្ចេកទេសបណ្ដោះអាសន្ន</h1>
-                <p>ប្រព័ន្ធបានជួបប្រទះបញ្ហាបច្ចេកទេសបណ្ដោះអាសន្ន។ សូមចុចប៊ូតុងខាងក្រោមដើម្បីត្រឡប់ទៅទំព័រដើម ឬចូលប្រើប្រាស់ឡើងវិញ។</p>
-                <a href="/voters" class="btn">🔄 ត្រឡប់ទៅបញ្ជីឈ្មោះអ្នកបោះឆ្នោត</a>
+                <p>ប្រព័ន្ធបានជួបប្រទះបញ្ហាបច្ចេកទេសបណ្ដោះអាសន្ន ឬ Server កំពុងរៀបចំឡើងវិញ។ សូមចុច Refresh ឬជ្រើសរើសទំព័រខាងក្រោម៖</p>
+                <div class="btn-group">
+                    <button onclick="window.location.reload()" class="btn">🔁 ព្យាយាមម្តងទៀត (Refresh Page)</button>
+                    <a href="/dashboard" class="btn btn-outline">🏠 ត្រឡប់ទៅផ្ទាំងគ្រប់គ្រង (Dashboard)</a>
+                    <a href="/voters" class="btn btn-outline">👥 បញ្ជីអ្នកបោះឆ្នោត</a>
+                    <a href="/birth-certificates" class="btn btn-outline">👶 បញ្ជីសំបុត្រកំណើត</a>
+                </div>
             </div>
         </body>
         </html>
