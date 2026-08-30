@@ -914,23 +914,63 @@
 <!-- ========================================================================= -->
 <!-- MODAL: PREVIEW ATTACHMENT (IMAGE / PDF LIGHTBOX) -->
 <!-- ========================================================================= -->
-<div id="previewModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[92vh] overflow-hidden flex flex-col border border-slate-200">
-        <div class="p-4 bg-slate-900 text-white flex items-center justify-between">
-            <div class="flex items-center gap-2 min-w-0">
-                <span class="text-xl" id="previewModalIcon">📄</span>
-                <span id="previewModalTitle" class="text-sm font-bold truncate">ពិនិត្យមើលឯកសារភ្ជាប់</span>
+<div id="previewModal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md hidden items-center justify-center p-3 sm:p-4 overflow-y-auto" onclick="if(event.target===this)closePreviewModal()">
+    <div class="bg-white dark:bg-[#0f172a] rounded-3xl shadow-2xl max-w-4xl w-full max-h-[92vh] overflow-hidden flex flex-col border border-slate-200 dark:border-slate-700 animate-in fade-in zoom-in duration-200" onclick="event.stopPropagation()">
+        <!-- Modal Header -->
+        <div class="p-4 bg-gradient-to-r from-slate-900 to-indigo-950 text-white flex items-center justify-between gap-3 border-b border-slate-800 flex-shrink-0">
+            <div class="flex items-center gap-2.5 min-w-0">
+                <span class="text-xl flex-shrink-0" id="previewModalIcon">📄</span>
+                <span id="previewModalTitle" class="text-sm sm:text-base font-bold truncate font-kh-heading text-white">ពិនិត្យមើលឯកសារភ្ជាប់</span>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 flex-shrink-0">
                 <a id="previewOpenNewTab" href="#" target="_blank" class="text-xs bg-white/15 hover:bg-white/25 text-white px-3 py-1.5 rounded-xl transition font-bold flex items-center gap-1">
                     <span>បើកផ្ទាំងថ្មី</span> <span>↗</span>
                 </a>
-                <button type="button" onclick="closePreviewModal()" class="text-white/70 hover:text-white text-lg font-bold p-1.5 rounded-xl hover:bg-white/10 transition leading-none">✕</button>
+                <button type="button" onclick="closePreviewModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-sm font-bold transition">
+                    ✕
+                </button>
             </div>
         </div>
-        <div class="p-4 bg-slate-100 flex-1 overflow-auto flex items-center justify-center min-h-[400px]">
-            <img id="previewModalImage" src="" class="max-h-[75vh] max-w-full rounded-xl shadow-md object-contain hidden">
-            <iframe id="previewModalIframe" src="" class="w-full h-[75vh] rounded-xl border border-slate-300 hidden bg-white"></iframe>
+
+        <!-- Content Area with Loading & Error States -->
+        <div class="p-4 sm:p-6 bg-slate-100 dark:bg-slate-900/90 flex-1 overflow-auto flex items-center justify-center min-h-[360px] sm:min-h-[440px] relative">
+            <!-- Loading State -->
+            <div id="previewModalLoading" class="hidden flex-col items-center justify-center gap-3 text-slate-500 dark:text-slate-400 py-12">
+                <span class="animate-spin text-3xl">⏳</span>
+                <span class="text-xs font-semibold font-kh-heading">កំពុងទាញយកឯកសារ...</span>
+            </div>
+
+            <!-- Error State / Broken Image Fallback -->
+            <div id="previewModalError" class="hidden flex-col items-center justify-center gap-3 text-center p-6 max-w-md my-auto">
+                <div class="w-16 h-16 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800/80 flex items-center justify-center text-3xl text-rose-600 dark:text-rose-400 shadow-sm">
+                    ⚠️
+                </div>
+                <div class="space-y-1.5 mt-1">
+                    <h4 class="font-bold text-slate-900 dark:text-white text-sm sm:text-base font-kh-bold">មិនអាចបើកឯកសារ ឬរូបភាពបានទេ</h4>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                        ឯកសារភ្ជាប់នេះអាចមិនមាននៅលើ Server ឬត្រូវបានផ្លាស់ប្តូរទីតាំង។ លោកអ្នកអាចចុច <strong class="text-indigo-600 dark:text-sky-300">«កែប្រែ ✏️»</strong> ដើម្បី Upload ឯកសារថ្មីឡើងវិញបានគ្រប់ពេល។
+                    </p>
+                </div>
+                <div class="flex flex-wrap items-center justify-center gap-2 mt-3">
+                    <a id="previewModalErrorDirectLink" href="#" target="_blank" class="btn btn-sm btn-outline text-xs rounded-xl">
+                        <span>🔗 បើក Link ផ្ទាល់</span>
+                    </a>
+                    <button type="button" onclick="closePreviewModal()" class="btn btn-sm btn-primary text-xs rounded-xl">
+                        <span>យល់ព្រម (Close)</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Image View -->
+            <img id="previewModalImage" src="" 
+                 onload="handlePreviewImageLoaded()" 
+                 onerror="handlePreviewImageError()" 
+                 class="max-h-[75vh] max-w-full rounded-2xl shadow-xl object-contain hidden border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950">
+
+            <!-- PDF / Iframe View -->
+            <iframe id="previewModalIframe" src="" 
+                    onload="handlePreviewIframeLoaded()" 
+                    class="w-full h-[75vh] rounded-2xl border border-slate-300 dark:border-slate-700 hidden bg-white shadow-md"></iframe>
         </div>
     </div>
 </div>
@@ -1212,33 +1252,84 @@ function closeEditBirthModal() {
 }
 
 function openPreviewModal(url, title, isPdf) {
-    document.getElementById('previewModalTitle').innerText = title;
-    document.getElementById('previewOpenNewTab').href = url;
-    
+    const titleEl = document.getElementById('previewModalTitle');
+    const newTabEl = document.getElementById('previewOpenNewTab');
     const imgEl = document.getElementById('previewModalImage');
     const iframeEl = document.getElementById('previewModalIframe');
     const iconEl = document.getElementById('previewModalIcon');
+    const loadingEl = document.getElementById('previewModalLoading');
+    const errorEl = document.getElementById('previewModalError');
+    const directLinkEl = document.getElementById('previewModalErrorDirectLink');
 
-    if (isPdf) {
-        iconEl.innerText = '📄';
-        imgEl.classList.add('hidden');
-        imgEl.src = '';
-        iframeEl.classList.remove('hidden');
-        iframeEl.src = url;
+    if (titleEl) titleEl.innerText = title || 'ពិនិត្យមើលឯកសារភ្ជាប់';
+    if (newTabEl) newTabEl.href = url || '#';
+    if (directLinkEl) directLinkEl.href = url || '#';
+
+    // Hide error & reset views
+    if (errorEl) errorEl.classList.add('hidden');
+    if (imgEl) imgEl.classList.add('hidden');
+    if (iframeEl) iframeEl.classList.add('hidden');
+
+    if (!url || url === 'None' || url === 'null' || url.trim() === '') {
+        if (loadingEl) loadingEl.classList.add('hidden');
+        if (errorEl) errorEl.classList.remove('hidden');
+        showBirthModal('previewModal');
+        return;
+    }
+
+    const cleanUrl = url.trim();
+    const isActuallyPdf = isPdf === true || isPdf === 'true' || cleanUrl.toLowerCase().endsWith('.pdf') || cleanUrl.startsWith('data:application/pdf');
+
+    if (isActuallyPdf) {
+        if (iconEl) iconEl.innerText = '📄';
+        if (imgEl) { imgEl.src = ''; }
+        if (iframeEl) {
+            iframeEl.classList.remove('hidden');
+            iframeEl.src = cleanUrl;
+        }
+        if (loadingEl) loadingEl.classList.add('hidden');
     } else {
-        iconEl.innerText = '🖼️';
-        iframeEl.classList.add('hidden');
-        iframeEl.src = '';
-        imgEl.classList.remove('hidden');
-        imgEl.src = url;
+        if (iconEl) iconEl.innerText = '🖼️';
+        if (iframeEl) { iframeEl.src = ''; }
+        if (loadingEl) loadingEl.classList.remove('hidden');
+        if (imgEl) {
+            imgEl.src = cleanUrl;
+        }
     }
 
     showBirthModal('previewModal');
 }
 
+function handlePreviewImageLoaded() {
+    const loadingEl = document.getElementById('previewModalLoading');
+    const errorEl = document.getElementById('previewModalError');
+    const imgEl = document.getElementById('previewModalImage');
+    if (loadingEl) loadingEl.classList.add('hidden');
+    if (errorEl) errorEl.classList.add('hidden');
+    if (imgEl && imgEl.src && !imgEl.src.endsWith('/')) {
+        imgEl.classList.remove('hidden');
+    }
+}
+
+function handlePreviewImageError() {
+    const loadingEl = document.getElementById('previewModalLoading');
+    const errorEl = document.getElementById('previewModalError');
+    const imgEl = document.getElementById('previewModalImage');
+    if (loadingEl) loadingEl.classList.add('hidden');
+    if (imgEl) imgEl.classList.add('hidden');
+    if (errorEl) errorEl.classList.remove('hidden');
+}
+
+function handlePreviewIframeLoaded() {
+    const loadingEl = document.getElementById('previewModalLoading');
+    if (loadingEl) loadingEl.classList.add('hidden');
+}
+
 function closePreviewModal() {
     const iframeEl = document.getElementById('previewModalIframe');
+    const imgEl = document.getElementById('previewModalImage');
     if (iframeEl) iframeEl.src = '';
+    if (imgEl) imgEl.src = '';
     hideBirthModal('previewModal');
 }
 

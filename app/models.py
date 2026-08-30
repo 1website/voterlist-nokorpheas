@@ -298,28 +298,46 @@ class BirthCertificate(Base):
     @property
     def is_pdf(self):
         if self.attachment_url:
-            return self.attachment_url.lower().endswith(".pdf")
+            url = self.attachment_url.strip().lower()
+            return url.endswith(".pdf") or url.startswith("data:application/pdf")
         return False
 
     @property
     def is_image(self):
         if self.attachment_url:
-            return any(self.attachment_url.lower().endswith(ext) for ext in [".jpg", ".jpeg", ".png", ".webp", ".gif"])
+            url = self.attachment_url.strip().lower()
+            if url.startswith("data:image/"):
+                return True
+            return any(url.endswith(ext) for ext in [".jpg", ".jpeg", ".png", ".webp", ".gif"])
         return False
 
     @property
     def photo_display(self):
-        """Returns official photo, attached image, or smart default avatar"""
+        """Returns official photo, attached image, or smart default avatar with disk existence check"""
+        default_img = f"/static/images/avatars/female_{((self.id or 1) % 3) + 1}.jpg" if self.gender == "ស្រី" else f"/static/images/avatars/male_{((self.id or 1) % 4) + 1}.jpg"
+        
         if self.voter and self.voter.photo_display:
             return self.voter.photo_display
-        if self.is_image:
-            return self.attachment_url
-        if self.gender == "ស្រី":
-            idx = ((self.id or 1) % 3) + 1
-            return f"/static/images/avatars/female_{idx}.jpg"
-        else:
-            idx = ((self.id or 1) % 4) + 1
-            return f"/static/images/avatars/male_{idx}.jpg"
+        if self.is_image and self.attachment_url:
+            url = self.attachment_url.strip()
+            # 1. Base64 Data URI (permanently stored in DB)
+            if url.startswith("data:image/"):
+                return url
+            # 2. Static avatar preset or external URL
+            if url.startswith("/static/images/avatars/") or url.startswith("http://") or url.startswith("https://"):
+                return url
+            # 3. Local uploaded file path check
+            if url.startswith("/static/uploads/"):
+                import os
+                base_dir = os.path.dirname(os.path.abspath(__file__))
+                clean_rel = url.lstrip("/").replace("/", os.sep)
+                abs_path = os.path.join(base_dir, clean_rel)
+                root_path = os.path.join(os.path.dirname(base_dir), clean_rel)
+                if os.path.exists(abs_path) or os.path.exists(root_path) or os.path.exists(clean_rel):
+                    return url
+                return default_img
+            return url
+        return default_img
 
     @property
     def dob_khmer(self):

@@ -24,6 +24,8 @@ router = APIRouter()
 templates_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "templates")
 templates = Jinja2Templates(directory=templates_path)
 
+from app.image_utils import process_and_encode_image
+
 UPLOAD_DIR_BIRTH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "static", "uploads", "birth_certificates")
 os.makedirs(UPLOAD_DIR_BIRTH, exist_ok=True)
 
@@ -31,7 +33,22 @@ def save_birth_attachment(upload_file: UploadFile) -> str:
     if not upload_file or not upload_file.filename:
         return None
     ext = os.path.splitext(upload_file.filename)[1].lower()
-    allowed_exts = [".jpg", ".jpeg", ".png", ".webp", ".gif", ".pdf"]
+    allowed_img_exts = [".jpg", ".jpeg", ".png", ".webp", ".gif"]
+    
+    # Process images with Pillow to Data URI (100% resilient across redeployments)
+    if ext in allowed_img_exts or (upload_file.content_type and upload_file.content_type.startswith("image/")):
+        try:
+            return process_and_encode_image(
+                upload_file, 
+                subfolder="birth_certificates", 
+                max_size=(1600, 1600), 
+                quality=85
+            )
+        except Exception as e:
+            print(f"Birth image processing fallback: {e}")
+
+    # For PDFs and other files
+    allowed_exts = [".pdf"]
     if ext not in allowed_exts:
         ext = ".pdf" if "pdf" in (upload_file.content_type or "").lower() else ".jpg"
     filename = f"birth_{uuid.uuid4().hex[:14]}{ext}"
