@@ -709,6 +709,16 @@ document.addEventListener('DOMContentLoaded', function() {
         } else if (successMsg) {
             showToast(successMsg, 'success');
         }
+        if (errorMsg || successMsg) {
+            try {
+                const cleanUrl = new URL(window.location);
+                cleanUrl.searchParams.delete('msg');
+                cleanUrl.searchParams.delete('error');
+                window.history.replaceState({}, document.title, cleanUrl.pathname + (cleanUrl.search ? cleanUrl.search : ''));
+            } catch (err) {
+                console.error(err);
+            }
+        }
     } catch (e) {
         console.error(e);
     }
