@@ -187,15 +187,17 @@ body {
 }
 
 /* ========================================================================= */
-/* DYNAMIC COLUMN: National ID (លេខអត្តសញ្ញាណប័ណ្ណ) */
-/* នៅពេល Sidebar បង្ហាញ (Sidebar Open) -> លាក់ជួរឈរ លេខអត្តសញ្ញាណប័ណ្ណ */
-/* នៅពេល Sidebar លាក់ (Sidebar Collapsed) -> បង្ហាញជួរឈរ លេខអត្តសញ្ញាណប័ណ្ណ ពេញលេញ */
+/* DYNAMIC COLUMN: National ID (លេខអត្តសញ្ញាណប័ណ្ណ) & Birth Certificate No (លេខសំបុត្រកំណើត) */
+/* នៅពេល Sidebar បង្ហាញ (Sidebar Open) -> លាក់ជួរឈរ */
+/* នៅពេល Sidebar លាក់ (Sidebar Collapsed) -> បង្ហាញជួរឈរ ពេញលេញ */
 /* ========================================================================= */
-.app-layout:not(.sidebar-collapsed) .col-national-id {
+.app-layout:not(.sidebar-collapsed) .col-national-id,
+.app-layout:not(.sidebar-collapsed) .col-birth-cert-no {
   display: none !important;
 }
 
-.app-layout.sidebar-collapsed .col-national-id {
+.app-layout.sidebar-collapsed .col-national-id,
+.app-layout.sidebar-collapsed .col-birth-cert-no {
   display: table-cell !important;
 }
 

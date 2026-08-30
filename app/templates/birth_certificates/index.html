@@ -268,7 +268,7 @@
                 <thead>
                     <tr class="bg-slate-100/90 text-slate-700 text-xs uppercase border-b border-slate-200 font-kh-heading">
                         <th class="py-3 px-3 text-center w-12">ល.រ</th>
-                        <th class="py-3 px-3">លេខសំបុត្រកំណើត</th>
+                        <th class="py-3 px-3 col-birth-cert-no">លេខសំបុត្រកំណើត</th>
                         <th class="py-3 px-3">ឈ្មោះពលរដ្ឋ</th>
                         <th class="py-3 px-3 text-center">ភេទ</th>
                         <th class="py-3 px-3">ថ្ងៃខែឆ្នាំកំណើត & អាយុ</th>
@@ -289,7 +289,7 @@
                             </td>
 
                             <!-- Certificate No & Registration Date -->
-                            <td class="py-3 px-3">
+                            <td class="py-3 px-3 col-birth-cert-no">
                                 <div class="font-bold text-blue-950 font-mono text-xs">{{ r.certificate_no }}</div>
                                 {% if r.book_no %}
                                 <div class="text-[10px] text-slate-400 font-mono">សៀវភៅ៖ {{ r.book_no }}</div>
