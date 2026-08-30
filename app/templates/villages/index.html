@@ -125,8 +125,11 @@
                         <input type="text" name="name_kh" id="vgNameKh" required placeholder="ឧ. ភូមិរមៀត" class="form-control">
                     </div>
                     <div class="form-group">
-                        <label class="form-label">ឈ្មោះជាអក្សរឡាតាំង *</label>
-                        <input type="text" name="name_en" id="vgNameEn" required placeholder="ឧ. Romiet" class="form-control">
+                        <label class="form-label flex items-center justify-between">
+                            <span>ឈ្មោះជាអក្សរឡាតាំង *</span>
+                            <span class="text-[10px] text-blue-600 dark:text-sky-400 font-sans font-semibold">🔤 Auto English</span>
+                        </label>
+                        <input type="text" name="name_en" id="vgNameEn" required placeholder="ឧ. Romiet" autocomplete="off" autocapitalize="characters" lang="en" spellcheck="false" data-latin-input="true" class="form-control kh-latin-auto-input">
                     </div>
                 </div>
 

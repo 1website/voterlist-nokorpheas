@@ -370,8 +370,11 @@
                         <input type="text" name="name_kh" required placeholder="ឧ. ស៊ឹម ចាន់ថន" class="form-control">
                     </div>
                     <div class="form-group">
-                        <label class="form-label">ឈ្មោះជាអក្សរឡាតាំង *</label>
-                        <input type="text" name="name_en" required placeholder="ឧ. SIM CHANTHORN" class="form-control uppercase">
+                        <label class="form-label flex items-center justify-between">
+                            <span>ឈ្មោះជាអក្សរឡាតាំង *</span>
+                            <span class="text-[10px] text-blue-600 dark:text-sky-400 font-sans font-semibold">🔤 Auto English</span>
+                        </label>
+                        <input type="text" name="name_en" required placeholder="ឧ. SIM CHANTHORN" autocomplete="off" autocapitalize="characters" lang="en" spellcheck="false" data-latin-input="true" class="form-control uppercase font-mono kh-latin-auto-input">
                     </div>
                 </div>
 
@@ -556,8 +559,11 @@
                         <input type="text" name="name_kh" id="editNameKh" required class="form-control">
                     </div>
                     <div class="form-group">
-                        <label class="form-label">ឈ្មោះជាអក្សរឡាតាំង *</label>
-                        <input type="text" name="name_en" id="editNameEn" required class="form-control uppercase">
+                        <label class="form-label flex items-center justify-between">
+                            <span>ឈ្មោះជាអក្សរឡាតាំង *</span>
+                            <span class="text-[10px] text-blue-600 dark:text-sky-400 font-sans font-semibold">🔤 Auto English</span>
+                        </label>
+                        <input type="text" name="name_en" id="editNameEn" required autocomplete="off" autocapitalize="characters" lang="en" spellcheck="false" data-latin-input="true" class="form-control uppercase font-mono kh-latin-auto-input">
                     </div>
                 </div>
 

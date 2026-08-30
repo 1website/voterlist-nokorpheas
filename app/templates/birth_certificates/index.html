@@ -566,8 +566,11 @@
 
                     <!-- Name Latin -->
                     <div>
-                        <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5 font-kh-bold">ឈ្មោះជាអក្សរឡាតាំង <span class="text-rose-500">*</span></label>
-                        <input type="text" id="add_name_en" name="name_en" required placeholder="ឧ. SIM CHANTHORN" class="form-control text-sm uppercase font-mono text-slate-900 dark:text-slate-100">
+                        <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5 font-kh-bold flex items-center justify-between">
+                            <span>ឈ្មោះជាអក្សរឡាតាំង <span class="text-rose-500">*</span></span>
+                            <span class="text-[10px] text-blue-600 dark:text-sky-400 font-sans font-semibold">🔤 Auto English Mode</span>
+                        </label>
+                        <input type="text" id="add_name_en" name="name_en" required placeholder="ឧ. SIM CHANTHORN" autocomplete="off" autocapitalize="characters" lang="en" spellcheck="false" data-latin-input="true" class="form-control text-sm uppercase font-mono text-slate-900 dark:text-slate-100 kh-latin-auto-input">
                     </div>
 
                     <!-- Gender -->
@@ -719,8 +722,11 @@
 
                     <!-- Name Latin -->
                     <div>
-                        <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5 font-kh-bold">ឈ្មោះជាអក្សរឡាតាំង <span class="text-rose-500">*</span></label>
-                        <input type="text" id="edit_name_en" name="name_en" required class="form-control text-sm uppercase font-mono text-slate-900 dark:text-slate-100">
+                        <label class="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5 font-kh-bold flex items-center justify-between">
+                            <span>ឈ្មោះជាអក្សរឡាតាំង <span class="text-rose-500">*</span></span>
+                            <span class="text-[10px] text-blue-600 dark:text-sky-400 font-sans font-semibold">🔤 Auto English Mode</span>
+                        </label>
+                        <input type="text" id="edit_name_en" name="name_en" required autocomplete="off" autocapitalize="characters" lang="en" spellcheck="false" data-latin-input="true" class="form-control text-sm uppercase font-mono text-slate-900 dark:text-slate-100 kh-latin-auto-input">
                     </div>
 
                     <!-- Gender -->
