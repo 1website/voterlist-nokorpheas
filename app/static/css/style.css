@@ -1948,5 +1948,33 @@ html.dark .auto-transliterate-btn:hover {
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important;
 }
 
+/* 5-Second Auto-Dismiss Alert Banner & Progress Bar */
+.auto-dismiss-alert {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.alert-progress-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3.5px;
+  width: 100%;
+  opacity: 0.85;
+  border-radius: 0 0 16px 16px;
+  animation: alertProgress 5s linear forwards;
+}
+
+@keyframes alertProgress {
+  0% {
+    width: 100%;
+  }
+  100% {
+    width: 0%;
+  }
+}
+
+
 
 

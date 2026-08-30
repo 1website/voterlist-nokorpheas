@@ -58,6 +58,40 @@ function dismissToast(toastElement) {
     }, 320);
 }
 
+// Dismiss inline success/error alert banners smoothly
+function dismissAlertBanner(alertEl) {
+    if (!alertEl || alertEl._isDismissing) return;
+    alertEl._isDismissing = true;
+    if (alertEl._dismissTimeout) clearTimeout(alertEl._dismissTimeout);
+    
+    alertEl.style.transition = 'opacity 0.4s ease, transform 0.4s ease, max-height 0.4s ease, margin 0.4s ease, padding 0.4s ease';
+    alertEl.style.opacity = '0';
+    alertEl.style.transform = 'translateY(-8px) scale(0.98)';
+    alertEl.style.maxHeight = '0px';
+    alertEl.style.marginBottom = '0px';
+    alertEl.style.marginTop = '0px';
+    alertEl.style.paddingTop = '0px';
+    alertEl.style.paddingBottom = '0px';
+    alertEl.style.borderWidth = '0px';
+    
+    setTimeout(() => {
+        if (alertEl && alertEl.parentNode) {
+            alertEl.remove();
+        }
+        // Clean URL query parameters (?msg=... / ?error=...)
+        try {
+            const url = new URL(window.location);
+            if (url.searchParams.has('msg') || url.searchParams.has('error')) {
+                url.searchParams.delete('msg');
+                url.searchParams.delete('error');
+                window.history.replaceState({}, document.title, url.pathname + (url.search ? url.search : ''));
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }, 420);
+}
+
 // Play confirmation audio beep
 function playAudioBeep(isSuccess = true) {
     try {
@@ -678,6 +712,14 @@ document.addEventListener('DOMContentLoaded', function() {
     } catch (e) {
         console.error(e);
     }
+
+    // Auto-dismiss inline alert banners after 5 seconds (5000ms)
+    document.querySelectorAll('.auto-dismiss-alert, [data-auto-dismiss]').forEach(alertEl => {
+        alertEl._dismissTimeout = setTimeout(() => {
+            dismissAlertBanner(alertEl);
+        }, 5000);
+    });
+
 
     // 1. Automatic loading on Form Submissions (Add, Edit, Delete, Filter)
     document.addEventListener('submit', function(e) {
