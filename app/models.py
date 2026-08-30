@@ -260,7 +260,7 @@ class BirthCertificate(Base):
     voter_id = Column(Integer, ForeignKey("voters.id"), nullable=True)
     is_registered_voter = Column(Boolean, default=False)
     registered_date = Column(String(50), nullable=True)                          # YYYY-MM-DD កាលបរិច្ឆេទចុះបញ្ជី
-    attachment_url = Column(String(255), nullable=True)                          # PDF or Image attachment path
+    attachment_url = Column(Text, nullable=True)                                # PDF or Image attachment path (Base64 Data URI / file path)
     notes = Column(Text, nullable=True)
     created_at = Column(DateTime, default=get_cambodia_now)
     updated_at = Column(DateTime, default=get_cambodia_now, onupdate=get_cambodia_now)

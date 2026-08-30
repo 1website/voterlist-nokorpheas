@@ -80,7 +80,12 @@ def ensure_schema_migrations():
             bc_columns = [col["name"] for col in inspector.get_columns("birth_certificates")]
             with engine.connect() as conn:
                 if "attachment_url" not in bc_columns:
-                    conn.execute(text("ALTER TABLE birth_certificates ADD COLUMN attachment_url VARCHAR(255)"))
+                    conn.execute(text("ALTER TABLE birth_certificates ADD COLUMN attachment_url TEXT"))
+                elif not IS_SQLITE:
+                    try:
+                        conn.execute(text("ALTER TABLE birth_certificates ALTER COLUMN attachment_url TYPE TEXT"))
+                    except Exception as e:
+                        print(f"Migration notice: {e}")
                 if "registered_date" not in bc_columns:
                     conn.execute(text("ALTER TABLE birth_certificates ADD COLUMN registered_date VARCHAR(50)"))
                     if IS_SQLITE:
