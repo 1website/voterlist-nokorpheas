@@ -278,13 +278,14 @@ def daily_registration_report(
 
 @router.get("/reports/daily/export/excel")
 def export_daily_registrations_excel(
-    date: str = Query(..., description="Date YYYY-MM-DD"),
+    date: str = Query("", description="Date YYYY-MM-DD"),
     village_id: str = Query("", description="Village ID"),
     station_id: str = Query("", description="Station ID"),
     db: Session = Depends(get_db)
 ):
-    query = db.query(Voter).filter(func.date(Voter.created_at) == date)
-    filter_desc = f"ប្រចាំថ្ងៃទី {date}"
+    clean_date = date.strip() if date and date.strip() else get_cambodia_today_str()
+    query = db.query(Voter).filter(func.date(Voter.created_at) == clean_date)
+    filter_desc = f"ប្រចាំថ្ងៃទី {clean_date}"
 
     if village_id and village_id.isdigit():
         v_obj = db.query(Village).filter(Village.id == int(village_id)).first()
@@ -394,7 +395,7 @@ def export_daily_registrations_excel(
 @router.get("/reports/daily/print", response_class=HTMLResponse)
 def print_daily_registrations(
     request: Request,
-    date: str = Query(..., description="Date YYYY-MM-DD"),
+    date: str = Query("", description="Date YYYY-MM-DD"),
     village_id: str = Query("", description="Village ID"),
     station_id: str = Query("", description="Station ID"),
     db: Session = Depends(get_db)
@@ -403,7 +404,8 @@ def print_daily_registrations(
     if not current_user:
         return RedirectResponse(url="/login", status_code=302)
 
-    query = db.query(Voter).filter(func.date(Voter.created_at) == date)
+    clean_date = date.strip() if date and date.strip() else get_cambodia_today_str()
+    query = db.query(Voter).filter(func.date(Voter.created_at) == clean_date)
     village = None
     station = None
 

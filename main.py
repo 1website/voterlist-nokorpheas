@@ -115,6 +115,9 @@ app.include_router(birth_routes.router)
 
 @app.exception_handler(500)
 async def custom_500_handler(request: Request, exc):
+    import traceback
+    print(f"❌ HTTP 500 Exception on {request.method} {request.url}: {exc}")
+    traceback.print_exception(type(exc), exc, exc.__traceback__)
     return HTMLResponse(
         content="""
         <!DOCTYPE html>
