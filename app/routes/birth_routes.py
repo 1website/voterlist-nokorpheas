@@ -432,6 +432,7 @@ async def create_birth_certificate(
     address: str = Form(""),
     village_id: int = Form(...),
     notes: str = Form(""),
+    force_save: str = Form("0"),
     attachment: UploadFile = File(None),
     db: Session = Depends(get_db)
 ):
@@ -455,7 +456,7 @@ async def create_birth_certificate(
             func.lower(func.trim(BirthCertificate.certificate_no)) == cert_clean.lower()
         ).first()
 
-    if existing:
+    if existing and force_save != "1":
         v_name = f"ភូមិ{existing.village.name_kh}" if existing.village else ""
         book_text = f" និងលេខសៀវភៅ '{existing.book_no}'" if existing.book_no else ""
         return RedirectResponse(
@@ -529,6 +530,7 @@ async def edit_birth_certificate(
     address: str = Form(""),
     village_id: int = Form(...),
     notes: str = Form(""),
+    force_save: str = Form("0"),
     attachment: UploadFile = File(None),
     remove_attachment: str = Form("0"),
     db: Session = Depends(get_db)
@@ -558,7 +560,7 @@ async def edit_birth_certificate(
             BirthCertificate.id != id
         ).first()
 
-    if dup:
+    if dup and force_save != "1":
         v_name = f"ភូមិ{dup.village.name_kh}" if dup.village else ""
         book_text = f" និងលេខសៀវភៅ '{dup.book_no}'" if dup.book_no else ""
         return RedirectResponse(

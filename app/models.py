@@ -83,7 +83,7 @@ class Voter(Base):
     id = Column(Integer, primary_key=True, index=True)
     voter_code = Column(String(50), unique=True, index=True, nullable=False) # e.g. NP-0701-0001
     list_no = Column(Integer, nullable=False)                                # 1, 2, 3 in station
-    national_id = Column(String(50), unique=True, index=True, nullable=False) # 9 or 10 digit Khmer ID card
+    national_id = Column(String(50), index=True, nullable=False) # 9 or 10 digit Khmer ID card
     name_kh = Column(String(100), nullable=False)                            # ឈ្មោះខ្មែរ (e.g. ស៊ឹម ចាន់ថន)
     name_en = Column(String(100), nullable=False)                            # ឈ្មោះឡាតាំង (e.g. SIM CHANTHORN)
     gender = Column(String(20), nullable=False)                              # ប្រុស / ស្រី
@@ -239,7 +239,7 @@ class BirthCertificate(Base):
     __tablename__ = "birth_certificates"
 
     id = Column(Integer, primary_key=True, index=True)
-    certificate_no = Column(String(50), unique=True, index=True, nullable=False) # e.g. ស.ក-២០២៦-០០១
+    certificate_no = Column(String(50), index=True, nullable=False) # e.g. ស.ក-២០២៦-០០១
     book_no = Column(String(50), nullable=True)                                  # e.g. ០១/២០២៦
     name_kh = Column(String(100), nullable=False)                                # ឈ្មោះខ្មែរ
     name_en = Column(String(100), nullable=False)                                # ឈ្មោះឡាតាំង

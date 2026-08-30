@@ -89,6 +89,29 @@ def ensure_schema_migrations():
                         conn.execute(text("UPDATE birth_certificates SET registered_date = CAST(created_at AS VARCHAR(10)) WHERE registered_date IS NULL AND created_at IS NOT NULL"))
                 conn.commit()
 
+        # Migrate certificate_no and national_id indexes from UNIQUE to regular INDEX for force-save support
+        if "birth_certificates" in tables:
+            with engine.connect() as conn:
+                try:
+                    conn.execute(text("DROP INDEX IF EXISTS ix_birth_certificates_certificate_no"))
+                    conn.execute(text("CREATE INDEX IF NOT EXISTS ix_birth_certificates_certificate_no ON birth_certificates (certificate_no)"))
+                    if not IS_SQLITE:
+                        conn.execute(text("ALTER TABLE birth_certificates DROP CONSTRAINT IF EXISTS birth_certificates_certificate_no_key"))
+                    conn.commit()
+                except Exception:
+                    pass
+
+        if "voters" in tables:
+            with engine.connect() as conn:
+                try:
+                    conn.execute(text("DROP INDEX IF EXISTS ix_voters_national_id"))
+                    conn.execute(text("CREATE INDEX IF NOT EXISTS ix_voters_national_id ON voters (national_id)"))
+                    if not IS_SQLITE:
+                        conn.execute(text("ALTER TABLE voters DROP CONSTRAINT IF EXISTS voters_national_id_key"))
+                    conn.commit()
+                except Exception:
+                    pass
+
         # For SQLite only: Apply UTC timezone offset migration for existing legacy records
         if IS_SQLITE and "voters" in tables and "audit_logs" in tables:
             with engine.connect() as conn:

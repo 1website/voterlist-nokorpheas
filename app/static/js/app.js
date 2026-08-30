@@ -176,15 +176,61 @@ function sanitizeNationalId(inputElement) {
 }
 
 let duplicateTimer = null;
-function checkDuplicateID(inputElement, excludeId = 0, feedbackId = 'idCheckFeedback') {
+function toggleVoterForceSave(submitBtnId, forceSaveInputId, isChecked, feedbackId) {
+    const submitBtn = submitBtnId ? document.getElementById(submitBtnId) : null;
+    const forceSaveInput = forceSaveInputId ? document.getElementById(forceSaveInputId) : null;
+    const statusBadge = document.getElementById(feedbackId + '_statusBadge');
+    
+    if (forceSaveInput) {
+        forceSaveInput.value = isChecked ? "1" : "0";
+    }
+
+    if (submitBtn) {
+        if (isChecked) {
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            submitBtn.classList.add('ring-2', 'ring-amber-400');
+        } else {
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            submitBtn.classList.remove('ring-2', 'ring-amber-400');
+        }
+    }
+
+    if (statusBadge) {
+        if (isChecked) {
+            statusBadge.className = "text-[11px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/80 px-2.5 py-1 rounded-lg border border-emerald-300 dark:border-emerald-700 shrink-0 flex items-center gap-1 shadow-2xs";
+            statusBadge.innerHTML = "<span>🔓</span> <span>អនុញ្ញាតឱ្យរក្សាទុកបាន</span>";
+        } else {
+            statusBadge.className = "text-[11px] font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/80 px-2.5 py-1 rounded-lg border border-rose-200 dark:border-rose-800 shrink-0 flex items-center gap-1";
+            statusBadge.innerHTML = "<span>🔒</span> <span>ជាប់សោរការរក្សាទុក</span>";
+        }
+    }
+}
+
+function checkDuplicateID(inputElement, excludeId = 0, feedbackId = 'idCheckFeedback', submitBtnId = null, forceSaveInputId = null) {
     sanitizeNationalId(inputElement);
     clearTimeout(duplicateTimer);
     const feedback = document.getElementById(feedbackId);
     const val = inputElement.value.trim();
 
+    if (!submitBtnId) {
+        submitBtnId = feedbackId.includes('edit') ? 'editVoterSubmitBtn' : 'addVoterSubmitBtn';
+    }
+    if (!forceSaveInputId) {
+        forceSaveInputId = feedbackId.includes('edit') ? 'editVoterForceSave' : 'addVoterForceSave';
+    }
+    const submitBtn = document.getElementById(submitBtnId);
+    const forceSaveInput = document.getElementById(forceSaveInputId);
+
     if (!val) {
         if (feedback) feedback.innerHTML = '';
         inputElement.classList.remove('border-red-500', 'ring-2', 'ring-red-200', 'bg-red-50/30', 'border-emerald-500', 'ring-1', 'ring-emerald-200');
+        if (forceSaveInput) forceSaveInput.value = '0';
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'ring-2', 'ring-amber-400');
+        }
         return;
     }
 
@@ -201,6 +247,7 @@ function checkDuplicateID(inputElement, excludeId = 0, feedbackId = 'idCheckFeed
             `;
         }
         inputElement.classList.remove('border-red-500', 'ring-2', 'ring-red-200', 'bg-red-50/30', 'border-emerald-500', 'ring-1', 'ring-emerald-200');
+        if (forceSaveInput) forceSaveInput.value = '0';
         return;
     }
 
@@ -214,6 +261,7 @@ function checkDuplicateID(inputElement, excludeId = 0, feedbackId = 'idCheckFeed
             `;
         }
         inputElement.classList.remove('border-red-500', 'ring-2', 'ring-red-200', 'bg-red-50/30', 'border-emerald-500', 'ring-1', 'ring-emerald-200');
+        if (forceSaveInput) forceSaveInput.value = '0';
         return;
     }
 
@@ -235,17 +283,51 @@ function checkDuplicateID(inputElement, excludeId = 0, feedbackId = 'idCheckFeed
                         showToast(data.message, 'error', 5500);
                     }
 
+                    if (forceSaveInput) forceSaveInput.value = '0';
+
                     feedback.innerHTML = `
-                        <div class="p-3 bg-rose-50 dark:bg-rose-950/70 border-2 border-rose-300 dark:border-rose-800 rounded-xl text-xs text-rose-800 dark:text-rose-200 flex items-start gap-2.5 shadow-sm mt-1.5">
-                            <span class="text-lg leading-none flex-shrink-0">🚫</span>
-                            <div>
-                                <strong class="font-bold text-rose-900 dark:text-rose-100 block text-xs">⚠️ ស្ទួនទិន្នន័យ៖ លេខ${docTypeLabel}នេះ បានចុះឈ្មោះរួចហើយ!</strong>
-                                <span class="mt-0.5 block leading-relaxed text-rose-700 dark:text-rose-300">${data.message}</span>
+                        <div class="p-3.5 bg-rose-50 dark:bg-rose-950/70 border-2 border-rose-300 dark:border-rose-800 rounded-2xl text-xs text-rose-800 dark:text-rose-200 flex flex-col gap-2.5 shadow-sm mt-2">
+                            <div class="flex items-start gap-2.5">
+                                <span class="text-xl leading-none flex-shrink-0">⚠️</span>
+                                <div class="space-y-1 min-w-0 flex-1">
+                                    <strong class="font-bold text-rose-900 dark:text-rose-100 block text-xs font-kh-bold">
+                                        ⚠️ ស្ទួនទិន្នន័យ៖ លេខ${docTypeLabel}នេះ បានចុះឈ្មោះរួចហើយ!
+                                    </strong>
+                                    <div class="text-[11px] text-rose-700 dark:text-rose-300 leading-relaxed">
+                                        <span>${data.message}</span>
+                                    </div>
+                                    ${data.voter ? `
+                                    <div class="pt-2 mt-1.5 border-t border-rose-200 dark:border-rose-800/80 flex flex-wrap gap-x-3 gap-y-1 text-[11px] font-medium text-rose-900 dark:text-rose-100 bg-white/60 dark:bg-black/20 p-2 rounded-xl">
+                                        <span>👤 ឈ្មោះ៖ <strong>${data.voter.name_kh}</strong></span>
+                                        <span>🎫 លេខកូដ៖ <strong>${data.voter.voter_code || ''}</strong></span>
+                                        ${data.voter.station_code ? `<span>🗳️ ការិយាល័យ៖ <strong>${data.voter.station_code}</strong></span>` : ''}
+                                    </div>` : ''}
+                                </div>
+                            </div>
+
+                            <!-- Force Save / Verification Area -->
+                            <div class="p-2.5 bg-white dark:bg-slate-900 rounded-xl border border-rose-300 dark:border-rose-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs">
+                                <label class="flex items-center gap-2 cursor-pointer select-none group">
+                                    <input type="checkbox" id="${feedbackId}_allowDupCheck" onchange="toggleVoterForceSave('${submitBtnId}', '${forceSaveInputId}', this.checked, '${feedbackId}')" class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-400 dark:border-slate-600 cursor-pointer">
+                                    <span class="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-sky-300 transition font-kh-bold">
+                                        ☑️ ខ្ញុំបានពិនិត្យផ្ទៀងផ្ទាត់រួចហើយ មិនមែនជាទិន្នន័យស្ទួនទេ (អនុញ្ញាតឱ្យរក្សាទុក)
+                                    </span>
+                                </label>
+                                <span id="${feedbackId}_statusBadge" class="text-[11px] font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/80 px-2.5 py-1 rounded-lg border border-rose-200 dark:border-rose-800 shrink-0 flex items-center gap-1">
+                                    <span>🔒</span> <span>ជាប់សោរការរក្សាទុក</span>
+                                </span>
                             </div>
                         </div>
                     `;
+
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                        submitBtn.classList.remove('ring-2', 'ring-amber-400');
+                    }
                 } else {
                     window._lastIdDupToastMsg = null;
+                    if (forceSaveInput) forceSaveInput.value = '0';
                     inputElement.classList.remove('border-red-500', 'ring-2', 'ring-red-200', 'bg-red-50/30');
                     inputElement.classList.add('border-emerald-500', 'ring-1', 'ring-emerald-200');
                     feedback.innerHTML = `
@@ -257,6 +339,11 @@ function checkDuplicateID(inputElement, excludeId = 0, feedbackId = 'idCheckFeed
                             </div>
                         </div>
                     `;
+
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'ring-2', 'ring-amber-400');
+                    }
                 }
             }
         } catch (e) {
@@ -355,12 +442,49 @@ function checkVoterAge(inputElement, feedbackId, submitBtnId) {
 
 // Live Duplicate Birth Certificate Checker
 let birthDupTimer = null;
-function checkDuplicateBirthCert(certInputId, bookInputId, excludeId = 0, feedbackId = 'birthDupFeedback', submitBtnId = 'birthSubmitBtn') {
+function toggleBirthCertForceSave(submitBtnId, forceSaveInputId, isChecked, feedbackId) {
+    const submitBtn = submitBtnId ? document.getElementById(submitBtnId) : null;
+    const forceSaveInput = forceSaveInputId ? document.getElementById(forceSaveInputId) : null;
+    const statusBadge = document.getElementById(feedbackId + '_statusBadge');
+    
+    if (forceSaveInput) {
+        forceSaveInput.value = isChecked ? "1" : "0";
+    }
+
+    if (submitBtn) {
+        if (isChecked) {
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            submitBtn.classList.add('ring-2', 'ring-amber-400');
+        } else {
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            submitBtn.classList.remove('ring-2', 'ring-amber-400');
+        }
+    }
+
+    if (statusBadge) {
+        if (isChecked) {
+            statusBadge.className = "text-[11px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/80 px-2.5 py-1 rounded-lg border border-emerald-300 dark:border-emerald-700 shrink-0 flex items-center gap-1 shadow-2xs";
+            statusBadge.innerHTML = "<span>🔓</span> <span>អនុញ្ញាតឱ្យរក្សាទុកបាន</span>";
+        } else {
+            statusBadge.className = "text-[11px] font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/80 px-2.5 py-1 rounded-lg border border-rose-200 dark:border-rose-800 shrink-0 flex items-center gap-1";
+            statusBadge.innerHTML = "<span>🔒</span> <span>ជាប់សោរការរក្សាទុក</span>";
+        }
+    }
+}
+
+function checkDuplicateBirthCert(certInputId, bookInputId, excludeId = 0, feedbackId = 'birthDupFeedback', submitBtnId = 'birthSubmitBtn', forceSaveInputId = null) {
     clearTimeout(birthDupTimer);
     const certInput = document.getElementById(certInputId);
     const bookInput = document.getElementById(bookInputId);
     const feedback = document.getElementById(feedbackId);
     const submitBtn = submitBtnId ? document.getElementById(submitBtnId) : null;
+
+    if (!forceSaveInputId) {
+        forceSaveInputId = feedbackId.includes('edit') ? 'editBirthForceSave' : 'addBirthForceSave';
+    }
+    const forceSaveInput = document.getElementById(forceSaveInputId);
 
     if (!certInput) return;
     const certVal = certInput.value.trim();
@@ -370,9 +494,10 @@ function checkDuplicateBirthCert(certInputId, bookInputId, excludeId = 0, feedba
         if (feedback) feedback.innerHTML = '';
         certInput.classList.remove('border-red-500', 'ring-2', 'ring-red-200', 'bg-red-50/30', 'border-emerald-500', 'ring-1', 'ring-emerald-200');
         if (bookInput) bookInput.classList.remove('border-red-500', 'ring-2', 'ring-red-200', 'bg-red-50/30', 'border-emerald-500', 'ring-1', 'ring-emerald-200');
+        if (forceSaveInput) forceSaveInput.value = '0';
         if (submitBtn) {
             submitBtn.disabled = false;
-            submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            submitBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'ring-2', 'ring-amber-400');
         }
         return;
     }
@@ -397,24 +522,41 @@ function checkDuplicateBirthCert(certInputId, bookInputId, excludeId = 0, feedba
                     showToast(data.message, 'error', 6000);
                 }
 
+                if (forceSaveInput) forceSaveInput.value = '0';
+
                 if (feedback) {
                     const ex = data.existing || {};
                     feedback.innerHTML = `
-                        <div class="p-3 bg-rose-50 dark:bg-rose-950/70 border-2 border-rose-300 dark:border-rose-800 rounded-xl text-xs text-rose-800 dark:text-rose-200 flex items-start gap-2.5 shadow-sm mt-2 animate-pulse">
-                            <span class="text-xl leading-none flex-shrink-0">🚫</span>
-                            <div class="space-y-1 min-w-0 flex-1">
-                                <strong class="font-bold text-rose-900 dark:text-rose-100 block text-xs font-kh-bold">
-                                    ⚠️ ស្ទួនទិន្នន័យ៖ លេខសំបុត្រកំណើត ឬសៀវភៅនេះ បានបញ្ចូលរួចហើយ!
-                                </strong>
-                                <div class="text-[11px] text-rose-700 dark:text-rose-300 leading-relaxed">
-                                    <span>${data.message}</span>
+                        <div class="p-3.5 bg-rose-50 dark:bg-rose-950/70 border-2 border-rose-300 dark:border-rose-800 rounded-2xl text-xs text-rose-800 dark:text-rose-200 flex flex-col gap-2.5 shadow-sm mt-2">
+                            <div class="flex items-start gap-2.5">
+                                <span class="text-xl leading-none flex-shrink-0">⚠️</span>
+                                <div class="space-y-1 min-w-0 flex-1">
+                                    <strong class="font-bold text-rose-900 dark:text-rose-100 block text-xs font-kh-bold">
+                                        ⚠️ ស្ទួនទិន្នន័យ៖ លេខសំបុត្រកំណើត ឬសៀវភៅនេះ បានបញ្ចូលរួចហើយ!
+                                    </strong>
+                                    <div class="text-[11px] text-rose-700 dark:text-rose-300 leading-relaxed">
+                                        <span>${data.message}</span>
+                                    </div>
+                                    ${ex.name_kh ? `
+                                    <div class="pt-2 mt-1.5 border-t border-rose-200 dark:border-rose-800/80 flex flex-wrap gap-x-3 gap-y-1 text-[11px] font-medium text-rose-900 dark:text-rose-100 bg-white/60 dark:bg-black/20 p-2 rounded-xl">
+                                        <span>👤 ឈ្មោះ៖ <strong>${ex.name_kh}</strong> (${ex.name_en || ''})</span>
+                                        <span>🎂 ថ្ងៃខែឆ្នាំកំណើត៖ <strong>${ex.dob || ''}</strong></span>
+                                        ${ex.village_name ? `<span>🏡 ភូមិ៖ <strong>${ex.village_name}</strong></span>` : ''}
+                                    </div>` : ''}
                                 </div>
-                                ${ex.name_kh ? `
-                                <div class="pt-1.5 mt-1.5 border-t border-rose-200 dark:border-rose-800/80 flex flex-wrap gap-x-3 gap-y-1 text-[11px] font-medium text-rose-900 dark:text-rose-100">
-                                    <span>👤 ឈ្មោះ៖ <strong>${ex.name_kh}</strong> (${ex.name_en || ''})</span>
-                                    <span>🎂 ថ្ងៃខែឆ្នាំកំណើត៖ <strong>${ex.dob || ''}</strong></span>
-                                    ${ex.village_name ? `<span>🏡 ភូមិ៖ <strong>${ex.village_name}</strong></span>` : ''}
-                                </div>` : ''}
+                            </div>
+
+                            <!-- Force Save / Verification Area -->
+                            <div class="p-2.5 bg-white dark:bg-slate-900 rounded-xl border border-rose-300 dark:border-rose-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs">
+                                <label class="flex items-center gap-2 cursor-pointer select-none group">
+                                    <input type="checkbox" id="${feedbackId}_allowDupCheck" onchange="toggleBirthCertForceSave('${submitBtnId}', '${forceSaveInputId}', this.checked, '${feedbackId}')" class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-400 dark:border-slate-600 cursor-pointer">
+                                    <span class="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-sky-300 transition font-kh-bold">
+                                        ☑️ ខ្ញុំបានពិនិត្យផ្ទៀងផ្ទាត់រួចហើយ មិនមែនជាទិន្នន័យស្ទួនទេ (អនុញ្ញាតឱ្យរក្សាទុក)
+                                    </span>
+                                </label>
+                                <span id="${feedbackId}_statusBadge" class="text-[11px] font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/80 px-2.5 py-1 rounded-lg border border-rose-200 dark:border-rose-800 shrink-0 flex items-center gap-1">
+                                    <span>🔒</span> <span>ជាប់សោរការរក្សាទុក</span>
+                                </span>
                             </div>
                         </div>
                     `;
@@ -423,9 +565,11 @@ function checkDuplicateBirthCert(certInputId, bookInputId, excludeId = 0, feedba
                 if (submitBtn) {
                     submitBtn.disabled = true;
                     submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    submitBtn.classList.remove('ring-2', 'ring-amber-400');
                 }
             } else {
                 window._lastBirthDupToastMsg = null;
+                if (forceSaveInput) forceSaveInput.value = '0';
                 // Style inputs green
                 certInput.classList.remove('border-red-500', 'ring-2', 'ring-red-200', 'bg-red-50/30');
                 certInput.classList.add('border-emerald-500', 'ring-1', 'ring-emerald-200');
@@ -438,11 +582,11 @@ function checkDuplicateBirthCert(certInputId, bookInputId, excludeId = 0, feedba
 
                 if (feedback) {
                     feedback.innerHTML = `
-                        <div class="p-2 bg-emerald-50 border border-emerald-300 rounded-xl text-xs text-emerald-800 flex items-center gap-2 mt-2 shadow-xs">
+                        <div class="p-2 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800/80 rounded-xl text-xs text-emerald-800 dark:text-emerald-300 flex items-center gap-2 mt-2 shadow-xs">
                             <span class="text-base leading-none">✅</span>
                             <div>
-                                <strong class="font-bold text-emerald-900">លេខសំបុត្រកំណើតអាចប្រើប្រាស់បាន</strong>
-                                <span class="text-emerald-700 ml-1">មិនស្ទួនក្នុងប្រព័ន្ធឡើយ។</span>
+                                <strong class="font-bold text-emerald-900 dark:text-emerald-200">លេខសំបុត្រកំណើតអាចប្រើប្រាស់បាន</strong>
+                                <span class="text-emerald-700 dark:text-emerald-400 ml-1">មិនស្ទួនក្នុងប្រព័ន្ធឡើយ។</span>
                             </div>
                         </div>
                     `;
@@ -450,7 +594,7 @@ function checkDuplicateBirthCert(certInputId, bookInputId, excludeId = 0, feedba
 
                 if (submitBtn) {
                     submitBtn.disabled = false;
-                    submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    submitBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'ring-2', 'ring-amber-400');
                 }
             }
         } catch (e) {

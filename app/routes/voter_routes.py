@@ -355,6 +355,7 @@ def create_voter(
     reg_reason: str = Form(""),
     address: str = Form(""),
     notes: str = Form(""),
+    force_save: str = Form("0"),
     photo_preset: str = Form(None),
     photo: UploadFile = File(None),
     request: Request = None,
@@ -368,7 +369,7 @@ def create_voter(
     clean_id = sanitize_national_id_backend(national_id)
     # Check duplicate national ID
     existing = db.query(Voter).filter(Voter.national_id == clean_id).first()
-    if existing:
+    if existing and force_save != "1":
         raise HTTPException(
             status_code=400,
             detail=f"លេខអត្តសញ្ញាណប័ណ្ណ '{clean_id}' ត្រូវបានចុះឈ្មោះរួចហើយសម្រាប់ឈ្មោះ {existing.name_kh}"
@@ -583,6 +584,7 @@ def update_voter(
     reg_reason: str = Form(""),
     address: str = Form(""),
     notes: str = Form(""),
+    force_save: str = Form("0"),
     photo_preset: str = Form(None),
     photo: UploadFile = File(None),
     request: Request = None,
@@ -600,7 +602,7 @@ def update_voter(
     clean_id = sanitize_national_id_backend(national_id)
     # Check duplicate ID
     duplicate = db.query(Voter).filter(Voter.national_id == clean_id, Voter.id != voter_id).first()
-    if duplicate:
+    if duplicate and force_save != "1":
         raise HTTPException(
             status_code=400,
             detail=f"លេខអត្តសញ្ញាណប័ណ្ណ '{clean_id}' ត្រូវបានប្រើប្រាស់ដោយឈ្មោះ {duplicate.name_kh} រួចហើយ"

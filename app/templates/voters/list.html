@@ -254,6 +254,7 @@
             <button type="button" onclick="closeModal('addVoterModal')" class="text-white/80 hover:text-white hover:bg-white/10 rounded-lg text-xl p-1 leading-none transition" title="បិទ">✕</button>
         </div>
         <form id="addVoterForm" onsubmit="submitAddVoter(event)" enctype="multipart/form-data">
+            <input type="hidden" name="force_save" id="addVoterForceSave" value="0">
             <div class="modal-body space-y-4">
 
                 <!-- Quick OCR ID Card Auto-Fill Banner -->
@@ -408,7 +409,7 @@
                             <span>📄</span> <span>ឯកសារបញ្ជាក់អត្តសញ្ញាណ (៧ ខ្ទង់)</span>
                         </button>
                     </div>
-                    <input type="text" name="national_id" id="addNationalId" required maxlength="9" inputmode="numeric" placeholder="ឧ. 020491999 (៩ ខ្ទង់) ឬ 1234567 (៧ ខ្ទង់)" oninput="checkDuplicateID(this)" class="form-control font-mono">
+                    <input type="text" name="national_id" id="addNationalId" required maxlength="9" inputmode="numeric" placeholder="ឧ. 020491999 (៩ ខ្ទង់) ឬ 1234567 (៧ ខ្ទង់)" oninput="checkDuplicateID(this, 0, 'idCheckFeedback', 'addVoterSubmitBtn', 'addVoterForceSave')" class="form-control font-mono">
                     <div id="idCheckFeedback"></div>
                 </div>
 
@@ -466,6 +467,7 @@
         </div>
         <form id="editVoterForm" onsubmit="submitEditVoter(event)" enctype="multipart/form-data">
             <input type="hidden" name="voter_id" id="editVoterId">
+            <input type="hidden" name="force_save" id="editVoterForceSave" value="0">
             <div class="modal-body space-y-4">
 
                 <!-- Registration Type Selector Box in Edit -->
@@ -583,7 +585,7 @@
                             <label class="form-label mb-0">លេខអត្តសញ្ញាណប័ណ្ណ *</label>
                             <span class="text-[11px] text-blue-700 dark:text-sky-300 font-semibold bg-blue-50 dark:bg-blue-950/70 px-2 py-0.5 rounded-full border border-blue-200 dark:border-blue-800/60">អតិបរមា ៩ ខ្ទង់</span>
                         </div>
-                        <input type="text" name="national_id" id="editNationalId" required maxlength="9" inputmode="numeric" oninput="checkDuplicateID(this, document.getElementById('editVoterId').value, 'editIdCheckFeedback')" class="form-control font-mono">
+                        <input type="text" name="national_id" id="editNationalId" required maxlength="9" inputmode="numeric" oninput="checkDuplicateID(this, document.getElementById('editVoterId').value, 'editIdCheckFeedback', 'editVoterSubmitBtn', 'editVoterForceSave')" class="form-control font-mono">
                         <div id="editIdCheckFeedback"></div>
                     </div>
                     <div class="form-group">
@@ -1076,6 +1078,8 @@
 
     function openAddVoterModal() {
         document.getElementById('addVoterForm').reset();
+        const forceSave = document.getElementById('addVoterForceSave');
+        if (forceSave) forceSave.value = '0';
         document.getElementById('addDobInput').value = '1995-05-15';
         document.getElementById('idCheckFeedback').innerHTML = '';
         document.getElementById('addPhotoPreview').src = '/static/images/avatars/male_1.jpg';
@@ -1143,6 +1147,8 @@
                 document.getElementById('editRegYear').value = data.reg_year || 2026;
                 document.getElementById('editRegReason').value = data.reg_reason || 'first_time_18';
 
+                const forceSave = document.getElementById('editVoterForceSave');
+                if (forceSave) forceSave.value = '0';
                 if (document.getElementById('editIdCheckFeedback')) {
                     document.getElementById('editIdCheckFeedback').innerHTML = '';
                 }

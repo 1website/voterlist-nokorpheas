@@ -533,6 +533,7 @@
 
         <!-- Form with Scrollable Body & Sticky Footer -->
         <form id="addBirthForm" method="POST" action="/birth-certificates/create" enctype="multipart/form-data" class="flex flex-col flex-1 min-h-0 overflow-hidden">
+            <input type="hidden" name="force_save" id="addBirthForceSave" value="0">
             <!-- Scrollable Body -->
             <div class="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1 custom-scrollbar">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -689,6 +690,7 @@
 
         <!-- Form with Scrollable Body & Sticky Footer -->
         <form id="editBirthForm" method="POST" action="" enctype="multipart/form-data" class="flex flex-col flex-1 min-h-0 overflow-hidden">
+            <input type="hidden" name="force_save" id="editBirthForceSave" value="0">
             <!-- Scrollable Body -->
             <div class="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1 custom-scrollbar">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1047,31 +1049,6 @@
 <script>
 let currentEditBirthId = 0;
 
-function openAddBirthModal() {
-    const form = document.getElementById('addBirthForm');
-    if (form) form.reset();
-    const feedback = document.getElementById('addBirthDupFeedback');
-    if (feedback) feedback.innerHTML = '';
-    const certInput = document.getElementById('add_cert_no');
-    const bookInput = document.getElementById('add_book_no');
-    if (certInput) certInput.classList.remove('border-red-500', 'ring-2', 'ring-red-200', 'bg-red-50/30', 'border-emerald-500', 'ring-1', 'ring-emerald-200');
-    if (bookInput) bookInput.classList.remove('border-red-500', 'ring-2', 'ring-red-200', 'bg-red-50/30', 'border-emerald-500', 'ring-1', 'ring-emerald-200');
-    const submitBtn = document.getElementById('addBirthSubmitBtn');
-    if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-    }
-    const label = document.getElementById('add_attachment_label');
-    if (label) label.innerText = 'ចុចទីនេះដើម្បីជ្រើសរើសឯកសារចម្លង (រូបថត ឬ PDF)';
-
-    const modal = document.getElementById('addBirthModal');
-    if (modal) {
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        modal.style.display = 'flex';
-    }
-}
-
 function showBirthModal(modalId) {
     const modal = document.getElementById(modalId);
     if (!modal) return;
@@ -1101,6 +1078,8 @@ function hideBirthModal(modalId) {
 function openAddBirthModal() {
     const form = document.getElementById('addBirthForm');
     if (form) form.reset();
+    const forceSaveInput = document.getElementById('addBirthForceSave');
+    if (forceSaveInput) forceSaveInput.value = '0';
     const feedback = document.getElementById('addBirthDupFeedback');
     if (feedback) feedback.innerHTML = '';
     const certInput = document.getElementById('add_cert_no');
@@ -1110,7 +1089,7 @@ function openAddBirthModal() {
     const submitBtn = document.getElementById('addBirthSubmitBtn');
     if (submitBtn) {
         submitBtn.disabled = false;
-        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'ring-2', 'ring-amber-400');
     }
     const label = document.getElementById('add_attachment_label');
     if (label) label.innerText = 'ចុចទីនេះដើម្បីជ្រើសរើសឯកសារចម្លង (រូបថត ឬ PDF)';
@@ -1177,6 +1156,8 @@ function openEditBirthModal(id, certNo, bookNo, nameKh, nameEn, gender, dob, pob
     if (notesInput) notesInput.value = notes || '';
 
     // Clear duplicate feedback & styles
+    const forceSaveInput = document.getElementById('editBirthForceSave');
+    if (forceSaveInput) forceSaveInput.value = '0';
     const feedback = document.getElementById('editBirthDupFeedback');
     if (feedback) feedback.innerHTML = '';
     if (certInput) certInput.classList.remove('border-red-500', 'ring-2', 'ring-red-200', 'bg-red-50/30', 'border-emerald-500', 'ring-1', 'ring-emerald-200');
@@ -1184,7 +1165,7 @@ function openEditBirthModal(id, certNo, bookNo, nameKh, nameEn, gender, dob, pob
     const submitBtn = document.getElementById('editBirthSubmitBtn');
     if (submitBtn) {
         submitBtn.disabled = false;
-        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'ring-2', 'ring-amber-400');
     }
 
     // Reset file input and label

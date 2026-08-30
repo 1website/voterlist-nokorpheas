@@ -291,8 +291,31 @@ def test_birth_certificate_duplicate_check():
     dup_count = db.query(BirthCertificate).filter(BirthCertificate.certificate_no == test_cert_dup).count()
     assert dup_count == 1
 
-    # Clean up
-    db.delete(original)
+    # 6. Try creating duplicate record WITH force_save="1" -> should succeed!
+    res_create_force = client.post(
+        "/birth-certificates/create",
+        data={
+            "certificate_no": test_cert_dup,
+            "book_no": test_book_dup,
+            "name_kh": "អ្នកថ្មី អនុញ្ញាតស្ទួន",
+            "name_en": "NEW PERSON ALLOW DUP",
+            "gender": "ស្រី",
+            "dob": "2008-06-20",
+            "village_id": village.id,
+            "force_save": "1"
+        },
+        cookies=cookies,
+        follow_redirects=False
+    )
+    assert res_create_force.status_code == 302
+    assert "msg=" in res_create_force.headers["location"]
+
+    # Verify both records now exist
+    dup_count_after_force = db.query(BirthCertificate).filter(BirthCertificate.certificate_no == test_cert_dup).count()
+    assert dup_count_after_force == 2
+
+    # Clean up all created test records
+    db.query(BirthCertificate).filter(BirthCertificate.certificate_no == test_cert_dup).delete()
     db.commit()
     db.close()
 
