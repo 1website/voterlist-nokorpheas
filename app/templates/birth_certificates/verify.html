@@ -167,9 +167,14 @@
                     <span class="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold flex items-center gap-1">
                         <span>🎂</span> <span>ថ្ងៃខែឆ្នាំកំណើត</span>
                     </span>
-                    <div class="mt-0.5">
-                        <strong class="font-mono text-sm text-slate-900 dark:text-slate-100 font-bold">{{ record.dob }}</strong>
-                        <span class="text-xs text-indigo-700 dark:text-sky-300 font-semibold ml-2">({{ record.age }} ឆ្នាំ)</span>
+                    <div class="mt-1">
+                        <strong class="text-xs sm:text-sm text-slate-900 dark:text-white font-bold block font-kh-heading leading-relaxed">
+                            {{ record.dob_khmer }}
+                        </strong>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="font-mono text-[11px] text-slate-500 dark:text-slate-400 font-semibold">{{ record.dob }}</span>
+                            <span class="text-[10px] font-bold text-indigo-700 dark:text-sky-300 bg-indigo-50 dark:bg-indigo-950/70 px-2 py-0.5 rounded-md border border-indigo-200 dark:border-indigo-800/60">អាយុ {{ record.age }} ឆ្នាំ</span>
+                        </div>
                     </div>
                 </div>
                 <div class="p-3 bg-slate-50 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700">

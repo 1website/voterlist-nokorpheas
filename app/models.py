@@ -2,7 +2,7 @@ import datetime
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from app.database import Base
-from app.timezone_utils import get_cambodia_now
+from app.timezone_utils import get_cambodia_now, format_khmer_date
 
 class Village(Base):
     __tablename__ = "villages"
@@ -137,6 +137,11 @@ class Voter(Base):
                 "type": "new",
                 "year": yr
             }
+
+    @property
+    def dob_khmer(self):
+        """Returns official formatted Khmer date (e.g. ថ្ងៃ សុក្រ ទី ០២ ខែ មករា ឆ្នាំ ២០២៦)"""
+        return format_khmer_date(self.dob)
 
     @property
     def photo_display(self):
@@ -315,6 +320,16 @@ class BirthCertificate(Base):
         else:
             idx = ((self.id or 1) % 4) + 1
             return f"/static/images/avatars/male_{idx}.jpg"
+
+    @property
+    def dob_khmer(self):
+        """Returns official formatted Khmer date (e.g. ថ្ងៃ សុក្រ ទី ០២ ខែ មករា ឆ្នាំ ២០២៦)"""
+        return format_khmer_date(self.dob)
+
+    @property
+    def registered_date_khmer(self):
+        """Returns official formatted Khmer registered date"""
+        return format_khmer_date(self.registered_date_effective)
 
     @property
     def age(self):

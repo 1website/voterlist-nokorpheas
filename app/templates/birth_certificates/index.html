@@ -1402,7 +1402,7 @@ function displayBirthQrResult(r) {
     document.getElementById('bqrNameKh').textContent = r.name_kh;
     document.getElementById('bqrNameEn').textContent = r.name_en || '---';
     document.getElementById('bqrGender').textContent = r.gender;
-    document.getElementById('bqrDob').textContent = `${r.dob} (${r.age} ឆ្នាំ)`;
+    document.getElementById('bqrDob').textContent = r.dob_khmer ? `${r.dob_khmer} (${r.dob}) • អាយុ ${r.age} ឆ្នាំ` : `${r.dob} (${r.age} ឆ្នាំ)`;
     document.getElementById('bqrPob').textContent = r.pob || '---';
     document.getElementById('bqrParents').textContent = `${r.father_name || '---'} / ${r.mother_name || '---'}`;
     document.getElementById('bqrVillage').textContent = `${r.village_name} (${r.village_code})`;

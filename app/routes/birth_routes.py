@@ -1045,6 +1045,7 @@ def api_lookup_birth_qr(
             "name_en": record.name_en or "",
             "gender": record.gender,
             "dob": record.dob,
+            "dob_khmer": record.dob_khmer,
             "age": record.age,
             "pob": record.pob or "",
             "father_name": record.father_name or "",

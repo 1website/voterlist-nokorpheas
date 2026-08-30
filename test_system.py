@@ -362,6 +362,8 @@ def run_tests():
     assert res_b_verify.status_code == 200
     assert "ផ្ទាំងផ្ទៀងផ្ទាត់សំបុត្រកំណើតឌីជីថល" in res_b_verify.text
     assert "រដ្ឋបាលឃុំនគរភាស" in res_b_verify.text
+    assert "ថ្ងៃខែឆ្នាំកំណើត" in res_b_verify.text
+    assert "ឆ្នាំ" in res_b_verify.text
 
     # B. API Lookup QR by ID & by Certificate Number (/api/birth-certificates/lookup-qr)
     res_b_lookup = client.get("/api/birth-certificates/lookup-qr?code=1")
@@ -370,6 +372,8 @@ def run_tests():
     assert b_data["found"] == True
     assert "name_kh" in b_data["record"]
     assert "certificate_no" in b_data["record"]
+    assert "dob_khmer" in b_data["record"]
+    assert "ឆ្នាំ" in b_data["record"]["dob_khmer"]
 
     # C. Printable Card with dynamic QR (/birth-certificates/1/print-card)
     res_b_card = client.get("/birth-certificates/1/print-card")
