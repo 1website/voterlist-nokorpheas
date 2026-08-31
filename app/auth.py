@@ -1,3 +1,4 @@
+import os
 import hashlib
 import secrets
 from typing import Optional
@@ -6,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import User
 
-SECRET_SALT = "nokor_pheas_voter_system_salt_2026"
+SECRET_SALT = os.getenv("SECRET_SALT", "nokor_pheas_voter_system_salt_2026")
 
 def hash_password(password: str) -> str:
     return hashlib.sha256((password + SECRET_SALT).encode('utf-8')).hexdigest()

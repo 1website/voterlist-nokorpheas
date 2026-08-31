@@ -77,13 +77,22 @@ def logout(request: Request, db: Session = Depends(get_db)):
 
 @router.get("/switch-user/{username}")
 def switch_user(username: str, request: Request, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.username == username).first()
-    if user and user.is_active:
-        request.session["user_id"] = user.id
-        request.session["username"] = user.username
-        request.session["role"] = user.role
-        request.session["full_name"] = user.full_name
-        log_activity(db, user, "SWITCH_USER", f"បានប្តូរទៅកាន់គណនី '{user.full_name}' ({user.role})", "auth", str(user.id), "info", request=request)
-        if user.role == "viewer":
-            return RedirectResponse(url="/reports", status_code=302)
+    current_user = get_current_user_optional(request, db)
+    if not current_user or current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="សិទ្ធិត្រូវបានបដិសេធ: មានតែ Admin ប៉ុណ្ណោះដែលអាចប្រើប្រាស់មុខងារប្តូរគណនីបាន"
+        )
+    
+    target_user = db.query(User).filter(User.username == username).first()
+    if not target_user or not target_user.is_active:
+        raise HTTPException(status_code=404, detail="រកមិនឃើញគណនី ឬគណនីត្រូវបានផ្អាក")
+
+    request.session["user_id"] = target_user.id
+    request.session["username"] = target_user.username
+    request.session["role"] = target_user.role
+    request.session["full_name"] = target_user.full_name
+    log_activity(db, current_user, "SWITCH_USER", f"Admin '{current_user.full_name}' បានប្តូរទៅកាន់គណនី '{target_user.full_name}' ({target_user.role})", "auth", str(target_user.id), "warning", request=request)
+    if target_user.role == "viewer":
+        return RedirectResponse(url="/reports", status_code=302)
     return RedirectResponse(url="/dashboard", status_code=302)

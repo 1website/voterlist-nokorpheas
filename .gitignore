@@ -1,10 +1,43 @@
+# Python bytecode & cache
 __pycache__/
 *.py[cod]
 *$py.class
+*.so
+.pytest_cache/
+
+# Databases (Do NOT commit runtime/local databases)
+*.db
+*.db-journal
+*.sqlite
 *.sqlite3
+voter_list.db
+
+# Environment Variables & Secrets
 .env
+.env.*
+!.env.example
+
+# Virtual Environments
 venv/
 env/
+ENV/
+.venv/
+
+# IDE / Editor config
 .vscode/
 .idea/
+*.swp
+*.swo
+
+# Backups and temporary files
 backups/
+scratch/
+*.log
+
+# Runtime Uploads (Preserve directory structure via .gitkeep)
+app/static/uploads/voters/*
+!app/static/uploads/voters/.gitkeep
+app/static/uploads/birth_certificates/*
+!app/static/uploads/birth_certificates/.gitkeep
+app/static/uploads/users/*
+!app/static/uploads/users/.gitkeep

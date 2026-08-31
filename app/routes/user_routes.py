@@ -93,7 +93,9 @@ async def update_user_profile(
             raise HTTPException(status_code=400, detail="ការបញ្ជាក់ពាក្យសម្ងាត់ថ្មីមិនត្រូវគ្នាទេ")
         
         # Verify current password
-        if current_password.strip() and not verify_password(current_password.strip(), user.password_hash):
+        if not current_password or not current_password.strip():
+            raise HTTPException(status_code=400, detail="សូមបញ្ចូលពាក្យសម្ងាត់ចាស់ (Current Password) ដើម្បីផ្ទៀងផ្ទាត់")
+        if not verify_password(current_password.strip(), user.password_hash):
             raise HTTPException(status_code=400, detail="ពាក្យសម្ងាត់ចាស់មិនត្រឹមត្រូវទេ")
 
         user.password_hash = hash_password(new_password.strip())

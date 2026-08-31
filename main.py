@@ -64,12 +64,18 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Environment & Security Configuration
+SECRET_KEY = os.getenv("SECRET_KEY", "nokor_pheas_commune_election_secret_key_2026")
+IS_PRODUCTION = os.getenv("ENVIRONMENT", "").lower() == "production" or bool(os.getenv("RAILWAY_ENVIRONMENT") or os.getenv("RENDER") or os.getenv("VERCEL"))
+
 # Add Session Middleware
 app.add_middleware(
     SessionMiddleware, 
-    secret_key="nokor_pheas_commune_election_secret_key_2026",
+    secret_key=SECRET_KEY,
     session_cookie="nokor_pheas_session",
-    max_age=86400 # 24 hours
+    max_age=86400, # 24 hours
+    https_only=IS_PRODUCTION,
+    same_site="lax"
 )
 
 # Prevent stale HTML caching in client browsers
