@@ -589,6 +589,151 @@
             });
         }
     </script>
+
+    {% if current_user %}
+    <!-- ========================================================================= -->
+    <!-- SESSION IDLE TIMEOUT WARNING MODAL (ការរំលឹកសុវត្ថិភាពពេលទុកចោល) -->
+    <!-- ========================================================================= -->
+    <div id="sessionTimeoutModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md hidden transition-opacity duration-300">
+        <div class="bg-white dark:bg-slate-900 border border-amber-300/60 dark:border-amber-500/40 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl text-center transform scale-95 transition-transform duration-300" id="sessionTimeoutCard">
+            <div class="w-16 h-16 rounded-2xl bg-amber-100 dark:bg-amber-950/70 border border-amber-300 dark:border-amber-700/60 flex items-center justify-center mx-auto mb-4 text-3xl shadow-lg shadow-amber-500/15 animate-bounce">
+                ⏳
+            </div>
+            <h3 class="text-lg sm:text-xl font-bold text-slate-800 dark:text-white font-kh-heading mb-2">
+                ការជូនដំណឹងអំពីសុវត្ថិភាព
+            </h3>
+            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
+                លោកអ្នកពុំមានសកម្មភាពលើប្រព័ន្ធរយៈពេល <span class="font-bold text-slate-800 dark:text-amber-300">១៤ នាទី</span> ហើយ! ដើម្បីការពារសុវត្ថិភាព ប្រព័ន្ធនឹងចាកចេញស្វ័យប្រវត្តិក្នងរយៈពេល៖
+            </p>
+            
+            <div class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800/60 text-amber-900 dark:text-amber-300 font-mono font-bold text-2xl sm:text-3xl mb-6 shadow-inner">
+                <span id="idleCountdownText">60</span>
+                <span class="text-xs font-kh-bold text-amber-700 dark:text-amber-400">វិនាទី</span>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-2.5">
+                <button type="button" onclick="extendSession()" class="flex-1 py-3 px-4 bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-800 hover:to-indigo-800 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 text-xs sm:text-sm transition transform active:scale-95 flex items-center justify-center gap-2 font-kh-bold">
+                    <span>✅</span>
+                    <span>នៅបន្តប្រើប្រាស់</span>
+                </button>
+                <a href="/logout" class="py-3 px-4 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-xl text-xs sm:text-sm transition flex items-center justify-center gap-1.5 font-kh-bold">
+                    <span>🚪</span>
+                    <span>ចាកចេញ</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Client-Side Inactivity Monitor Script -->
+    <script>
+        (function () {
+            const IDLE_LIMIT = 900;     // 15 minutes = 900 seconds
+            const WARNING_TIME = 60;    // Show warning 60s before timeout (at 840s)
+            let idleSeconds = 0;
+            let countdownInterval = null;
+            let isWarningShown = false;
+
+            function resetIdle() {
+                if (isWarningShown) return;
+                idleSeconds = 0;
+                try {
+                    localStorage.setItem('np_user_last_active', Date.now().toString());
+                } catch (e) {}
+            }
+
+            // Listen for cross-tab activity
+            window.addEventListener('storage', function (e) {
+                if (e.key === 'np_user_last_active') {
+                    idleSeconds = 0;
+                    if (isWarningShown) {
+                        window.extendSession();
+                    }
+                }
+            });
+
+            // Activity event listeners
+            const activityEvents = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'];
+            let throttleTimeout = null;
+            activityEvents.forEach(function (evt) {
+                window.addEventListener(evt, function () {
+                    if (!throttleTimeout) {
+                        throttleTimeout = setTimeout(function () {
+                            resetIdle();
+                            throttleTimeout = null;
+                        }, 1000);
+                    }
+                }, { passive: true });
+            });
+
+            // Tick every 1 second
+            setInterval(function () {
+                idleSeconds++;
+
+                // Show warning popup 60 seconds before timeout
+                if (idleSeconds >= (IDLE_LIMIT - WARNING_TIME) && !isWarningShown) {
+                    showTimeoutWarning();
+                }
+
+                // Full auto-logout when limit is reached
+                if (idleSeconds >= IDLE_LIMIT) {
+                    window.location.href = '/logout?reason=timeout';
+                }
+            }, 1000);
+
+            function showTimeoutWarning() {
+                isWarningShown = true;
+                const modal = document.getElementById('sessionTimeoutModal');
+                const card = document.getElementById('sessionTimeoutCard');
+                if (modal && card) {
+                    modal.classList.remove('hidden');
+                    setTimeout(function () {
+                        card.classList.remove('scale-95');
+                        card.classList.add('scale-100');
+                    }, 20);
+                }
+
+                let remaining = WARNING_TIME;
+                const countdownEl = document.getElementById('idleCountdownText');
+                if (countdownEl) countdownEl.innerText = remaining;
+
+                if (countdownInterval) clearInterval(countdownInterval);
+                countdownInterval = setInterval(function () {
+                    remaining--;
+                    if (countdownEl) countdownEl.innerText = Math.max(0, remaining);
+                    if (remaining <= 0) {
+                        clearInterval(countdownInterval);
+                        window.location.href = '/logout?reason=timeout';
+                    }
+                }, 1000);
+            }
+
+            window.extendSession = function () {
+                fetch('/api/keep-alive', { method: 'POST', credentials: 'same-origin' })
+                    .then(function (res) { return res.json(); })
+                    .catch(function () {});
+
+                isWarningShown = false;
+                idleSeconds = 0;
+                if (countdownInterval) clearInterval(countdownInterval);
+
+                try {
+                    localStorage.setItem('np_user_last_active', Date.now().toString());
+                } catch (e) {}
+
+                const modal = document.getElementById('sessionTimeoutModal');
+                const card = document.getElementById('sessionTimeoutCard');
+                if (modal && card) {
+                    card.classList.remove('scale-100');
+                    card.classList.add('scale-95');
+                    setTimeout(function () {
+                        modal.classList.add('hidden');
+                    }, 200);
+                }
+            };
+        })();
+    </script>
+    {% endif %}
+
     {% block scripts %}{% endblock %}
 </body>
 

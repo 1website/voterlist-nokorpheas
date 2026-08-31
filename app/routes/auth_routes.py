@@ -14,6 +14,8 @@ router = APIRouter()
 templates_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "templates")
 templates = Jinja2Templates(directory=templates_path)
 
+import time
+
 @router.get("/login", response_class=HTMLResponse)
 def login_page(request: Request, db: Session = Depends(get_db)):
     current_user = get_current_user_optional(request, db)
@@ -22,6 +24,11 @@ def login_page(request: Request, db: Session = Depends(get_db)):
             return RedirectResponse(url="/reports", status_code=302)
         return RedirectResponse(url="/dashboard", status_code=302)
     
+    reason = request.query_params.get("reason", "")
+    timeout_notice = None
+    if reason == "timeout":
+        timeout_notice = "លោកអ្នកត្រូវបានចាកចេញពីប្រព័ន្ធដោយស្វ័យប្រវត្តិ ដោយសារពុំមានសកម្មភាពរយៈពេល ១៥ នាទី ដើម្បីការពារសុវត្ថិភាពទិន្នន័យ។"
+
     # Fetch sample accounts for quick-login demo buttons
     admin_user = db.query(User).filter(User.role == "admin").first()
     officer_sample = db.query(User).filter(User.role == "officer").first()
@@ -31,7 +38,8 @@ def login_page(request: Request, db: Session = Depends(get_db)):
         "admin_user": admin_user,
         "officer_sample": officer_sample,
         "chief_sample": chief_sample,
-        "error": None
+        "error": None,
+        "timeout_notice": timeout_notice
     })
 
 @router.post("/login")
@@ -65,6 +73,7 @@ def login_post(
     request.session["username"] = user.username
     request.session["role"] = user.role
     request.session["full_name"] = user.full_name
+    request.session["last_activity"] = int(time.time())
 
     log_activity(db, user, "LOGIN", f"បានចូលប្រើប្រាស់ប្រព័ន្ធដោយជោគជ័យ ({user.full_name})", "auth", str(user.id), "success", request=request)
 
@@ -72,12 +81,27 @@ def login_post(
         return RedirectResponse(url="/reports", status_code=303)
     return RedirectResponse(url="/dashboard", status_code=303)
 
+@router.get("/api/keep-alive")
+@router.post("/api/keep-alive")
+def keep_alive(request: Request, db: Session = Depends(get_db)):
+    current_user = get_current_user_optional(request, db)
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Session expired")
+    request.session["last_activity"] = int(time.time())
+    return {"status": "active", "username": current_user.username, "timestamp": int(time.time())}
+
 @router.get("/logout")
 def logout(request: Request, db: Session = Depends(get_db)):
     current_user = get_current_user_optional(request, db)
+    reason = request.query_params.get("reason", "")
     if current_user:
-        log_activity(db, current_user, "LOGOUT", f"បានចាកចេញពីប្រព័ន្ធ ({current_user.full_name})", "auth", str(current_user.id), "info", request=request)
+        log_desc = f"បានចាកចេញពីប្រព័ន្ធ ({current_user.full_name})"
+        if reason == "timeout":
+            log_desc = f"ប្រព័ន្ធបាន Auto-Logout ដោយសារពុំមានសកម្មភាព ({current_user.full_name})"
+        log_activity(db, current_user, "LOGOUT", log_desc, "auth", str(current_user.id), "info", request=request)
     request.session.clear()
+    if reason == "timeout":
+        return RedirectResponse(url="/login?reason=timeout", status_code=302)
     return RedirectResponse(url="/login", status_code=302)
 
 @router.get("/switch-user/{username}")

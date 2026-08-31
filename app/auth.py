@@ -23,10 +23,28 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         return True
     return False
 
+# Session Idle Timeout (Default 15 minutes = 900 seconds)
+SESSION_TIMEOUT_SECONDS = int(os.getenv("SESSION_TIMEOUT_SECONDS", "900"))
+
 def get_current_user_optional(request: Request, db: Session = Depends(get_db)) -> Optional[User]:
-    user_id = request.session.get("user_id") if hasattr(request, "session") else None
+    if not hasattr(request, "session"):
+        return None
+    user_id = request.session.get("user_id")
     if not user_id:
         return None
+
+    import time
+    now = int(time.time())
+    last_activity = request.session.get("last_activity")
+
+    # Check idle timeout (clear session if exceeded)
+    if last_activity and (now - last_activity > SESSION_TIMEOUT_SECONDS):
+        request.session.clear()
+        return None
+
+    # Update last activity timestamp
+    request.session["last_activity"] = now
+
     user = db.query(User).filter(User.id == user_id, User.is_active == True).first()
     return user
 
