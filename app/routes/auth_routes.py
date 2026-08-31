@@ -49,6 +49,11 @@ def login_post(
             "username": username
         }, status_code=400)
 
+    # Seamlessly migrate legacy hash to new SECRET_SALT if needed
+    if user.password_hash != hash_password(password):
+        user.password_hash = hash_password(password)
+        db.commit()
+
     if not user.is_active:
         log_activity(db, user, "LOGIN_BLOCKED", f"គណនីត្រូវបានផ្អាកដំណើរការ: '{username}'", "auth", action_type="warning", request=request)
         return templates.TemplateResponse(request=request, name="login.html", context={

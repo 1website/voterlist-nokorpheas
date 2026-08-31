@@ -7,13 +7,21 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import User
 
-SECRET_SALT = os.getenv("SECRET_SALT", "nokor_pheas_voter_system_salt_2026")
+LEGACY_SALT = "nokor_pheas_voter_system_salt_2026"
+SECRET_SALT = os.getenv("SECRET_SALT", LEGACY_SALT)
 
-def hash_password(password: str) -> str:
-    return hashlib.sha256((password + SECRET_SALT).encode('utf-8')).hexdigest()
+def hash_password(password: str, salt: Optional[str] = None) -> str:
+    use_salt = salt if salt is not None else SECRET_SALT
+    return hashlib.sha256((password + use_salt).encode('utf-8')).hexdigest()
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return hash_password(plain_password) == hashed_password
+    # 1. Primary check with current configured SECRET_SALT
+    if hash_password(plain_password, SECRET_SALT) == hashed_password:
+        return True
+    # 2. Fallback check with default legacy salt (in case SECRET_SALT was added after initial database seeding)
+    if SECRET_SALT != LEGACY_SALT and hash_password(plain_password, LEGACY_SALT) == hashed_password:
+        return True
+    return False
 
 def get_current_user_optional(request: Request, db: Session = Depends(get_db)) -> Optional[User]:
     user_id = request.session.get("user_id") if hasattr(request, "session") else None
