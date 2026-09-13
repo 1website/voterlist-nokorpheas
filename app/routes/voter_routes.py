@@ -59,6 +59,7 @@ def voter_list_page(
     station_id: str = Query("", description="Station filter"),
     status_filter: str = Query("", description="Status filter"),
     gender_filter: str = Query("", description="Gender filter"),
+    age_group: str = Query("", description="Age group filter: youth, adult, elderly"),
     voted_filter: str = Query("", description="Voted filter (all, voted, not_voted)"),
     date_created: str = Query("", description="Registration date filter YYYY-MM-DD"),
     reg_type_filter: str = Query("", description="Registration type filter (new, legacy, transferred)"),
@@ -193,6 +194,24 @@ def voter_list_page(
     if effective_reg_year and effective_reg_year.isdigit():
         query = query.filter(Voter.reg_year == int(effective_reg_year))
 
+    # Age group filter (youth: 18-35, adult: 36-59, elderly: 60+)
+    if age_group:
+        current_year = get_cambodia_now().year
+        if age_group == "youth":
+            # 18 - 35 years old
+            min_y = current_year - 35
+            max_y = current_year - 18
+            query = query.filter(Voter.dob.isnot(None), Voter.dob >= str(min_y), Voter.dob < str(max_y + 1))
+        elif age_group == "adult":
+            # 36 - 59 years old
+            min_y = current_year - 59
+            max_y = current_year - 36
+            query = query.filter(Voter.dob.isnot(None), Voter.dob >= str(min_y), Voter.dob < str(max_y + 1))
+        elif age_group == "elderly":
+            # 60+ years old
+            max_y = current_year - 60
+            query = query.filter(Voter.dob.isnot(None), Voter.dob >= "1900", Voter.dob < str(max_y + 1))
+
     total_count = query.count()
     total_pages = (total_count + limit - 1) // limit if total_count > 0 else 1
 
@@ -237,6 +256,8 @@ def voter_list_page(
         active_params["reg_type_filter"] = effective_reg_type
     if effective_reg_year:
         active_params["reg_year_filter"] = effective_reg_year
+    if age_group:
+        active_params["age_group"] = age_group
 
     import urllib.parse
     filter_querystring = ("&" + urllib.parse.urlencode(active_params)) if active_params else ""
@@ -253,6 +274,7 @@ def voter_list_page(
         "station_id": station_id,
         "status_filter": status_filter,
         "gender_filter": gender_filter,
+        "age_group": age_group,
         "voted_filter": voted_filter,
         "date_created": date_created,
         "reg_type_filter": effective_reg_type,

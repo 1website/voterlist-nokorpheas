@@ -52,16 +52,74 @@ def dashboard_page(request: Request, db: Session = Depends(get_db)):
         all_status_query = all_status_query.filter(Voter.village_id == user.village_id)
         target_village = db.query(Village).filter(Village.id == user.village_id).first()
 
-    total_active_voters = voter_query.count()
-    total_voted = voter_query.filter(Voter.has_voted == True).count()
+    all_voters = voter_query.all()
+    total_active_voters = len(all_voters)
+    total_voted = len([v for v in all_voters if v.has_voted])
     total_not_voted = total_active_voters - total_voted
     turnout_pct = round((total_voted / total_active_voters * 100), 1) if total_active_voters > 0 else 0.0
 
     # Gender breakdown
-    male_count = voter_query.filter(Voter.gender == "ប្រុស").count()
-    female_count = voter_query.filter(Voter.gender == "ស្រី").count()
-    male_voted = voter_query.filter(Voter.gender == "ប្រុស", Voter.has_voted == True).count()
-    female_voted = voter_query.filter(Voter.gender == "ស្រី", Voter.has_voted == True).count()
+    male_count = len([v for v in all_voters if v.gender == "ប្រុស"])
+    female_count = len([v for v in all_voters if v.gender == "ស្រី"])
+    male_voted = len([v for v in all_voters if v.gender == "ប្រុស" and v.has_voted])
+    female_voted = len([v for v in all_voters if v.gender == "ស្រី" and v.has_voted])
+
+    # Age Demographics Breakdown (យុវជន ១៨-៣៥, វ័យកណ្តាល ៣៦-៥៩, មនុស្សចាស់ ៦០+)
+    youth_list = []
+    adult_list = []
+    elderly_list = []
+    unknown_age_list = []
+    total_age_sum = 0
+    valid_age_count = 0
+
+    for v in all_voters:
+        age = v.calculated_age
+        if age is not None:
+            total_age_sum += age
+            valid_age_count += 1
+            if age <= 35:
+                youth_list.append(v)
+            elif age < 60:
+                adult_list.append(v)
+            else:
+                elderly_list.append(v)
+        else:
+            unknown_age_list.append(v)
+
+    avg_age = round(total_age_sum / valid_age_count, 1) if valid_age_count > 0 else 0
+    tot_v = total_active_voters if total_active_voters > 0 else 1
+
+    age_stats = {
+        "youth": {
+            "count": len(youth_list),
+            "pct": round(len(youth_list) / tot_v * 100, 1),
+            "female": len([v for v in youth_list if v.gender == "ស្រី"]),
+            "male": len([v for v in youth_list if v.gender == "ប្រុស"]),
+            "voted": len([v for v in youth_list if v.has_voted]),
+            "turnout_pct": round(len([v for v in youth_list if v.has_voted]) / len(youth_list) * 100, 1) if youth_list else 0.0,
+        },
+        "adult": {
+            "count": len(adult_list),
+            "pct": round(len(adult_list) / tot_v * 100, 1),
+            "female": len([v for v in adult_list if v.gender == "ស្រី"]),
+            "male": len([v for v in adult_list if v.gender == "ប្រុស"]),
+            "voted": len([v for v in adult_list if v.has_voted]),
+            "turnout_pct": round(len([v for v in adult_list if v.has_voted]) / len(adult_list) * 100, 1) if adult_list else 0.0,
+        },
+        "elderly": {
+            "count": len(elderly_list),
+            "pct": round(len(elderly_list) / tot_v * 100, 1),
+            "female": len([v for v in elderly_list if v.gender == "ស្រី"]),
+            "male": len([v for v in elderly_list if v.gender == "ប្រុស"]),
+            "voted": len([v for v in elderly_list if v.has_voted]),
+            "turnout_pct": round(len([v for v in elderly_list if v.has_voted]) / len(elderly_list) * 100, 1) if elderly_list else 0.0,
+        },
+        "unknown": {
+            "count": len(unknown_age_list),
+            "pct": round(len(unknown_age_list) / tot_v * 100, 1),
+        },
+        "average_age": avg_age
+    }
 
     # Status counts
     active_count = all_status_query.filter(Voter.status == "active").count()
@@ -131,6 +189,7 @@ def dashboard_page(request: Request, db: Session = Depends(get_db)):
         "female_count": female_count,
         "male_voted": male_voted,
         "female_voted": female_voted,
+        "age_stats": age_stats,
         "active_count": active_count,
         "moved_count": moved_count,
         "deceased_count": deceased_count,

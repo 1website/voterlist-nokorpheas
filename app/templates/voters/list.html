@@ -43,7 +43,7 @@
 
     <!-- Search & Multi-Filter Filter Bar -->
     <div class="glass-card p-5">
-        <form method="GET" action="/voters" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+        <form method="GET" action="/voters" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
             <!-- Keyword Search -->
             <div class="lg:col-span-2">
                 <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ស្វែងរក (ឈ្មោះ / ID / កូដ)</label>
@@ -72,6 +72,17 @@
                 </select>
             </div>
 
+            <!-- Age Group Filter -->
+            <div>
+                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ក្រុមអាយុ</label>
+                <select name="age_group" class="form-control text-sm py-2">
+                    <option value="">-- គ្រប់អាយុ --</option>
+                    <option value="youth" {% if age_group == 'youth' %}selected{% endif %}>🟢 យុវជន (១៨-៣៥)</option>
+                    <option value="adult" {% if age_group == 'adult' %}selected{% endif %}>🔵 វ័យកណ្តាល (៣៦-៥៩)</option>
+                    <option value="elderly" {% if age_group == 'elderly' %}selected{% endif %}>🟠 មនុស្សចាស់ (៦០+)</option>
+                </select>
+            </div>
+
             <!-- Registration Type Filter & Submit Button -->
             <div class="flex items-end gap-2">
                 <div class="flex-1">
@@ -86,12 +97,39 @@
                 <button type="submit" class="btn btn-primary py-2 px-3 text-sm" title="ស្វែងរក">
                     🔍
                 </button>
-                <a href="/voters" class="btn btn-outline py-2 px-2.5 text-sm hover:bg-slate-100" title="សម្អាតតម្រង">
+                <a href="/voters" class="btn btn-outline py-2 px-2.5 text-sm hover:bg-slate-100 dark:hover:bg-slate-800" title="សម្អាតតម្រង">
                     🔄
                 </a>
             </div>
         </form>
     </div>
+
+    {% if age_group %}
+    <!-- Active Age Filter Indicator -->
+    <div class="flex items-center justify-between px-4 py-2.5 rounded-xl bg-blue-50/90 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 shadow-xs text-sm">
+        <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-base">
+                {% if age_group == 'youth' %}🟢
+                {% elif age_group == 'adult' %}🔵
+                {% elif age_group == 'elderly' %}🟠
+                {% else %}🎯{% endif %}
+            </span>
+            <span class="font-bold text-slate-800 dark:text-slate-100">
+                កំពុងបង្ហាញតាមក្រុមអាយុ៖ 
+                {% if age_group == 'youth' %}យុវជន (១៨ ដល់ ៣៥ ឆ្នាំ)
+                {% elif age_group == 'adult' %}វ័យកណ្តាល (៣៦ ដល់ ៥៩ ឆ្នាំ)
+                {% elif age_group == 'elderly' %}មនុស្សចាស់ (៦០ ឆ្នាំឡើង)
+                {% else %}{{ age_group }}{% endif %}
+            </span>
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800 dark:bg-blue-900/70 dark:text-blue-200 font-mono">
+                សរុប {{ total_count }} នាក់
+            </span>
+        </div>
+        <a href="/voters" class="text-xs text-blue-600 hover:text-blue-800 dark:text-sky-400 dark:hover:text-sky-300 font-bold hover:underline flex items-center gap-1">
+            ✕ បោះបង់តម្រង
+        </a>
+    </div>
+    {% endif %}
 
     <!-- Voter Table -->
     <div class="data-table-container">
@@ -102,7 +140,7 @@
                     <th class="hidden sm:table-cell col-voter-code">កូដអ្នកបោះឆ្នោត</th>
                     <th class="col-national-id">លេខអត្តសញ្ញាណ / ឯ.អ</th>
                     <th class="col-photo-name">រូបថត និង គោត្តនាម-នាម</th>
-                    <th class="col-gender-dob">ភេទ / ថ្ងៃកំណើត</th>
+                    <th class="col-gender-dob">ភេទ / អាយុ / ថ្ងៃកំណើត</th>
                     <th>ភូមិ</th>
                     <th>ការិយាល័យ</th>
                     <th>ស្ថានភាព</th>
@@ -155,8 +193,20 @@
                             </div>
                         </td>
                         <td class="col-gender-dob">
-                            <span class="font-semibold text-slate-700">{{ v.gender }}</span>
-                            <span class="text-xs text-slate-400 block font-mono">{{ v.dob }}</span>
+                            <div class="flex items-center gap-1.5 mb-0.5 flex-wrap">
+                                <span class="font-semibold text-slate-700 dark:text-slate-200">{{ v.gender }}</span>
+                                {% if v.calculated_age is not none %}
+                                <span class="text-xs font-bold text-slate-600 dark:text-slate-300">· {{ v.calculated_age }} ឆ្នាំ</span>
+                                {% endif %}
+                            </div>
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <span class="text-xs text-slate-400 block font-mono">{{ v.dob or '-' }}</span>
+                                {% if v.calculated_age is not none and v.age_group_info.key != 'unknown' %}
+                                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold {{ v.age_group_info.badge_class }}">
+                                    {{ v.age_group_info.short_label }}
+                                </span>
+                                {% endif %}
+                            </div>
                         </td>
                         <td>
                             <span class="text-slate-700 font-medium">{{ v.village.name_kh if v.village else '' }}</span>

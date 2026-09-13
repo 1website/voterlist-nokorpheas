@@ -144,6 +144,148 @@
         </div>
     </div>
 
+    <!-- ========================================================================= -->
+    <!-- Age Demographics Analysis Section (យុវជន • វ័យកណ្តាល • មនុស្សចាស់) -->
+    <!-- ========================================================================= -->
+    <div class="glass-card p-5 sm:p-6 rounded-3xl shadow-lg border border-slate-200/80 dark:border-slate-800">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200 dark:border-slate-800">
+            <div>
+                <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 font-kh-heading">
+                    <span class="text-xl">📊</span> <span>វិភាគប្រជាសាស្ត្រតាមកម្រិតអាយុ (Age Demographics)</span>
+                </h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    ស្ថិតិបែងចែកតាមកម្លាំងយុវជន មនុស្សពេញវ័យ និងមនុស្សចាស់ • អាយុមធ្យមអ្នកបោះឆ្នោត៖ 
+                    <strong class="font-mono text-sm text-blue-700 dark:text-sky-300 font-bold">{{ age_stats.average_age }} ឆ្នាំ</strong>
+                </p>
+            </div>
+            <a href="/voters" class="btn btn-outline text-xs font-bold py-1.5 px-3 rounded-xl flex items-center gap-1.5 self-start sm:self-auto">
+                <span>👥</span> <span>មើលបញ្ជីឈ្មោះទាំងអស់ →</span>
+            </a>
+        </div>
+
+        <!-- Demographic Split Ratio Bar -->
+        <div class="mt-4 mb-5">
+            <div class="flex items-center justify-between text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5 font-kh-heading">
+                <span class="text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> យុវជន ({{ age_stats.youth.pct }}%)
+                </span>
+                <span class="text-blue-700 dark:text-sky-400 flex items-center gap-1">
+                    <span class="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block"></span> វ័យកណ្តាល ({{ age_stats.adult.pct }}%)
+                </span>
+                <span class="text-amber-700 dark:text-amber-400 flex items-center gap-1">
+                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span> មនុស្សចាស់ ({{ age_stats.elderly.pct }}%)
+                </span>
+            </div>
+            <div class="w-full h-3 rounded-full overflow-hidden flex bg-slate-200 dark:bg-slate-800 shadow-inner">
+                <div class="bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-700" style="width: {{ age_stats.youth.pct }}%;" title="យុវជន {{ age_stats.youth.count }} នាក់ ({{ age_stats.youth.pct }}%)"></div>
+                <div class="bg-gradient-to-r from-blue-500 to-indigo-500 transition-all duration-700" style="width: {{ age_stats.adult.pct }}%;" title="វ័យកណ្តាល {{ age_stats.adult.count }} នាក់ ({{ age_stats.adult.pct }}%)"></div>
+                <div class="bg-gradient-to-r from-amber-500 to-orange-500 transition-all duration-700" style="width: {{ age_stats.elderly.pct }}%;" title="មនុស្សចាស់ {{ age_stats.elderly.count }} នាក់ ({{ age_stats.elderly.pct }}%)"></div>
+            </div>
+        </div>
+
+        <!-- 3 Cards Grid for Youth, Adult, Elderly -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- 1. Youth Card (១៨-៣៥) -->
+            <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-emerald-50/90 via-teal-50/50 to-white dark:from-emerald-950/30 dark:via-slate-900 dark:to-slate-900 border-2 border-emerald-200/80 dark:border-emerald-800/60 shadow-sm flex flex-col justify-between hover:shadow-md transition">
+                <div>
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold bg-emerald-100 dark:bg-emerald-900/60 text-emerald-900 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-700 font-kh-heading">
+                            <span>🟢</span> <span>យុវជន (Youth)</span>
+                        </span>
+                        <span class="text-xs font-black font-mono px-2 py-0.5 rounded-lg bg-emerald-200/60 dark:bg-emerald-800/60 text-emerald-900 dark:text-emerald-100">
+                            {{ age_stats.youth.pct }}%
+                        </span>
+                    </div>
+                    <div class="text-[11px] text-slate-500 dark:text-slate-400 font-semibold mb-1">
+                        អាយុ ១៨ ដល់ ៣៥ ឆ្នាំ
+                    </div>
+                    <div class="text-2xl sm:text-3xl font-black text-emerald-800 dark:text-emerald-300 font-mono my-1">
+                        {{ age_stats.youth.count }} <span class="text-xs font-normal text-slate-500 font-sans">នាក់</span>
+                    </div>
+                    <div class="space-y-1.5 mt-3 pt-3 border-t border-emerald-200/60 dark:border-emerald-900/40 text-xs">
+                        <div class="flex items-center justify-between text-slate-700 dark:text-slate-300">
+                            <span>ស្រី / ប្រុស៖</span>
+                            <span class="font-semibold font-mono">ស្រី <strong>{{ age_stats.youth.female }}</strong> | ប្រុស <strong>{{ age_stats.youth.male }}</strong></span>
+                        </div>
+                        <div class="flex items-center justify-between text-slate-700 dark:text-slate-300">
+                            <span>បានបោះឆ្នោត៖</span>
+                            <span class="font-bold text-emerald-700 dark:text-emerald-400 font-mono">{{ age_stats.youth.voted }} នាក់ ({{ age_stats.youth.turnout_pct }}%)</span>
+                        </div>
+                    </div>
+                </div>
+                <a href="/voters?age_group=youth" class="mt-4 w-full py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-bold text-xs text-center shadow-xs transition flex items-center justify-center gap-1.5">
+                    <span>🔍</span> <span>មើលបញ្ជីយុវជន ({{ age_stats.youth.count }}) →</span>
+                </a>
+            </div>
+
+            <!-- 2. Middle-aged / Adult Card (៣៦-៥៩) -->
+            <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-blue-50/90 via-indigo-50/50 to-white dark:from-blue-950/30 dark:via-slate-900 dark:to-slate-900 border-2 border-blue-200/80 dark:border-blue-800/60 shadow-sm flex flex-col justify-between hover:shadow-md transition">
+                <div>
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold bg-blue-100 dark:bg-blue-900/60 text-blue-900 dark:text-blue-200 border border-blue-300 dark:border-blue-700 font-kh-heading">
+                            <span>🔵</span> <span>វ័យកណ្តាល (Adults)</span>
+                        </span>
+                        <span class="text-xs font-black font-mono px-2 py-0.5 rounded-lg bg-blue-200/60 dark:bg-blue-800/60 text-blue-900 dark:text-blue-100">
+                            {{ age_stats.adult.pct }}%
+                        </span>
+                    </div>
+                    <div class="text-[11px] text-slate-500 dark:text-slate-400 font-semibold mb-1">
+                        អាយុ ៣៦ ដល់ ៥៩ ឆ្នាំ
+                    </div>
+                    <div class="text-2xl sm:text-3xl font-black text-blue-800 dark:text-sky-300 font-mono my-1">
+                        {{ age_stats.adult.count }} <span class="text-xs font-normal text-slate-500 font-sans">នាក់</span>
+                    </div>
+                    <div class="space-y-1.5 mt-3 pt-3 border-t border-blue-200/60 dark:border-blue-900/40 text-xs">
+                        <div class="flex items-center justify-between text-slate-700 dark:text-slate-300">
+                            <span>ស្រី / ប្រុស៖</span>
+                            <span class="font-semibold font-mono">ស្រី <strong>{{ age_stats.adult.female }}</strong> | ប្រុស <strong>{{ age_stats.adult.male }}</strong></span>
+                        </div>
+                        <div class="flex items-center justify-between text-slate-700 dark:text-slate-300">
+                            <span>បានបោះឆ្នោត៖</span>
+                            <span class="font-bold text-blue-700 dark:text-sky-400 font-mono">{{ age_stats.adult.voted }} នាក់ ({{ age_stats.adult.turnout_pct }}%)</span>
+                        </div>
+                    </div>
+                </div>
+                <a href="/voters?age_group=adult" class="mt-4 w-full py-2 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-98 text-white font-bold text-xs text-center shadow-xs transition flex items-center justify-center gap-1.5">
+                    <span>🔍</span> <span>មើលបញ្ជីវ័យកណ្តាល ({{ age_stats.adult.count }}) →</span>
+                </a>
+            </div>
+
+            <!-- 3. Elderly Card (៦០+) -->
+            <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-amber-50/90 via-orange-50/50 to-white dark:from-amber-950/30 dark:via-slate-900 dark:to-slate-900 border-2 border-amber-200/80 dark:border-amber-800/60 shadow-sm flex flex-col justify-between hover:shadow-md transition">
+                <div>
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold bg-amber-100 dark:bg-amber-900/60 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-700 font-kh-heading">
+                            <span>🟠</span> <span>មនុស្សចាស់ (Elderly)</span>
+                        </span>
+                        <span class="text-xs font-black font-mono px-2 py-0.5 rounded-lg bg-amber-200/60 dark:bg-amber-800/60 text-amber-900 dark:text-amber-100">
+                            {{ age_stats.elderly.pct }}%
+                        </span>
+                    </div>
+                    <div class="text-[11px] text-slate-500 dark:text-slate-400 font-semibold mb-1">
+                        អាយុ ៦០ ឆ្នាំឡើងទៅ
+                    </div>
+                    <div class="text-2xl sm:text-3xl font-black text-amber-800 dark:text-amber-300 font-mono my-1">
+                        {{ age_stats.elderly.count }} <span class="text-xs font-normal text-slate-500 font-sans">នាក់</span>
+                    </div>
+                    <div class="space-y-1.5 mt-3 pt-3 border-t border-amber-200/60 dark:border-amber-900/40 text-xs">
+                        <div class="flex items-center justify-between text-slate-700 dark:text-slate-300">
+                            <span>ស្រី / ប្រុស៖</span>
+                            <span class="font-semibold font-mono">ស្រី <strong>{{ age_stats.elderly.female }}</strong> | ប្រុស <strong>{{ age_stats.elderly.male }}</strong></span>
+                        </div>
+                        <div class="flex items-center justify-between text-slate-700 dark:text-slate-300">
+                            <span>បានបោះឆ្នោត៖</span>
+                            <span class="font-bold text-amber-700 dark:text-amber-400 font-mono">{{ age_stats.elderly.voted }} នាក់ ({{ age_stats.elderly.turnout_pct }}%)</span>
+                        </div>
+                    </div>
+                </div>
+                <a href="/voters?age_group=elderly" class="mt-4 w-full py-2 px-3 rounded-xl bg-amber-600 hover:bg-amber-700 active:scale-98 text-white font-bold text-xs text-center shadow-xs transition flex items-center justify-center gap-1.5">
+                    <span>🔍</span> <span>មើលបញ្ជីមនុស្សចាស់ ({{ age_stats.elderly.count }}) →</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
     <!-- Charts Row -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6">
         <!-- 1. Station Turnout Chart -->

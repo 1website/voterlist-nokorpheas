@@ -123,6 +123,62 @@ class Voter(Base):
         return len((self.national_id or "").strip()) in [7, 8]
 
     @property
+    def calculated_age(self):
+        if not self.dob:
+            return None
+        try:
+            from app.timezone_utils import get_cambodia_now
+            current_year = get_cambodia_now().year
+            dob_clean = self.dob.strip()
+            if "-" in dob_clean:
+                parts = [int(p) for p in dob_clean.split("-")]
+                if len(parts) >= 1 and parts[0] > 1900:
+                    return max(0, current_year - parts[0])
+            elif len(dob_clean) >= 4 and dob_clean[:4].isdigit():
+                birth_year = int(dob_clean[:4])
+                if birth_year > 1900:
+                    return max(0, current_year - birth_year)
+        except Exception:
+            pass
+        return None
+
+    @property
+    def age_group_info(self):
+        age = self.calculated_age
+        if age is None:
+            return {
+                "key": "unknown",
+                "label": "មិនបានបញ្ជាក់",
+                "short_label": "មិនស្គាល់",
+                "badge_class": "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-300 dark:border-slate-700",
+                "color": "slate"
+            }
+        if age <= 35:
+            return {
+                "key": "youth",
+                "label": "យុវជន (១៨-៣៥ ឆ្នាំ)",
+                "short_label": "យុវជន",
+                "badge_class": "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700",
+                "color": "emerald"
+            }
+        elif age < 60:
+            return {
+                "key": "adult",
+                "label": "វ័យកណ្តាល (៣៦-៥៩ ឆ្នាំ)",
+                "short_label": "វ័យកណ្តាល",
+                "badge_class": "bg-blue-100 text-blue-800 dark:bg-blue-950/80 dark:text-sky-300 border border-blue-300 dark:border-blue-700",
+                "color": "blue"
+            }
+        else:
+            return {
+                "key": "elderly",
+                "label": "មនុស្សចាស់ (៦០ ឆ្នាំឡើង)",
+                "short_label": "មនុស្សចាស់",
+                "badge_class": "bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border border-amber-300 dark:border-amber-700",
+                "color": "amber"
+            }
+
+    @property
     def reg_type_badge(self):
         yr = self.reg_year or 2026
         t = (self.reg_type or "new").lower()
