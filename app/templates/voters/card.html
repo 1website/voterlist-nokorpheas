@@ -85,7 +85,7 @@
                 </div>
 
                 <div class="text-xs">
-                    <span class="text-slate-500">លេខអត្តសញ្ញាណប័ណ្ណ៖</span>
+                    <span class="text-slate-500">{% if voter.national_id|length == 8 %}អត្តលេខ-ឯ.អ៖{% else %}លេខអត្តសញ្ញាណប័ណ្ណ៖{% endif %}</span>
                     <p class="font-mono font-bold text-slate-900 text-xs tracking-wide">{{ voter.national_id }}</p>
                 </div>
 

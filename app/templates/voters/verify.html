@@ -132,12 +132,12 @@
 
                 <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
                     <span class="text-slate-500 font-semibold block mb-0.5">
-                        លេខអត្តសញ្ញាណប័ណ្ណ / ឯកសារបញ្ជាក់៖
+                        {% if voter.national_id|length == 8 %}អត្តលេខ-ឯ.អ (ឯកសារបញ្ជាក់អត្តសញ្ញាណ)៖{% else %}លេខអត្តសញ្ញាណប័ណ្ណ៖{% endif %}
                     </span>
                     <div class="flex items-center justify-between">
                         <strong class="font-mono text-base font-black text-blue-900 tracking-wider">{{ voter.national_id }}</strong>
-                        <span class="text-[11px] px-2 py-0.5 rounded-full {% if voter.national_id|length == 9 %}bg-blue-100 text-blue-900 font-bold{% else %}bg-emerald-100 text-emerald-900 font-bold{% endif %}">
-                            {% if voter.national_id|length == 9 %}🪪 អត្តសញ្ញាណប័ណ្ណ (៩ ខ្ទង់){% else %}📄 ឯកសារបញ្ជាក់ (៧ ខ្ទង់){% endif %}
+                        <span class="text-[11px] px-2 py-0.5 rounded-full {% if voter.national_id|length == 9 %}bg-blue-100 text-blue-900 font-bold{% elif voter.national_id|length == 8 %}bg-emerald-100 text-emerald-900 font-bold{% else %}bg-slate-100 text-slate-800 font-semibold{% endif %}">
+                            {% if voter.national_id|length == 9 %}🪪 លេខអត្តសញ្ញាណប័ណ្ណ (៩ ខ្ទង់){% elif voter.national_id|length == 8 %}📄 អត្តលេខ-ឯ.អ (៨ ខ្ទង់){% else %}📄 ឯកសារបញ្ជាក់{% endif %}
                         </span>
                     </div>
                 </div>

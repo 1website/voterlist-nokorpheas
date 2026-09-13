@@ -28,7 +28,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 def sanitize_national_id_backend(raw_id: str) -> str:
     if not raw_id:
-        raise HTTPException(status_code=400, detail="សូមបញ្ចូលលេខអត្តសញ្ញាណប័ណ្ណ ឬឯកសារបញ្ជាក់អត្តសញ្ញាណ")
+        raise HTTPException(status_code=400, detail="សូមបញ្ចូលលេខអត្តសញ្ញាណប័ណ្ណ ឬអត្តលេខ-ឯ.អ")
     # Convert Khmer numerals ០-៩ to 0-9
     khmer_map = str.maketrans("០១២៣៤៥៦៧៨៩", "0123456789")
     converted = raw_id.strip().translate(khmer_map)
@@ -39,10 +39,10 @@ def sanitize_national_id_backend(raw_id: str) -> str:
             status_code=400,
             detail="លេខអត្តសញ្ញាណត្រូវតែជាលេខ (0-9) តែប៉ុណ្ណោះ មិនអនុញ្ញាតអក្សរ ឬនិមិត្តសញ្ញាឡើយ"
         )
-    if len(clean) not in [7, 9]:
+    if len(clean) not in [7, 8, 9]:
         raise HTTPException(
             status_code=400,
-            detail=f"លេខឯកសារមិនត្រឹមត្រូវ ({len(clean)} ខ្ទង់)៖ ប្រព័ន្ធអនុញ្ញាតលេខ ៩ ខ្ទង់ (អត្តសញ្ញាណប័ណ្ណសញ្ជាតិខ្មែរ) ឬ ៧ ខ្ទង់ (ឯកសារបញ្ជាក់អត្តសញ្ញាណ)"
+            detail=f"លេខឯកសារមិនត្រឹមត្រូវ ({len(clean)} ខ្ទង់)៖ ប្រព័ន្ធអនុញ្ញាតលេខ ៨ ខ្ទង់ (អត្តលេខ-ឯ.អ) ឬ ៩ ខ្ទង់ (លេខអត្តសញ្ញាណប័ណ្ណ)"
         )
     return clean
 
@@ -274,6 +274,7 @@ def check_duplicate_national_id(
     except HTTPException:
         clean_id = national_id.strip()
 
+    doc_type_name = "អត្តលេខ-ឯ.អ" if len(clean_id) == 8 else ("លេខអត្តសញ្ញាណប័ណ្ណ" if len(clean_id) == 9 else "ឯកសារបញ្ជាក់អត្តសញ្ញាណ")
     query = db.query(Voter).filter(Voter.national_id == clean_id)
     if exclude_id > 0:
         query = query.filter(Voter.id != exclude_id)
@@ -284,7 +285,9 @@ def check_duplicate_national_id(
         details = " • ".join(filter(None, [existing.voter_code, v_name, s_name]))
         return {
             "duplicate": True,
-            "message": f"លេខអត្តសញ្ញាណប័ណ្ណ '{clean_id}' ត្រូវបានចុះឈ្មោះដោយឈ្មោះ '{existing.name_kh}' ({details}) រួចហើយ!",
+            "doc_type": "cert_election" if len(clean_id) == 8 else "national_id",
+            "doc_label": doc_type_name,
+            "message": f"{doc_type_name} '{clean_id}' ត្រូវបានចុះឈ្មោះដោយឈ្មោះ '{existing.name_kh}' ({details}) រួចហើយ!",
             "voter": {
                 "id": existing.id,
                 "name_kh": existing.name_kh,
@@ -293,7 +296,12 @@ def check_duplicate_national_id(
                 "station_name": existing.station.name if existing.station else ""
             }
         }
-    return {"duplicate": False, "message": "លេខអត្តសញ្ញាណប័ណ្ណត្រឹមត្រូវ (អាចប្រើប្រាស់បាន)"}
+    return {
+        "duplicate": False,
+        "doc_type": "cert_election" if len(clean_id) == 8 else "national_id",
+        "doc_label": doc_type_name,
+        "message": f"{doc_type_name} ត្រឹមត្រូវ (អាចប្រើប្រាស់បាន)"
+    }
 
 @router.get("/api/avatars")
 def get_avatar_presets():
@@ -370,9 +378,10 @@ def create_voter(
     # Check duplicate national ID
     existing = db.query(Voter).filter(Voter.national_id == clean_id).first()
     if existing and force_save != "1":
+        doc_name = "អត្តលេខ-ឯ.អ" if len(clean_id) == 8 else ("លេខអត្តសញ្ញាណប័ណ្ណ" if len(clean_id) == 9 else "ឯកសារបញ្ជាក់អត្តសញ្ញាណ")
         raise HTTPException(
             status_code=400,
-            detail=f"លេខអត្តសញ្ញាណប័ណ្ណ '{clean_id}' ត្រូវបានចុះឈ្មោះរួចហើយសម្រាប់ឈ្មោះ {existing.name_kh}"
+            detail=f"{doc_name} '{clean_id}' ត្រូវបានចុះឈ្មោះរួចហើយសម្រាប់ឈ្មោះ {existing.name_kh}"
         )
 
     # Get station to determine station code & next list_no
@@ -603,9 +612,10 @@ def update_voter(
     # Check duplicate ID
     duplicate = db.query(Voter).filter(Voter.national_id == clean_id, Voter.id != voter_id).first()
     if duplicate and force_save != "1":
+        doc_name = "អត្តលេខ-ឯ.អ" if len(clean_id) == 8 else ("លេខអត្តសញ្ញាណប័ណ្ណ" if len(clean_id) == 9 else "ឯកសារបញ្ជាក់អត្តសញ្ញាណ")
         raise HTTPException(
             status_code=400,
-            detail=f"លេខអត្តសញ្ញាណប័ណ្ណ '{clean_id}' ត្រូវបានប្រើប្រាស់ដោយឈ្មោះ {duplicate.name_kh} រួចហើយ"
+            detail=f"{doc_name} '{clean_id}' ត្រូវបានប្រើប្រាស់ដោយឈ្មោះ {duplicate.name_kh} រួចហើយ"
         )
 
     # If new photo uploaded or preset selected

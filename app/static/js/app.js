@@ -257,6 +257,40 @@ function checkDuplicateID(inputElement, excludeId = 0, feedbackId = 'idCheckFeed
     const submitBtn = document.getElementById(submitBtnId);
     const forceSaveInput = document.getElementById(forceSaveInputId);
 
+    const isEdit = feedbackId.includes('edit') || inputElement.id.includes('edit');
+    const labelEl = document.getElementById(isEdit ? 'editNationalIdLabel' : 'addNationalIdLabel');
+    const badgeEl = document.getElementById(isEdit ? 'editDocTypeBadge' : 'addDocTypeBadge');
+
+    // Determine document type by length:
+    // 8 ខ្ទង់ = អត្តលេខ-ឯ.អ (ឯកសារបញ្ជាក់អត្តសញ្ញាណបម្រើឱ្យការបោះឆ្នោត)
+    // 9 ខ្ទង់ = លេខអត្តសញ្ញាណប័ណ្ណ (អត្តសញ្ញាណប័ណ្ណសញ្ជាតិខ្មែរ)
+    let docTypeLabel = 'លេខអត្តសញ្ញាណប័ណ្ណ';
+    let docTypeIcon = '🪪';
+
+    if (val.length === 8) {
+        docTypeLabel = 'អត្តលេខ-ឯ.អ';
+        docTypeIcon = '📄';
+        if (labelEl) labelEl.innerHTML = `អត្តលេខ-ឯ.អ *`;
+        if (badgeEl) {
+            badgeEl.className = "text-[11px] text-emerald-800 dark:text-emerald-300 font-bold bg-emerald-100 dark:bg-emerald-950/80 px-2.5 py-0.5 rounded-full border border-emerald-300 dark:border-emerald-700 transition-all duration-200 shadow-2xs";
+            badgeEl.innerHTML = `📄 អត្តលេខ-ឯ.អ (៨ ខ្ទង់)`;
+        }
+    } else if (val.length === 9) {
+        docTypeLabel = 'លេខអត្តសញ្ញាណប័ណ្ណ';
+        docTypeIcon = '🪪';
+        if (labelEl) labelEl.innerHTML = `លេខអត្តសញ្ញាណប័ណ្ណ *`;
+        if (badgeEl) {
+            badgeEl.className = "text-[11px] text-blue-800 dark:text-sky-300 font-bold bg-blue-100 dark:bg-blue-950/80 px-2.5 py-0.5 rounded-full border border-blue-300 dark:border-blue-700 transition-all duration-200 shadow-2xs";
+            badgeEl.innerHTML = `🪪 លេខអត្តសញ្ញាណប័ណ្ណ (៩ ខ្ទង់)`;
+        }
+    } else {
+        if (labelEl) labelEl.innerHTML = `លេខអត្តសញ្ញាណប័ណ្ណ / ឯ.អ *`;
+        if (badgeEl) {
+            badgeEl.className = "text-[11px] text-slate-600 dark:text-slate-300 font-semibold bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 rounded-full border border-slate-300 dark:border-slate-600";
+            badgeEl.innerHTML = `៨ ខ្ទង់ (ឯ.អ) ឬ ៩ ខ្ទង់ (អ.ប)`;
+        }
+    }
+
     if (!val) {
         if (feedback) feedback.innerHTML = '';
         inputElement.classList.remove('border-red-500', 'ring-2', 'ring-red-200', 'bg-red-50/30', 'border-emerald-500', 'ring-1', 'ring-emerald-200');
@@ -268,15 +302,12 @@ function checkDuplicateID(inputElement, excludeId = 0, feedbackId = 'idCheckFeed
         return;
     }
 
-    // Determine document type by length:
-    // Length 7 = ឯកសារបញ្ជាក់អត្តសញ្ញាណ (Certificate of Identity)
-    // Length 9 = អត្តសញ្ញាណប័ណ្ណសញ្ជាតិខ្មែរ (National ID Card)
-    if (val.length < 7) {
+    if (val.length < 8 && val.length !== 7) {
         if (feedback) {
             feedback.innerHTML = `
                 <div class="text-xs text-slate-600 dark:text-slate-300 font-medium mt-1.5 flex items-center gap-1.5">
                     <span>⏳</span>
-                    <span>កំពុងបញ្ចូល៖ <strong class="text-blue-700 dark:text-sky-300 font-mono font-bold">${val.length} ខ្ទង់</strong> (ឯកសារបញ្ជាក់អត្តសញ្ញាណ ៧ ខ្ទង់ ឬ អត្តសញ្ញាណប័ណ្ណ ៩ ខ្ទង់)</span>
+                    <span>កំពុងបញ្ចូល៖ <strong class="text-blue-700 dark:text-sky-300 font-mono font-bold">${val.length} ខ្ទង់</strong> (៨ ខ្ទង់ = អត្តលេខ-ឯ.អ ឬ ៩ ខ្ទង់ = លេខអត្តសញ្ញាណប័ណ្ណ)</span>
                 </div>
             `;
         }
@@ -284,24 +315,6 @@ function checkDuplicateID(inputElement, excludeId = 0, feedbackId = 'idCheckFeed
         if (forceSaveInput) forceSaveInput.value = '0';
         return;
     }
-
-    if (val.length === 8) {
-        if (feedback) {
-            feedback.innerHTML = `
-                <div class="text-xs text-amber-700 dark:text-amber-300 font-medium mt-1.5 flex items-center gap-1.5 bg-amber-50 dark:bg-amber-950/60 p-2 rounded-xl border border-amber-200 dark:border-amber-800/60">
-                    <span>⚠️</span>
-                    <span>បានបញ្ចូល <strong class="font-mono font-bold">៨ ខ្ទង់</strong> (ប្រសិនបើជាអត្តសញ្ញាណប័ណ្ណសញ្ជាតិខ្មែរ សូមបញ្ចូលឱ្យគ្រប់ <strong>៩ ខ្ទង់</strong>)</span>
-                </div>
-            `;
-        }
-        inputElement.classList.remove('border-red-500', 'ring-2', 'ring-red-200', 'bg-red-50/30', 'border-emerald-500', 'ring-1', 'ring-emerald-200');
-        if (forceSaveInput) forceSaveInput.value = '0';
-        return;
-    }
-
-    // When length is 7 or 9 digits -> Valid format, check duplicate in database!
-    const docTypeLabel = val.length === 7 ? 'ឯកសារបញ្ជាក់អត្តសញ្ញាណ (៧ ខ្ទង់)' : 'អត្តសញ្ញាណប័ណ្ណសញ្ជាតិខ្មែរ (៩ ខ្ទង់)';
-    const docTypeIcon = val.length === 7 ? '📄' : '🪪';
 
     duplicateTimer = setTimeout(async () => {
         try {
@@ -325,7 +338,7 @@ function checkDuplicateID(inputElement, excludeId = 0, feedbackId = 'idCheckFeed
                                 <span class="text-xl leading-none flex-shrink-0">⚠️</span>
                                 <div class="space-y-1 min-w-0 flex-1">
                                     <strong class="font-bold text-rose-900 dark:text-rose-100 block text-xs font-kh-bold">
-                                        ⚠️ ស្ទួនទិន្នន័យ៖ លេខ${docTypeLabel}នេះ បានចុះឈ្មោះរួចហើយ!
+                                        ⚠️ ស្ទួនទិន្នន័យ៖ ${data.doc_label || docTypeLabel}នេះ បានចុះឈ្មោះរួចហើយ!
                                     </strong>
                                     <div class="text-[11px] text-rose-700 dark:text-rose-300 leading-relaxed">
                                         <span>${data.message}</span>
@@ -368,7 +381,7 @@ function checkDuplicateID(inputElement, excludeId = 0, feedbackId = 'idCheckFeed
                         <div class="p-2.5 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800/80 rounded-xl text-xs text-emerald-800 dark:text-emerald-300 flex items-center gap-2 mt-1.5 shadow-2xs">
                             <span class="text-base leading-none">✅</span>
                             <div>
-                                <strong class="font-bold text-emerald-900 dark:text-emerald-200">${docTypeIcon} លេខ${docTypeLabel} ត្រឹមត្រូវ</strong>
+                                <strong class="font-bold text-emerald-900 dark:text-emerald-200">${docTypeIcon} ${data.doc_label || docTypeLabel} ត្រឹមត្រូវ</strong>
                                 <span class="text-emerald-700 dark:text-emerald-400 ml-1">មិនស្ទួនក្នុងប្រព័ន្ធឡើយ អាចចុះឈ្មោះបាន។</span>
                             </div>
                         </div>

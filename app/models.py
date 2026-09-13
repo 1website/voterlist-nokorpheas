@@ -110,6 +110,19 @@ class Voter(Base):
     birth_certificate = relationship("BirthCertificate", back_populates="voter", uselist=False)
 
     @property
+    def id_type_label(self):
+        clean = (self.national_id or "").strip()
+        if len(clean) == 8:
+            return "អត្តលេខ-ឯ.អ"
+        elif len(clean) == 9:
+            return "លេខអត្តសញ្ញាណប័ណ្ណ"
+        return "អត្តលេខ-ឯ.អ" if len(clean) == 7 else "លេខអត្តសញ្ញាណប័ណ្ណ"
+
+    @property
+    def is_cert_election(self):
+        return len((self.national_id or "").strip()) in [7, 8]
+
+    @property
     def reg_type_badge(self):
         yr = self.reg_year or 2026
         t = (self.reg_type or "new").lower()
