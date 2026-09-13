@@ -306,3 +306,60 @@ def reset_password(
     )
 
     return JSONResponse({"success": True, "message": f"បានប្តូរពាក្យសម្ងាត់សម្រាប់ '{user.username}' រួចរាល់"})
+
+@router.delete("/api/users/{user_id}")
+@router.post("/api/users/{user_id}/delete")
+def delete_user(
+    user_id: int,
+    request: Request = None,
+    db: Session = Depends(get_db)
+):
+    current_user = get_current_user_optional(request, db)
+    if not current_user or current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="គ្មានសិទ្ធិលុបគណនី (Admin Only)")
+
+    if user_id == current_user.id:
+        raise HTTPException(status_code=400, detail="មិនអាចលុបគណនីដែលកំពុងប្រើប្រាស់ផ្ទាល់ខ្លួនបានឡើយ")
+
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="រកមិនឃើញគណនីដែលត្រូវលុបឡើយ")
+
+    # Protection: check if this is the last admin
+    if user.role == "admin":
+        admin_count = db.query(User).filter(User.role == "admin", User.id != user_id, User.is_active == True).count()
+        if admin_count == 0:
+            raise HTTPException(
+                status_code=400,
+                detail="មិនអាចលុបគណនី Admin នេះបានទេ ដោយសារត្រូវមានគណនី Admin យ៉ាងហោចណាស់មួយនៅក្នុងប្រព័ន្ធ"
+            )
+
+    username_deleted = user.username
+    full_name_deleted = user.full_name
+    role_deleted = user.role
+
+    # Cleanly unlink foreign key references to prevent constraint errors
+    from app.models import Voter
+    db.query(Voter).filter(Voter.voted_by_user_id == user_id).update({Voter.voted_by_user_id: None})
+    db.query(AuditLog).filter(AuditLog.user_id == user_id).update({AuditLog.user_id: None})
+
+    # Delete the user
+    db.delete(user)
+    db.commit()
+
+    # Log activity
+    log_activity(
+        db,
+        user=current_user,
+        action="DELETE_USER",
+        target_type="user",
+        target_id=str(user_id),
+        description=f"Admin '{current_user.full_name}' បានលុបគណនី '{username_deleted}' ({full_name_deleted}) តួនាទី: {role_deleted}",
+        action_type="danger",
+        request=request
+    )
+
+    return JSONResponse({
+        "success": True,
+        "message": f"បានលុបគណនី '{username_deleted}' ({full_name_deleted}) ដោយជោគជ័យ"
+    })

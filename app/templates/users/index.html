@@ -117,6 +117,9 @@
                                 <button onclick="toggleUserStatus({{ u.id }})" class="btn btn-sm btn-outline {% if u.is_active %}text-red-600{% else %}text-emerald-600{% endif %}">
                                     {% if u.is_active %}ផ្អាក{% else %}បើក{% endif %}
                                 </button>
+                                <button onclick="openDeleteUserModal({{ u.id }}, '{{ u.username }}', '{{ u.full_name }}', '{{ u.role }}')" class="btn btn-sm btn-outline border-red-300 text-red-600 hover:bg-red-50 hover:border-red-500 font-bold" title="លុបគណនី">
+                                    🗑️ លុប
+                                </button>
                                 {% endif %}
                             </div>
                         </td>
@@ -270,6 +273,53 @@
     </div>
 </div>
 
+<!-- Modal: Delete User Confirmation -->
+<div id="deleteUserModal" class="modal-overlay">
+    <div class="modal-card max-w-md">
+        <div class="modal-header bg-gradient-to-r from-red-600 to-rose-700 text-white p-4">
+            <h3 class="font-bold text-base font-kh-bold flex items-center gap-2">
+                <span>🗑️</span> បញ្ជាក់ការលុបគណនី
+            </h3>
+            <button type="button" onclick="closeModal('deleteUserModal')" class="text-white/80 hover:text-white text-xl p-1 leading-none">✕</button>
+        </div>
+        <div class="modal-body p-5 space-y-4">
+            <div class="flex items-start gap-3 p-3.5 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-900 dark:text-red-200 text-xs sm:text-sm">
+                <span class="text-2xl flex-shrink-0">⚠️</span>
+                <div>
+                    <div class="font-bold text-sm mb-1">តើលោកអ្នកពិតជាចង់លុបគណនីនេះមែនឬទេ?</div>
+                    <div class="text-xs text-red-700 dark:text-red-300">
+                        ទិន្នន័យគណនីនេះនឹងត្រូវលុបចេញពីប្រព័ន្ធជាអចិន្ត្រៃយ៍ ហើយមិនអាចត្រឡប់ថយក្រោយវិញបានឡើយ។
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs space-y-2">
+                <div class="flex items-center justify-between">
+                    <span class="text-slate-500">ឈ្មោះគណនី (Username)៖</span>
+                    <span id="deleteUserUsernameDisplay" class="font-bold font-mono text-blue-900 dark:text-sky-300 text-sm"></span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-slate-500">គោត្តនាម-នាម៖</span>
+                    <span id="deleteUserFullNameDisplay" class="font-bold text-slate-800 dark:text-slate-100"></span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-slate-500">តួនាទី (Role)៖</span>
+                    <span id="deleteUserRoleDisplay" class="font-medium text-slate-700 dark:text-slate-300"></span>
+                </div>
+            </div>
+            <input type="hidden" id="deleteUserId">
+        </div>
+        <div class="modal-footer p-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2">
+            <button type="button" onclick="closeModal('deleteUserModal')" class="btn btn-outline text-sm py-2 px-4">
+                បោះបង់
+            </button>
+            <button type="button" id="confirmDeleteUserBtn" onclick="executeDeleteUser()" class="btn bg-red-600 hover:bg-red-700 text-white text-sm py-2 px-5 font-bold shadow-md flex items-center gap-1.5">
+                <span>🗑️</span> <span>យល់ព្រមលុប</span>
+            </button>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -359,6 +409,51 @@
             }
         } catch (e) {
             showToast('កំហុសប្រព័ន្ធ', 'error');
+        }
+    }
+
+    function openDeleteUserModal(userId, username, fullName, role) {
+        document.getElementById('deleteUserId').value = userId;
+        document.getElementById('deleteUserUsernameDisplay').innerText = username;
+        document.getElementById('deleteUserFullNameDisplay').innerText = fullName;
+        
+        let roleKh = role;
+        if (role === 'admin') roleKh = '👑 Admin (មេឃុំ/ស្មៀន)';
+        else if (role === 'officer') roleKh = '🏢 មន្ត្រីការិយាល័យ';
+        else if (role === 'village_chief') roleKh = '🏡 មេភូមិ';
+        else if (role === 'viewer') roleKh = '🔍 អ្នកពិនិត្យរបាយការណ៍';
+        document.getElementById('deleteUserRoleDisplay').innerText = roleKh;
+
+        openModal('deleteUserModal');
+    }
+
+    async function executeDeleteUser() {
+        const userId = document.getElementById('deleteUserId').value;
+        const btn = document.getElementById('confirmDeleteUserBtn');
+        if (!userId) return;
+
+        const originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span>⏳</span> <span>កំពុងលុប...</span>';
+
+        try {
+            const res = await fetch(`/api/users/${userId}/delete`, {
+                method: 'POST'
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                showToast(data.message, 'success');
+                closeModal('deleteUserModal');
+                setTimeout(() => window.location.reload(), 600);
+            } else {
+                showToast(data.detail || data.message || 'កំហុសក្នុងការលុបគណនី', 'error');
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
+        } catch (e) {
+            showToast('កំហុសប្រព័ន្ធក្នុងការតភ្ជាប់', 'error');
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
         }
     }
 </script>
