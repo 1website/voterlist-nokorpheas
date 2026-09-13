@@ -169,15 +169,17 @@
 
             <!-- Sidebar Navigation Menu -->
             <nav class="flex-1 px-3 py-2 space-y-1">
-                {% if current_user.role != 'viewer' %}
-                <!-- Section 1: Main Operations -->
-                <div class="sidebar-nav-header">មុខងារស្នូលបោះឆ្នោត</div>
+                <!-- Section 1: Statistics Dashboard -->
+                <div class="sidebar-nav-header">ផ្ទាំងគ្រប់គ្រងទិន្នន័យ</div>
 
                 <a href="/dashboard"
                     class="sidebar-nav-link {% if request.url.path == '/dashboard' or request.url.path == '/' %}active{% endif %}">
                     <span class="text-lg">📊</span>
                     <span>ផ្ទាំងគ្រប់គ្រងស្ថិតិ</span>
                 </a>
+
+                {% if current_user.role != 'viewer' %}
+                <div class="sidebar-nav-header mt-3">មុខងារស្នូលបោះឆ្នោត</div>
 
                 {% if current_user.role in ['admin', 'officer'] %}
                 <a href="/checkin" class="sidebar-nav-link {% if '/checkin' in request.url.path %}active{% endif %}">
@@ -218,7 +220,7 @@
                 {% endif %}
 
                 <!-- Section 3: Reports & Settings -->
-                <div class="sidebar-nav-header {% if current_user.role != 'viewer' %}mt-3{% endif %}">របាយការណ៍ & សុវត្ថិភាព</div>
+                <div class="sidebar-nav-header mt-3">របាយការណ៍ & សុវត្ថិភាព</div>
 
                 <a href="/reports/annual-summary"
                     class="sidebar-nav-link {% if '/reports/annual-summary' in request.url.path %}active{% endif %}">

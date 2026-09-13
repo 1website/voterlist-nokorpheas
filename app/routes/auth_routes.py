@@ -20,8 +20,6 @@ import time
 def login_page(request: Request, db: Session = Depends(get_db)):
     current_user = get_current_user_optional(request, db)
     if current_user:
-        if current_user.role == "viewer":
-            return RedirectResponse(url="/reports", status_code=302)
         return RedirectResponse(url="/dashboard", status_code=302)
     
     reason = request.query_params.get("reason", "")
@@ -77,8 +75,6 @@ def login_post(
 
     log_activity(db, user, "LOGIN", f"បានចូលប្រើប្រាស់ប្រព័ន្ធដោយជោគជ័យ ({user.full_name})", "auth", str(user.id), "success", request=request)
 
-    if user.role == "viewer":
-        return RedirectResponse(url="/reports", status_code=303)
     return RedirectResponse(url="/dashboard", status_code=303)
 
 @router.get("/api/keep-alive")
@@ -122,6 +118,4 @@ def switch_user(username: str, request: Request, db: Session = Depends(get_db)):
     request.session["role"] = target_user.role
     request.session["full_name"] = target_user.full_name
     log_activity(db, current_user, "SWITCH_USER", f"Admin '{current_user.full_name}' បានប្តូរទៅកាន់គណនី '{target_user.full_name}' ({target_user.role})", "auth", str(target_user.id), "warning", request=request)
-    if target_user.role == "viewer":
-        return RedirectResponse(url="/reports", status_code=302)
     return RedirectResponse(url="/dashboard", status_code=302)
