@@ -811,3 +811,79 @@ async def ocr_khmer_id_card(
             "is_eligible_18": is_eligible_18
         }
     })
+
+from app.pdf_importer import preview_pdf_import, execute_pdf_import
+
+@router.post("/api/voters/import-pdf/preview")
+async def api_preview_voter_pdf(
+    pdf_file: UploadFile = File(...),
+    request: Request = None,
+    db: Session = Depends(get_db)
+):
+    """
+    Parses an uploaded NEC official voter list PDF and returns a structured preview.
+    """
+    current_user = get_current_user_optional(request, db)
+    if not current_user or current_user.role not in ["admin", "officer"]:
+        raise HTTPException(status_code=403, detail="គ្មានសិទ្ធិនាំចូលទិន្នន័យឡើយ (Permission denied)")
+
+    if not pdf_file.filename.lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="សូមជ្រើសរើសឯកសារជាទម្រង់ PDF តែប៉ុណ្ណោះ")
+
+    content = await pdf_file.read()
+    if not content:
+        raise HTTPException(status_code=400, detail="ឯកសារ PDF ទទេ")
+
+    try:
+        preview_data = preview_pdf_import(content, pdf_file.filename, db)
+        return JSONResponse(preview_data)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"បរាជ័យក្នុងការអានឯកសារ PDF៖ {str(e)}")
+
+@router.post("/api/voters/import-pdf/confirm")
+async def api_confirm_voter_pdf_import(
+    pdf_file: UploadFile = File(...),
+    station_id: int = Form(...),
+    village_id: int = Form(...),
+    update_existing: bool = Form(True),
+    request: Request = None,
+    db: Session = Depends(get_db)
+):
+    """
+    Executes the batch insertion/update of all voters from the confirmed PDF file.
+    """
+    current_user = get_current_user_optional(request, db)
+    if not current_user or current_user.role not in ["admin", "officer"]:
+        raise HTTPException(status_code=403, detail="គ្មានសិទ្ធិនាំចូលទិន្នន័យឡើយ (Permission denied)")
+
+    content = await pdf_file.read()
+    if not content:
+        raise HTTPException(status_code=400, detail="ឯកសារ PDF ទទេ")
+
+    try:
+        result = execute_pdf_import(
+            file_bytes=content,
+            filename=pdf_file.filename,
+            station_id=station_id,
+            village_id=village_id,
+            update_existing=update_existing,
+            user_id=current_user.id,
+            db=db
+        )
+        
+        # Log to audit trail
+        log_activity(
+            db=db,
+            user=current_user,
+            action="IMPORT_PDF_VOTERS",
+            description=f"បាននាំចូលបញ្ជីបោះឆ្នោតផ្លូវការ ២០២៥ ចំនួន {result['inserted']} នាក់ថ្មី (អាប់ដេត {result['updated']} នាក់) ពីឯកសារ '{pdf_file.filename}' សម្រាប់ការិយាល័យ {result['station_name']}",
+            target_type="voter_batch",
+            target_id=str(station_id),
+            action_type="info",
+            request=request
+        )
+
+        return JSONResponse(result)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"បរាជ័យក្នុងការរក្សាទុកទិន្នន័យ៖ {str(e)}")
+

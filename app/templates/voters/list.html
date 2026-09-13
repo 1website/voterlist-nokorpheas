@@ -18,6 +18,10 @@
 
         <div class="flex flex-wrap items-center gap-2">
             {% if current_user.role in ['admin', 'officer'] %}
+            <button type="button" onclick="openPdfImportModal()" class="btn btn-outline border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-950/60 text-purple-800 dark:text-purple-300 text-sm font-bold flex items-center gap-1.5 shadow-sm transition active:scale-95">
+                <span>📤</span> <span>នាំចូលពី PDF (២០២៥)</span>
+            </button>
+
             <button type="button" onclick="openIdCardOcrModal()" class="btn btn-outline border-blue-400 dark:border-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/60 text-blue-800 dark:text-sky-300 text-sm font-bold flex items-center gap-1.5 shadow-sm transition active:scale-95">
                 <span>📷</span> <span>ស្កេនអត្តសញ្ញាណប័ណ្ណ (OCR)</span>
             </button>
@@ -926,6 +930,209 @@
                 បិទ
             </button>
         </div>
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODAL: OFFICIAL PDF VOTER LIST BULK IMPORTER -->
+<!-- ========================================================================= -->
+<div id="pdfImportModal" class="modal-overlay">
+    <div class="modal-card max-w-4xl max-h-[92vh] flex flex-col p-0 overflow-hidden bg-white dark:bg-slate-900 shadow-2xl border border-slate-200/80 dark:border-slate-800">
+        
+        <!-- Modal Header -->
+        <div class="modal-header p-4 sm:p-5 bg-gradient-to-r from-purple-900 via-indigo-900 to-slate-900 text-white flex items-center justify-between border-b border-purple-800/40">
+            <div class="flex items-center gap-2.5">
+                <span class="text-2xl p-2 rounded-xl bg-white/10 backdrop-blur-xs border border-white/20">📤</span>
+                <div>
+                    <h3 class="text-base sm:text-lg font-bold font-kh-heading text-white flex items-center gap-2">
+                        <span>នាំចូលបញ្ជីបោះឆ្នោតផ្លូវការពី PDF</span>
+                        <span class="badge bg-purple-500/30 text-purple-200 border border-purple-400/40 text-[10px] px-2 py-0.5">ឆ្នាំ ២០២៥</span>
+                    </h3>
+                    <p class="text-xs text-purple-200/80">
+                        ស្គាល់ការិយាល័យ & ភូមិ និងស្រង់ទិន្នន័យព្រមទាំងរូបថតអ្នកបោះឆ្នោតដោយស្វ័យប្រវត្តិ
+                    </p>
+                </div>
+            </div>
+            <button type="button" onclick="closePdfImportModal()" class="text-white/70 hover:text-white rounded-xl text-xl p-1.5 hover:bg-white/10 transition leading-none" title="បិទ">✕</button>
+        </div>
+
+        <!-- Modal Body (Scrollable) -->
+        <div class="modal-body p-4 sm:p-6 overflow-y-auto flex-1 space-y-5">
+
+            <!-- 1. Drop Zone (Upload State) -->
+            <div id="pdfDropZone" class="border-2 border-dashed border-purple-300 dark:border-purple-800 hover:border-purple-500 dark:hover:border-purple-400 rounded-3xl p-8 sm:p-12 text-center bg-purple-50/30 dark:bg-purple-950/20 transition cursor-pointer group" onclick="document.getElementById('pdfFileInput').click()">
+                <div class="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-3xl bg-purple-100 dark:bg-purple-900/40 border border-purple-200 dark:border-purple-700/50 flex items-center justify-center text-3xl sm:text-4xl shadow-inner group-hover:scale-110 transition duration-300">
+                    📄
+                </div>
+                <div class="mt-4 space-y-1.5">
+                    <h4 class="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100 font-kh-heading">
+                        ចុចជ្រើសរើស ឬទម្លាក់ឯកសារ PDF នៅទីនេះ
+                    </h4>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+                        គាំទ្រឯកសារបញ្ជីបោះឆ្នោតផ្លូវការរបស់ គ.ជ.ប (ឧ. <code class="font-mono bg-purple-100 dark:bg-purple-900/60 px-1.5 py-0.5 rounded text-purple-800 dark:text-purple-300">170050061.pdf</code>)
+                    </p>
+                </div>
+                <div class="mt-4">
+                    <button type="button" class="btn btn-sm bg-purple-600 hover:bg-purple-700 text-white font-bold px-4 py-2 rounded-xl shadow-md gap-1.5 inline-flex items-center">
+                        <span>📁</span> <span>ជ្រើសរើសឯកសារ PDF</span>
+                    </button>
+                </div>
+                <input type="file" id="pdfFileInput" accept=".pdf,application/pdf" class="hidden" onchange="handlePdfFileSelect(this)">
+            </div>
+
+            <!-- 2. Loading State Overlay -->
+            <div id="pdfLoadingOverlay" class="hidden p-8 sm:p-12 bg-purple-50/60 dark:bg-slate-800/80 rounded-3xl border border-purple-200 dark:border-purple-800/50 text-center space-y-4">
+                <div class="relative w-16 h-16 mx-auto flex items-center justify-center">
+                    <div class="w-16 h-16 rounded-full border-4 border-purple-200 dark:border-purple-900 border-t-purple-600 dark:border-t-purple-400 animate-spin"></div>
+                    <span class="absolute text-xl animate-pulse">⚡</span>
+                </div>
+                <div>
+                    <h4 class="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100 font-kh-heading">
+                        កំពុងដំណើរការស្រង់ទិន្នន័យពី PDF...
+                    </h4>
+                    <p id="pdfLoadingStatus" class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                        សូមរង់ចាំមួយភ្លែត ប្រព័ន្ធកំពុងអានទំព័រ និងកាត់យករូបថតអ្នកបោះឆ្នោត...
+                    </p>
+                </div>
+            </div>
+
+            <!-- 3. Error Alert Box -->
+            <div id="pdfErrorBox" class="hidden p-4 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800/80 rounded-2xl text-rose-700 dark:text-rose-300 text-xs flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2">
+                    <span class="text-base">⚠️</span>
+                    <span id="pdfErrorMsg">មិនអាចអានឯកសារ PDF នេះបានឡើយ</span>
+                </div>
+                <button type="button" onclick="resetPdfImportModal()" class="btn btn-xs btn-outline border-rose-300 text-rose-700 hover:bg-rose-100 dark:hover:bg-rose-900 rounded-lg px-2.5 py-1">
+                    សាកល្បងម្តងទៀត
+                </button>
+            </div>
+
+            <!-- 4. Preview & Confirmation Section -->
+            <div id="pdfPreviewSection" class="hidden space-y-5">
+                
+                <!-- Document Header Info Banner -->
+                <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-purple-50 via-indigo-50 to-blue-50 dark:from-purple-950/40 dark:via-indigo-950/40 dark:to-slate-800/60 border border-purple-200/80 dark:border-purple-800/60 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                            <span class="badge bg-purple-600 text-white font-bold text-xs px-2.5 py-0.5 shadow-xs">គ.ជ.ប ផ្លូវការ</span>
+                            <h4 id="pdfMetaTitle" class="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100 font-kh-heading">
+                                បញ្ជីបោះឆ្នោតផ្លូវការ
+                            </h4>
+                        </div>
+                        <p id="pdfMetaSubtitle" class="text-xs text-slate-600 dark:text-slate-300"></p>
+                    </div>
+
+                    <!-- Statistics Chips with Gender Breakdown -->
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 text-center shrink-0">
+                        <div class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-750 shadow-xs">
+                            <div class="text-[10px] text-slate-500 uppercase font-semibold">សរុប</div>
+                            <div id="pdfTotalVotersBadge" class="text-base font-bold text-slate-900 dark:text-white font-mono">0</div>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-pink-50 dark:bg-pink-950/40 border border-pink-200 dark:border-pink-800/50 shadow-xs">
+                            <div class="text-[10px] text-pink-700 dark:text-pink-300 uppercase font-semibold">ស្រី</div>
+                            <div id="pdfFemaleCountBadge" class="text-base font-bold text-pink-600 dark:text-pink-400 font-mono">0</div>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/50 shadow-xs">
+                            <div class="text-[10px] text-blue-700 dark:text-blue-300 uppercase font-semibold">ប្រុស</div>
+                            <div id="pdfMaleCountBadge" class="text-base font-bold text-blue-600 dark:text-sky-400 font-mono">0</div>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/50 shadow-xs">
+                            <div class="text-[10px] text-emerald-700 dark:text-emerald-300 uppercase font-semibold">អ្នកថ្មី</div>
+                            <div id="pdfNewCountBadge" class="text-base font-bold text-emerald-600 dark:text-emerald-400 font-mono">0</div>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50 shadow-xs">
+                            <div class="text-[10px] text-amber-700 dark:text-amber-300 uppercase font-semibold">មានស្រាប់</div>
+                            <div id="pdfDupCountBadge" class="text-base font-bold text-amber-600 dark:text-amber-400 font-mono">0</div>
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/50 shadow-xs">
+                            <div class="text-[10px] text-indigo-700 dark:text-indigo-300 uppercase font-semibold">ទំព័រ</div>
+                            <div id="pdfPagesBadge" class="text-base font-bold text-indigo-600 dark:text-indigo-400 font-mono">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Station & Village Mapping Options -->
+                <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 space-y-3">
+                    <div class="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                        <span>⚙️</span> <span>ផ្ទៀងផ្ទាត់ទីតាំងគោលដៅក្នុងប្រព័ន្ធ៖</span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-500 mb-1">ការិយាល័យបោះឆ្នោត *</label>
+                            <select id="pdfStationSelect" class="form-control text-xs font-semibold py-2">
+                                <option value="">-- ជ្រើសរើសការិយាល័យ --</option>
+                                {% for s in stations %}
+                                <option value="{{ s.id }}">{{ s.code }} - {{ s.name }} ({{ s.location }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-500 mb-1">ភូមិ *</label>
+                            <select id="pdfVillageSelect" class="form-control text-xs font-semibold py-2">
+                                <option value="">-- ជ្រើសរើសភូមិ --</option>
+                                {% for v in villages %}
+                                <option value="{{ v.id }}">{{ v.code }} - {{ v.name_kh }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="pt-1 flex items-center gap-2">
+                        <input type="checkbox" id="pdfUpdateExistingCheck" checked class="rounded border-slate-300 text-purple-600 focus:ring-purple-500">
+                        <label for="pdfUpdateExistingCheck" class="text-xs font-medium text-slate-600 dark:text-slate-300 cursor-pointer">
+                            ធ្វើបច្ចុប្បន្នភាពអ្នកដែលមានស្រាប់ (Update duplicates) ដោយរក្សាទុកលេខកូដ និងរូបថត
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Preview Table Card -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <div class="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                            <span>📋</span> <span>ទិន្នន័យគំរូដែលបានស្រង់ចេញពី PDF (ព្រមទាំងរូបថតមុខ)៖</span>
+                        </div>
+                        <span id="pdfPreviewLimitNote" class="text-[11px] text-slate-400"></span>
+                    </div>
+
+                    <div class="overflow-x-auto border border-slate-200 dark:border-slate-750 rounded-2xl max-h-[320px] overflow-y-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="sticky top-0 bg-slate-100 dark:bg-slate-800 text-[11px] font-bold text-slate-600 dark:text-slate-300 border-b border-slate-200 dark:border-slate-700 uppercase">
+                                <tr>
+                                    <th class="p-2 text-center w-12">ល.រ</th>
+                                    <th class="p-2 text-center w-14">រូបថត</th>
+                                    <th class="p-2">អត្តលេខ</th>
+                                    <th class="p-2">ឈ្មោះខ្មែរ / ឡាតាំង</th>
+                                    <th class="p-2 text-center">ភេទ</th>
+                                    <th class="p-2 text-center">ថ្ងៃកំណើត</th>
+                                    <th class="p-2">អាសយដ្ឋាន</th>
+                                    <th class="p-2 text-center">ស្ថានភាព</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pdfPreviewTableBody" class="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900">
+                                <!-- Populated dynamically by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="modal-footer p-4 sm:p-5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3 bg-slate-50/50 dark:bg-slate-900/50">
+            <button type="button" onclick="closePdfImportModal()" class="btn btn-outline text-xs sm:text-sm py-2 px-5 rounded-xl font-semibold">
+                បោះបង់
+            </button>
+            <div class="flex items-center gap-2">
+                <button type="button" id="pdfReselectBtn" onclick="resetPdfImportModal()" class="btn btn-outline text-xs sm:text-sm py-2 px-4 rounded-xl font-semibold hidden">
+                    <span>🔄</span> <span>ប្តូរឯកសារ</span>
+                </button>
+                <button type="button" id="pdfConfirmBtn" onclick="confirmPdfImport()" class="btn btn-primary text-xs sm:text-sm py-2.5 px-6 rounded-xl font-bold shadow-md bg-gradient-to-r from-purple-700 via-indigo-700 to-purple-800 hover:from-purple-600 hover:to-indigo-600 text-white gap-2 flex items-center hidden">
+                    <span>💾</span> <span>បញ្ជាក់ការបញ្ចូលទិន្នន័យ (Import to Database)</span>
+                </button>
+            </div>
+        </div>
+
     </div>
 </div>
 
