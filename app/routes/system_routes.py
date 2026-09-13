@@ -597,3 +597,132 @@ async def restore_database(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"កំហុសក្នុងការស្តារទិន្នន័យ៖ {str(e)}")
+
+# -----------------------------------------------------------------------------
+# TELEGRAM BOT INTEGRATION ROUTES
+# -----------------------------------------------------------------------------
+from app.telegram_service import (
+    get_telegram_config,
+    set_setting,
+    send_telegram_message,
+    send_daily_report,
+    detect_active_chats,
+    build_daily_report_message
+)
+
+@router.get("/system/telegram", response_class=HTMLResponse)
+def telegram_settings_page(request: Request, db: Session = Depends(get_db)):
+    current_user = get_current_user_optional(request, db)
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=302)
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="មានតែ Admin ប៉ុណ្ណោះដែលអាចកំណត់ Telegram Bot បាន")
+
+    cfg = get_telegram_config(db)
+    preview_text = build_daily_report_message(db)
+
+    return templates.TemplateResponse(request=request, name="system/telegram.html", context={
+        "current_user": current_user,
+        "config": cfg,
+        "preview_text": preview_text
+    })
+
+@router.post("/api/telegram/settings")
+def save_telegram_settings(
+    token: str = Form(None),
+    bot_token: str = Form(None),
+    chat_id: str = Form(...),
+    chat_title: str = Form(""),
+    enabled: bool = Form(False),
+    auto_send: bool = Form(False),
+    auto_time: str = Form("17:00"),
+    send_excel: bool = Form(False),
+    request: Request = None,
+    db: Session = Depends(get_db)
+):
+    current_user = get_current_user_optional(request, db)
+    if not current_user or current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="គ្មានសិទ្ធិកំណត់ប្រព័ន្ធឡើយ")
+
+    final_token = (token or bot_token or "").strip()
+    if not final_token:
+        raise HTTPException(status_code=400, detail="សូមបញ្ចូល Bot Token")
+
+    set_setting(db, "telegram_bot_token", final_token, "Telegram Bot API Token")
+    set_setting(db, "telegram_chat_id", chat_id.strip(), "Telegram Group / Channel Chat ID")
+    if chat_title.strip():
+        set_setting(db, "telegram_chat_title", chat_title.strip(), "Telegram Chat Title")
+    set_setting(db, "telegram_enabled", "true" if enabled else "false", "Telegram Integration Enabled")
+    set_setting(db, "telegram_auto_send", "true" if auto_send else "false", "Automated Daily Report Sending")
+    set_setting(db, "telegram_auto_time", auto_time.strip() or "17:00", "Daily Report Scheduled Time")
+    set_setting(db, "telegram_send_excel", "true" if send_excel else "false", "Attach Excel in Daily Report")
+
+    log_activity(db, current_user, "TELEGRAM_CONFIG", "បានកែប្រែការកំណត់ Telegram Bot", "system", action_type="info", request=request)
+    return JSONResponse({"success": True, "message": "បានរក្សាទុកការកំណត់ Telegram Bot ដោយជោគជ័យ!"})
+
+@router.post("/api/telegram/test")
+def test_telegram_connection(
+    request: Request,
+    token: str = Form(None),
+    chat_id: str = Form(None),
+    db: Session = Depends(get_db)
+):
+    current_user = get_current_user_optional(request, db)
+    if not current_user or current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="គ្មានសិទ្ធិ")
+
+    cfg = get_telegram_config(db)
+    use_token = (token or cfg["token"]).strip()
+    use_chat_id = (chat_id or cfg["chat_id"]).strip()
+
+    now_str = get_cambodia_now().strftime("%d-%m-%Y %H:%M:%S")
+    test_msg = f"""🇰🇭 <b>តេស្តការតភ្ជាប់ Telegram Bot</b>
+🏛️ <b>រដ្ឋបាលឃុំនគរភាស ស្រុកអង្គរជុំ ខេត្តសៀមរាប</b>
+📅 ពេលវេលា៖ {now_str}
+👤 អ្នកផ្ញើតេស្ត៖ {current_user.full_name} (@{current_user.username})
+
+✅ <b>ការតភ្ជាប់ជោគជ័យ ១០០%!</b>
+ប្រព័ន្ធគ្រប់គ្រងអ្នកបោះឆ្នោត (VoterList) ត្រូវបានភ្ជាប់ជាមួយ Telegram Group នេះយ៉ាងត្រឹមត្រូវ។"""
+
+    res = send_telegram_message(test_msg, token=use_token, chat_id=use_chat_id)
+    if res.get("success"):
+        log_activity(db, current_user, "TELEGRAM_TEST", "បានផ្ញើសារសាកល្បងទៅកាន់ Telegram Group ជោគជ័យ", "system", action_type="success", request=request)
+        return JSONResponse({"success": True, "message": "បានផ្ញើសារតេស្តទៅកាន់ Telegram Group ដោយជោគជ័យ!"})
+    else:
+        err = res.get("error", "មិនអាចផ្ញើសារបានឡើយ")
+        return JSONResponse({"success": False, "message": f"បរាជ័យក្នុងការតភ្ជាប់៖ {err}"}, status_code=400)
+
+@router.post("/api/telegram/send-daily-report")
+def trigger_daily_report(
+    request: Request,
+    date: str = Form(None),
+    send_excel: bool = Form(True),
+    db: Session = Depends(get_db)
+):
+    current_user = get_current_user_optional(request, db)
+    if not current_user or current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="គ្មានសិទ្ធិ")
+
+    target_date = date.strip() if date and date.strip() else get_cambodia_now().strftime("%Y-%m-%d")
+    res = send_daily_report(db, target_date_str=target_date, send_excel=send_excel)
+
+    if res.get("success"):
+        log_activity(db, current_user, "TELEGRAM_REPORT", f"បានផ្ញើរបាយការណ៍ចុះឈ្មោះប្រចាំថ្ងៃ ({target_date}) ទៅកាន់ Telegram Group", "system", action_type="success", request=request)
+        return JSONResponse({"success": True, "message": f"បានផ្ញើរបាយការណ៍ប្រចាំថ្ងៃ ({target_date}) ទៅកាន់ Telegram Group រួចរាល់!"})
+    else:
+        err = res.get("message_result", {}).get("error") or "បរាជ័យក្នុងការផ្ញើ"
+        return JSONResponse({"success": False, "message": f"កំហុសក្នុងការផ្ញើ៖ {err}"}, status_code=400)
+
+@router.get("/api/telegram/detect-chats")
+def detect_telegram_chats(
+    request: Request,
+    token: str = Query(None),
+    db: Session = Depends(get_db)
+):
+    current_user = get_current_user_optional(request, db)
+    if not current_user or current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="គ្មានសិទ្ធិ")
+
+    chats = detect_active_chats(token)
+    return JSONResponse({"success": True, "chats": chats})
+

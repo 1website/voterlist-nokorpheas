@@ -1,0 +1,339 @@
+{% extends "base.html" %}
+
+{% block title %}ការកំណត់ Telegram Bot - រដ្ឋបាលឃុំនគរភាស{% endblock %}
+
+{% block content %}
+<div class="space-y-6 max-w-5xl mx-auto">
+    <!-- Header Page Title -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2 mb-1">
+                <span class="text-2xl sm:text-3xl">🤖</span>
+                <h2 class="text-xl sm:text-2xl font-bold font-kh-heading text-slate-900 dark:text-slate-100">
+                    ការកំណត់ Telegram Bot & របាយការណ៍ស្វ័យប្រវត្តិ
+                </h2>
+            </div>
+            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">
+                បញ្ជូនរបាយការណ៍ចុះឈ្មោះបោះឆ្នោតប្រចាំថ្ងៃ និងឯកសារ Excel ទៅកាន់ Group Telegram ក្រុមការងារឃុំ
+            </p>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <button type="button" onclick="testConnection()" id="testConnBtn" class="btn btn-outline border-blue-300 text-blue-800 dark:text-sky-300 text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-xs">
+                <span>🧪</span> <span>ផ្ញើសារតេស្ត</span>
+            </button>
+            <button type="button" onclick="sendDailyReportNow()" id="sendReportBtn" class="btn btn-primary text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-md">
+                <span>🚀</span> <span>ផ្ញើរបាយការណ៍ថ្ងៃនេះ</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Active Status Card -->
+    <div class="p-5 rounded-2xl bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white shadow-lg border border-blue-800/60 relative overflow-hidden">
+        <div class="absolute -right-8 -bottom-8 opacity-10 text-9xl pointer-events-none">✈️</div>
+        
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+                <div class="w-14 h-14 rounded-2xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center text-3xl flex-shrink-0 shadow-inner">
+                    ✈️
+                </div>
+                <div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="font-bold text-base sm:text-lg text-white font-kh-heading">
+                            {{ config.chat_title or 'របាយការណ៍ចុះឈ្មោះបោះឆ្នោត' }}
+                        </span>
+                        {% if config.enabled %}
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500 text-white flex items-center gap-1 shadow-xs">
+                            <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span> បានតភ្ជាប់ (Active)
+                        </span>
+                        {% else %}
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-600 text-slate-200">
+                            បានបិទ (Disabled)
+                        </span>
+                        {% endif %}
+                    </div>
+                    <div class="text-xs text-blue-200/90 font-mono mt-1 space-x-3">
+                        <span>Bot: <strong>@voter100_bot</strong></span>
+                        <span>•</span>
+                        <span>Group ID: <strong>{{ config.chat_id }}</strong></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3 bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-xl border border-white/10 text-xs">
+                <div>
+                    <div class="text-blue-200 text-[11px]">ម៉ោងផ្ញើស្វ័យប្រវត្តិ</div>
+                    <div class="font-bold text-amber-300 font-mono text-sm sm:text-base">
+                        ⏰ {{ config.auto_time }} នាទីល្ងាច
+                    </div>
+                </div>
+                <div class="border-l border-white/20 pl-3">
+                    <div class="text-blue-200 text-[11px]">ឯកសារ Excel</div>
+                    <div class="font-bold text-emerald-300 text-xs">
+                        {% if config.send_excel %}✅ ភ្ជាប់ជាប្រចាំ{% else %}❌ មិនភ្ជាប់{% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Grid: Settings & Live Preview -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Settings Form (7 Cols) -->
+        <div class="lg:col-span-7 glass-card p-5 sm:p-6 rounded-2xl shadow-sm">
+            <h3 class="font-bold text-base font-kh-heading text-slate-800 dark:text-slate-100 mb-4 pb-3 border-b border-slate-200 dark:border-slate-800 flex items-center gap-2">
+                <span>⚙️</span> <span>ទម្រង់កំណត់ Bot & Telegram Group</span>
+            </h3>
+
+            <form id="telegramSettingsForm" onsubmit="saveSettings(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
+                        Telegram Bot Token *
+                    </label>
+                    <div class="relative">
+                        <input type="text" name="token" id="tokenInput" value="{{ config.token }}" required class="form-control text-xs font-mono py-2.5 pr-10">
+                        <span class="absolute right-3 top-2.5 text-slate-400">🔑</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-1">Token ទទួលបានពី @BotFather (ឧ. 8543218727:AAEQ...)</p>
+                </div>
+
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase">
+                            Group Chat ID *
+                        </label>
+                        <button type="button" onclick="detectGroups()" class="text-[11px] text-blue-600 dark:text-sky-400 hover:underline font-bold flex items-center gap-1">
+                            <span>🔍</span> <span>ស្វែងរក Group ID ស្វ័យប្រវត្តិ</span>
+                        </button>
+                    </div>
+                    <input type="text" name="chat_id" id="chatIdInput" value="{{ config.chat_id }}" required class="form-control text-xs font-mono py-2.5">
+                    <p class="text-[11px] text-slate-400 mt-1">លេខសម្គាល់ក្រុម Telegram (ឧ. -5440917794 ឬ -100...)</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
+                        ឈ្មោះសម្គាល់ក្រុម (Group Title)
+                    </label>
+                    <input type="text" name="chat_title" id="chatTitleInput" value="{{ config.chat_title }}" placeholder="ឧ. របាយការណ៍ចុះឈ្មោះបោះឆ្នោត" class="form-control text-xs py-2.5">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
+                            ម៉ោងផ្ញើប្រចាំថ្ងៃ (Daily Schedule)
+                        </label>
+                        <input type="time" name="auto_time" value="{{ config.auto_time }}" class="form-control text-xs font-mono py-2">
+                        <p class="text-[10px] text-slate-400 mt-1">ម៉ោងបិទការិយាល័យ (ម៉ោង 5 ល្ងាច)</p>
+                    </div>
+
+                    <div class="space-y-2 pt-1">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" name="enabled" value="true" {% if config.enabled %}checked{% endif %} class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4">
+                            <span class="text-xs font-bold text-slate-700 dark:text-slate-200">បើកដំណើរការ Telegram Bot</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" name="auto_send" value="true" {% if config.auto_send %}checked{% endif %} class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4">
+                            <span class="text-xs font-semibold text-slate-700 dark:text-slate-200">ផ្ញើស្វ័យប្រវត្តិតាមម៉ោងកំណត់</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" name="send_excel" value="true" {% if config.send_excel %}checked{% endif %} class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4">
+                            <span class="text-xs font-semibold text-slate-700 dark:text-slate-200">ភ្ជាប់ជាមួយឯកសារ Excel ប្រចាំថ្ងៃ</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2">
+                    <button type="submit" id="saveBtn" class="btn btn-primary text-xs sm:text-sm font-bold py-2.5 px-5 shadow-md flex items-center gap-1.5">
+                        <span>💾</span> <span>រក្សាទុកការកំណត់</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Live Message Preview (5 Cols) -->
+        <div class="lg:col-span-5 glass-card p-5 sm:p-6 rounded-2xl shadow-sm flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between mb-3 pb-3 border-b border-slate-200 dark:border-slate-800">
+                    <h3 class="font-bold text-sm sm:text-base font-kh-heading text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                        <span>👁️</span> <span>គំរូសាររបាយការណ៍ (Live Preview)</span>
+                    </h3>
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-sky-300 font-bold">
+                        ទិន្នន័យជាក់ស្តែង
+                    </span>
+                </div>
+
+                <!-- Telegram Chat Bubble Preview -->
+                <div class="p-4 rounded-2xl bg-[#5484a4]/10 dark:bg-[#0f172a] border border-[#5484a4]/20 shadow-inner text-xs">
+                    <div class="bg-white dark:bg-slate-800/90 p-4 rounded-2xl rounded-tl-none shadow-md border border-slate-200/80 dark:border-slate-700/80 leading-relaxed font-sans text-slate-800 dark:text-slate-100 whitespace-pre-wrap selection:bg-blue-100 max-h-[420px] overflow-y-auto custom-scrollbar">
+{{ preview_text }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+                <span>📎 ភ្ជាប់ឯកសារ Excel: <strong>{{ 'បើក' if config.send_excel else 'បិទ' }}</strong></span>
+                <span>ទម្រង់អត្ថបទ៖ <strong>HTML</strong></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Detected Groups -->
+<div id="detectedGroupsModal" class="modal-overlay">
+    <div class="modal-card max-w-md">
+        <div class="modal-header bg-gradient-to-r from-blue-800 to-indigo-900 text-white p-4">
+            <h3 class="font-bold text-base font-kh-bold flex items-center gap-2">
+                <span>🔍</span> ក្រុម Telegram ដែលបានរកឃើញ
+            </h3>
+            <button type="button" onclick="closeModal('detectedGroupsModal')" class="text-white/80 hover:text-white text-xl p-1 leading-none">✕</button>
+        </div>
+        <div class="modal-body p-5 space-y-3">
+            <p class="text-xs text-slate-500">
+                សូមជ្រើសរើស Group Telegram មួយដែលលោកអ្នកចង់ឱ្យ Bot ផ្ញើរបាយការណ៍ទៅ៖
+            </p>
+            <div id="detectedGroupsList" class="space-y-2 max-h-60 overflow-y-auto">
+                <div class="text-center py-6 text-slate-400 text-xs">កំពុងស្វែងរក...</div>
+            </div>
+        </div>
+        <div class="modal-footer p-3 border-t border-slate-200 dark:border-slate-800 flex justify-end">
+            <button type="button" onclick="closeModal('detectedGroupsModal')" class="btn btn-outline text-xs py-1.5 px-3">បិទ</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    async function saveSettings(e) {
+        e.preventDefault();
+        const form = document.getElementById('telegramSettingsForm');
+        const formData = new FormData(form);
+        const btn = document.getElementById('saveBtn');
+        const originalHtml = btn.innerHTML;
+
+        btn.disabled = true;
+        btn.innerHTML = '<span>⏳</span> <span>កំពុងរក្សាទុក...</span>';
+
+        try {
+            const res = await fetch('/api/telegram/settings', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                showToast(data.message, 'success');
+                setTimeout(() => window.location.reload(), 600);
+            } else {
+                showToast(data.message || 'កំហុសក្នុងការរក្សាទុក', 'error');
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
+        } catch (e) {
+            showToast('កំហុសប្រព័ន្ធក្នុងការតភ្ជាប់', 'error');
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        }
+    }
+
+    async function testConnection() {
+        const token = document.getElementById('tokenInput').value;
+        const chatId = document.getElementById('chatIdInput').value;
+        const btn = document.getElementById('testConnBtn');
+        const originalHtml = btn.innerHTML;
+
+        btn.disabled = true;
+        btn.innerHTML = '<span>⏳</span> <span>កំពុងតេស្ត...</span>';
+
+        try {
+            const formData = new FormData();
+            formData.append('token', token);
+            formData.append('chat_id', chatId);
+
+            const res = await fetch('/api/telegram/test', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                showToast(data.message, 'success');
+            } else {
+                showToast(data.message || 'បរាជ័យក្នុងការតភ្ជាប់', 'error');
+            }
+        } catch (e) {
+            showToast('កំហុសក្នុងការផ្ញើសារតេស្ត', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        }
+    }
+
+    async function sendDailyReportNow() {
+        if (!confirm("តើលោកអ្នកពិតជាចង់ផ្ញើរបាយការណ៍ថ្ងៃនេះទៅកាន់ Telegram Group ឥឡូវនេះមែនឬទេ?")) {
+            return;
+        }
+
+        const btn = document.getElementById('sendReportBtn');
+        const originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span>⏳</span> <span>កំពុងផ្ញើរបាយការណ៍...</span>';
+
+        try {
+            const formData = new FormData();
+            formData.append('send_excel', 'true');
+
+            const res = await fetch('/api/telegram/send-daily-report', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                showToast(data.message, 'success');
+            } else {
+                showToast(data.message || 'បរាជ័យក្នុងការផ្ញើរបាយការណ៍', 'error');
+            }
+        } catch (e) {
+            showToast('កំហុសក្នុងការផ្ញើរបាយការណ៍', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        }
+    }
+
+    async function detectGroups() {
+        const token = document.getElementById('tokenInput').value;
+        openModal('detectedGroupsModal');
+        const container = document.getElementById('detectedGroupsList');
+        container.innerHTML = '<div class="text-center py-6 text-slate-400 text-xs"><span>⏳</span> កំពុងទាញយកបញ្ជី Group...</div>';
+
+        try {
+            const res = await fetch(`/api/telegram/detect-chats?token=${encodeURIComponent(token)}`);
+            const data = await res.json();
+            if (res.ok && data.chats && data.chats.length > 0) {
+                container.innerHTML = '';
+                data.chats.forEach(c => {
+                    const item = document.createElement('div');
+                    item.className = 'p-3 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs hover:border-blue-400 transition cursor-pointer';
+                    item.innerHTML = `
+                        <div>
+                            <div class="font-bold text-slate-800 dark:text-slate-100">${c.title}</div>
+                            <div class="font-mono text-[10px] text-slate-400">ID: ${c.id} (${c.type})</div>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-primary text-xs py-1 px-2.5">ជ្រើសរើស</button>
+                    `;
+                    item.onclick = () => {
+                        document.getElementById('chatIdInput').value = c.id;
+                        document.getElementById('chatTitleInput').value = c.title;
+                        closeModal('detectedGroupsModal');
+                        showToast(`បានជ្រើសរើសក្រុម៖ ${c.title}`, 'info');
+                    };
+                    container.appendChild(item);
+                });
+            } else {
+                container.innerHTML = '<div class="text-center py-6 text-slate-400 text-xs">រកមិនឃើញ Group ថ្មីៗឡើយ។ សូមប្រាកដថាបាន Add Bot ចូលក្នុង Group និងបានផ្ញើសារសាកល្បងមួយម៉ាត់ក្នុង Group នោះជាមុនសិន។</div>';
+            }
+        } catch (e) {
+            container.innerHTML = '<div class="text-center py-6 text-red-500 text-xs">កំហុសក្នុងការស្វែងរក Group</div>';
+        }
+    }
+</script>
+{% endblock %}

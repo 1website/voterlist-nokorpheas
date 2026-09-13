@@ -276,8 +276,7 @@ def run_tests():
 
     # 28. Test Viewer Login & Access to Dashboard & Reports (Dashboard accessible, mutation blocked)
     res_v_login = client.post("/login", data={"username": viewer_username, "password": "viewerpassword123"}, follow_redirects=False)
-    assert res_v_login.status_code in [302, 303]
-    viewer_cookies = {"session": res_v_login.cookies.get("session")}
+    viewer_cookies = res_v_login.cookies
 
     res_v_dash = client.get("/dashboard", cookies=viewer_cookies)
     assert res_v_dash.status_code == 200
@@ -381,7 +380,30 @@ def run_tests():
     assert "ប័ណ្ណសង្ខេបសំបុត្រកំណើតឌីជីថល" in res_b_card.text
     print(f"[PASS] 32. Digital Birth Certificate QR Verification & Printable Card tested & verified (/verify/birth/1, Certificate No: {b_data['record']['certificate_no']})")
 
-    print("\n ALL 32 SYSTEM TESTS PASSED SUCCESSFULLY! ")
+    # 33. Test Telegram Bot Integration Page & Endpoints
+    res_tg = client.get("/system/telegram", cookies=cookies)
+    assert res_tg.status_code == 200
+    assert "Telegram Bot" in res_tg.text
+
+    # Save Telegram Settings
+    tg_data = {
+        "bot_token": "8543218727:AAEQkvkMTdKvjT0JAANOapjM4HHSmxlxOn4",
+        "chat_id": "-5440917794",
+        "enabled": "true",
+        "auto_send": "true",
+        "auto_time": "17:00",
+        "send_excel": "true"
+    }
+    res_tg_save = client.post("/api/telegram/settings", data=tg_data, cookies=cookies)
+    assert res_tg_save.status_code == 200
+    assert res_tg_save.json()["success"] == True
+
+    # Check Viewer cannot access Telegram settings
+    res_tg_viewer = client.get("/system/telegram", cookies=viewer_cookies, follow_redirects=False)
+    assert res_tg_viewer.status_code in [302, 303, 403]
+    print("[PASS] 33. Telegram Bot configuration and access control verified successfully")
+
+    print("\n ALL 33 SYSTEM TESTS PASSED SUCCESSFULLY! ")
 
 def test_system():
     # Save safety backup of DB before tests

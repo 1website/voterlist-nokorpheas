@@ -499,3 +499,13 @@ class BirthCertificate(Base):
                 "icon": "👶"
             }
 
+
+class SystemSetting(Base):
+    __tablename__ = "system_settings"
+
+    id = Column(Integer, primary_key=True, index=True)
+    key = Column(String(100), unique=True, index=True, nullable=False)
+    value = Column(Text, nullable=True)
+    description = Column(String(255), nullable=True)
+    updated_at = Column(DateTime, default=get_cambodia_now, onupdate=get_cambodia_now)
+

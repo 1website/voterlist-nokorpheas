@@ -1,6 +1,7 @@
 import os
 import sys
 import webbrowser
+import asyncio
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse, FileResponse
@@ -118,6 +119,55 @@ app.include_router(report_routes.router)
 app.include_router(user_routes.router)
 app.include_router(system_routes.router)
 app.include_router(birth_routes.router)
+
+# ---------------------------------------------------------
+# Automated Background Scheduler: Telegram Daily Report
+# ---------------------------------------------------------
+async def telegram_daily_report_scheduler():
+    """
+    Periodic background task checking every 45 seconds if Cambodia time matches
+    the configured daily report send time (e.g. 17:00).
+    Sends registration stats + attached Excel file to Telegram group automatically.
+    """
+    last_sent_date = None
+    # Grace period on startup
+    await asyncio.sleep(10)
+    while True:
+        try:
+            from app.timezone_utils import get_cambodia_now
+            from app.telegram_service import get_telegram_config, send_daily_report
+            from app.database import SessionLocal
+
+            now = get_cambodia_now()
+            today_str = now.strftime("%Y-%m-%d")
+            time_hm = now.strftime("%H:%M")
+
+            db = SessionLocal()
+            try:
+                cfg = get_telegram_config(db)
+                if cfg.get("enabled") and cfg.get("auto_send"):
+                    target_time = cfg.get("auto_time", "17:00")
+                    if time_hm == target_time and last_sent_date != today_str:
+                        print(f"🤖 [Telegram Bot] Triggering automated daily report for {today_str} at {time_hm} (KH Time)...")
+                        res = send_daily_report(db, target_date_str=today_str, send_excel=cfg.get("send_excel", True))
+                        if res.get("success"):
+                            last_sent_date = today_str
+                            print(f"✅ [Telegram Bot] Automated daily report sent successfully for {today_str}!")
+                        else:
+                            print(f"⚠️ [Telegram Bot] Automated daily report failed: {res.get('error')}")
+            finally:
+                db.close()
+        except asyncio.CancelledError:
+            break
+        except Exception as e:
+            print(f"⚠️ [Telegram Scheduler Exception]: {e}")
+
+        await asyncio.sleep(45)
+
+@app.on_event("startup")
+async def start_telegram_scheduler():
+    asyncio.create_task(telegram_daily_report_scheduler())
+
 
 @app.exception_handler(500)
 @app.exception_handler(Exception)
