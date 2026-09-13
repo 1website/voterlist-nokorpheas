@@ -539,7 +539,8 @@ def execute_pdf_import(
         ).first()
 
         photo_url = r["photo_url"]
-        # Save photo to file if present and base64
+        # Save photo as Base64 Data URI in DB (permanently preserved across cloud server restarts)
+        # Also write a local copy to disk as cache
         if photo_url and photo_url.startswith("data:image/jpeg;base64,"):
             try:
                 b64_data = photo_url.split(",")[1]
@@ -548,10 +549,9 @@ def execute_pdf_import(
                 photo_path = os.path.join(static_uploads, photo_fn)
                 with open(photo_path, "wb") as f:
                     f.write(img_data)
-                # Save both permanent base64 or static url
-                saved_photo_val = f"/static/uploads/voters/{photo_fn}"
             except Exception:
-                saved_photo_val = photo_url
+                pass
+            saved_photo_val = photo_url
         else:
             saved_photo_val = photo_url
 
