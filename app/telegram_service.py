@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 
 from app.models import SystemSetting, Voter, BirthCertificate, PollingStation, Village
-from app.timezone_utils import get_cambodia_now, get_cambodia_today, get_cambodia_today_str, format_khmer_date
+from app.timezone_utils import get_cambodia_now, get_cambodia_today, get_cambodia_today_str, format_khmer_date, to_khmer_num
 
 # Default configurations provided for Nokor Pheas Commune
 DEFAULT_BOT_TOKEN = "8543218727:AAEQkvkMTdKvjT0JAANOapjM4HHSmxlxOn4"
@@ -60,7 +60,7 @@ def get_telegram_config(db: Session = None) -> dict:
     enabled = get_setting(db, "telegram_enabled", "true").lower() in ["true", "1", "yes"]
     auto_send = get_setting(db, "telegram_auto_send", "true").lower() in ["true", "1", "yes"]
     auto_time = get_setting(db, "telegram_auto_time", "17:00")
-    send_excel = get_setting(db, "telegram_send_excel", "true").lower() in ["true", "1", "yes"]
+    send_excel = get_setting(db, "telegram_send_excel", "false").lower() in ["true", "1", "yes"]
 
     return {
         "token": token,
@@ -188,100 +188,111 @@ def detect_active_chats(token: str = None) -> list:
         return []
 
 def build_daily_report_message(db: Session, target_date_str: str = None) -> str:
-    """Build a rich, structured Khmer text report summarizing voter registrations."""
+    """
+    Build text daily report matching the exact official template:
+    📋 របាយការណ៍ចុះឈ្មោះបោះឆ្នោតប្រចាំឆ្នាំ ២០២៦
+
+    🗓️ កាលបរិច្ឆេទ៖ ១២/០៩/២០២៦ (ម៉ោង ០៤:២៩ រសៀល)
+    ⏰ រយៈពេលយុទ្ធនាការ៖ ០៤ តុលា ២០២៦ ដល់ ០៣ ធ្នូ ២០២៦
+    ───────────────────────────────
+    👥 ចុះឈ្មោះប្រចាំថ្ងៃសរុប៖ ១ នាក់
+    👩 ស្រី៖ ០ នាក់ (0.0%)
+    ───────────────────────────────
+    🏢 បូកសរុបតាមការិយាល័យបោះឆ្នោត៖
+
+    • ការិ ០០៦៤៖ ១ នាក់ (ស្រី ០ នាក់)
+    ───────────────────────────────
+    📡 ផ្ញើចេញពីប្រព័ន្ធគ្រប់គ្រងការបោះឆ្នោត (Vote Notification Bot)
+    """
     now = get_cambodia_now()
     if not target_date_str:
         target_date_str = now.strftime("%Y-%m-%d")
+
+    try:
+        dt_target = datetime.datetime.strptime(target_date_str, "%Y-%m-%d")
+    except Exception:
+        dt_target = now
+
+    # Target date formatted as DD/MM/YYYY in Khmer numerals
+    day_str = f"{dt_target.day:02d}"
+    month_str = f"{dt_target.month:02d}"
+    year_str = f"{dt_target.year}"
+    date_kh = f"{to_khmer_num(day_str)}/{to_khmer_num(month_str)}/{to_khmer_num(year_str)}"
+    year_kh = to_khmer_num(year_str)
+
+    # Time formatted as 12-hour (e.g., ម៉ោង ០៤:២៩ រសៀល)
+    h24 = now.hour
+    h12 = h24 % 12
+    if h12 == 0:
+        h12 = 12
+    hour_kh = to_khmer_num(f"{h12:02d}")
+    minute_kh = to_khmer_num(f"{now.minute:02d}")
+    
+    if h24 < 12:
+        period_kh = "ព្រឹក"
+    elif h24 < 17:
+        period_kh = "រសៀល"
+    else:
+        period_kh = "ល្ងាច"
+
+    time_kh_full = f"(ម៉ោង {hour_kh}:{minute_kh} {period_kh})"
+
+    # Campaign period
+    campaign_period = get_setting(db, "telegram_campaign_period", "០៤ តុលា ២០២៦ ដល់ ០៣ ធ្នូ ២០២៦")
 
     # Fetch voters registered on target_date_str
     today_voters = db.query(Voter).filter(
         func.date(Voter.created_at) == target_date_str
     ).all()
 
-    # Birth certificates registered today
-    bc_count = db.query(BirthCertificate).filter(
-        func.date(BirthCertificate.created_at) == target_date_str
-    ).count()
-
     today_total = len(today_voters)
     today_female = len([v for v in today_voters if v.gender == "ស្រី"])
-    today_male = len([v for v in today_voters if v.gender == "ប្រុស"])
+    female_pct = f"{(today_female / today_total * 100):.1f}%" if today_total > 0 else "0.0%"
 
-    # Registration types
-    new_reg = len([v for v in today_voters if (v.reg_type or "new").lower() == "new"])
-    legacy_reg = len([v for v in today_voters if (v.reg_type or "").lower() == "legacy"])
-    transferred_reg = len([v for v in today_voters if (v.reg_type or "").lower() == "transferred"])
-
-    # Age groups of today's registrations
-    youth_c = 0
-    adult_c = 0
-    elderly_c = 0
-    for v in today_voters:
-        grp = v.age_group_info["key"]
-        if grp == "youth":
-            youth_c += 1
-        elif grp == "adult":
-            adult_c += 1
-        elif grp == "elderly":
-            elderly_c += 1
-
-    # Cumulative commune stats
-    all_voters = db.query(Voter).all()
-    cum_total = len(all_voters)
-    cum_female = len([v for v in all_voters if v.gender == "ស្រី"])
-    cum_voted = len([v for v in all_voters if v.has_voted])
-    cum_female_pct = round((cum_female / cum_total * 100), 1) if cum_total > 0 else 0
-    cum_turnout_pct = round((cum_voted / cum_total * 100), 1) if cum_total > 0 else 0
-
-    # Top active stations today
-    station_counts = {}
+    # Breakdown by Polling Station
+    station_stats = {}
     for v in today_voters:
         if v.station_id:
-            station_counts[v.station_id] = station_counts.get(v.station_id, 0) + 1
+            if v.station_id not in station_stats:
+                station_stats[v.station_id] = {"total": 0, "female": 0}
+            station_stats[v.station_id]["total"] += 1
+            if v.gender == "ស្រី":
+                station_stats[v.station_id]["female"] += 1
 
     stations = db.query(PollingStation).all()
     st_map = {s.id: s for s in stations}
-    top_stations = sorted(station_counts.items(), key=lambda x: x[1], reverse=True)[:3]
 
     st_lines = []
-    if top_stations:
-        for idx, (st_id, count) in enumerate(top_stations, 1):
-            st = st_map.get(st_id)
-            name = f"{st.code} ({st.name})" if st else f"ការិយាល័យ #{st_id}"
-            st_lines.append(f"  {idx}. {name}៖ <b>{count}</b> នាក់")
+    if station_stats:
+        sorted_st_ids = sorted(
+            station_stats.keys(),
+            key=lambda sid: (st_map.get(sid).code if st_map.get(sid) and st_map.get(sid).code else str(sid))
+        )
+        for sid in sorted_st_ids:
+            st = st_map.get(sid)
+            code = st.code if st and st.code else f"{sid:04d}"
+            cnt = station_stats[sid]["total"]
+            fem_cnt = station_stats[sid]["female"]
+            st_lines.append(f"• ការិ {to_khmer_num(code)}៖ {to_khmer_num(cnt)} នាក់ (ស្រី {to_khmer_num(fem_cnt)} នាក់)")
     else:
-        st_lines.append("  • ពុំទាន់មានទិន្នន័យចុះឈ្មោះតាមការិយាល័យនៅឡើយ")
-    st_summary_str = "\n".join(st_lines)
+        st_lines.append("• គ្មានការចុះឈ្មោះក្នុងថ្ងៃនេះ")
 
-    date_kh = format_khmer_date(now)
-    time_str = now.strftime("%H:%M")
+    stations_block = "\n".join(st_lines)
+    divider = "───────────────────────────────"
 
-    msg = f"""🗳️ <b>របាយការណ៍បូកសរុបការចុះឈ្មោះបោះឆ្នោតប្រចាំថ្ងៃ</b>
-🏛️ <b>រដ្ឋបាលឃុំនគរភាស ស្រុកអង្គរជុំ ខេត្តសៀមរាប</b>
-📅 កាលបរិច្ឆេទ៖ {date_kh}
-⏰ ម៉ោងចេញរបាយការណ៍៖ {time_str} នាទី
+    msg = f"""📋 <b>របាយការណ៍ចុះឈ្មោះបោះឆ្នោតប្រចាំឆ្នាំ {year_kh}</b>
 
-📊 <b>ស្ថិតិចុះឈ្មោះសរុបថ្ងៃនេះ ({target_date_str})៖</b>
-• ចំនួនចុះឈ្មោះសរុប៖ <b>{today_total}</b> នាក់ (ស្រី <b>{today_female}</b> | ប្រុស <b>{today_male}</b>)
-• ✨ ចុះឈ្មោះថ្មី (New)៖ <b>{new_reg}</b> នាក់
-• 📋 បញ្ជីចាស់ (Legacy)៖ <b>{legacy_reg}</b> នាក់
-• 📦 ផ្ទេរចូល (Transferred)៖ <b>{transferred_reg}</b> នាក់
-• 📜 សំបុត្រកំណើតចុះថ្មី៖ <b>{bc_count}</b> ច្បាប់
+🗓️ <b>កាលបរិច្ឆេទ៖</b> {date_kh} {time_kh_full}
+⏰ <b>រយៈពេលយុទ្ធនាការ៖</b> {campaign_period}
+{divider}
+👥 <b>ចុះឈ្មោះប្រចាំថ្ងៃសរុប៖</b> {to_khmer_num(today_total)} នាក់
+👩 <b>ស្រី៖</b> {to_khmer_num(today_female)} នាក់ ({female_pct})
+{divider}
+🏢 <b>បូកសរុបតាមការិយាល័យបោះឆ្នោត៖</b>
 
-👥 <b>ស្ថិតិតាមក្រុមអាយុ (ថ្ងៃនេះ)៖</b>
-🟢 យុវជន (១៨-៣៥ ឆ្នាំ)៖ <b>{youth_c}</b> នាក់
-🔵 វ័យកណ្តាល (៣៦-៥៩ ឆ្នាំ)៖ <b>{adult_c}</b> នាក់
-🟠 មនុស្សចាស់ (៦០ ឆ្នាំឡើង)៖ <b>{elderly_c}</b> នាក់
-
-🏢 <b>ការិយាល័យចុះឈ្មោះសកម្មបំផុតថ្ងៃនេះ៖</b>
-{st_summary_str}
-
-📈 <b>ទិន្នន័យបូកសរុបទូទាំងឃុំនគរភាស (១០ ភូមិ • ១៤ ការិយាល័យ)៖</b>
-• សរុបអ្នកក្នុងបញ្ជីទាំងអស់៖ <b>{cum_total}</b> នាក់
-• សរុបស្រី៖ <b>{cum_female}</b> នាក់ ({cum_female_pct}%)
-• បានបោះឆ្នោតរួច៖ <b>{cum_voted}</b> នាក់ ({cum_turnout_pct}%)
---------------------------------------------
-✨ <i>ប្រព័ន្ធគ្រប់គ្រងអ្នកបោះឆ្នោតឃុំនគរភាស (VoterList Nokor Pheas)</i>"""
+{stations_block}
+{divider}
+📡 <i>ផ្ញើចេញពីប្រព័ន្ធគ្រប់គ្រងការបោះឆ្នោត (Vote Notification Bot)</i>"""
 
     return msg
 
@@ -391,15 +402,15 @@ def generate_daily_excel_bytes(db: Session, target_date_str: str = None) -> tupl
 def send_daily_report(
     db: Session,
     target_date_str: str = None,
-    send_excel: bool = True,
+    send_excel: bool = False,
     token: str = None,
     chat_id: str = None
 ) -> dict:
-    """Send both the structured message report and optional Excel attachment to Telegram."""
+    """Send structured text report (and optional Excel attachment if explicitly requested) to Telegram."""
     cfg = get_telegram_config(db)
     use_token = token or cfg["token"]
     use_chat_id = chat_id or cfg["chat_id"]
-    attach_excel = send_excel if send_excel is not None else cfg["send_excel"]
+    attach_excel = send_excel if send_excel is not None else cfg.get("send_excel", False)
 
     # 1. Send HTML Text Report
     report_text = build_daily_report_message(db, target_date_str)

@@ -696,7 +696,7 @@ def test_telegram_connection(
 def trigger_daily_report(
     request: Request,
     date: str = Form(None),
-    send_excel: bool = Form(True),
+    send_excel: bool = Form(False),
     db: Session = Depends(get_db)
 ):
     current_user = get_current_user_optional(request, db)

@@ -68,9 +68,9 @@
                     </div>
                 </div>
                 <div class="border-l border-white/20 pl-3">
-                    <div class="text-blue-200 text-[11px]">ឯកសារ Excel</div>
+                    <div class="text-blue-200 text-[11px]">ទម្រង់របាយការណ៍</div>
                     <div class="font-bold text-emerald-300 text-xs">
-                        {% if config.send_excel %}✅ ភ្ជាប់ជាប្រចាំ{% else %}❌ មិនភ្ជាប់{% endif %}
+                        {% if config.send_excel %}📎 អត្ថបទ + Excel{% else %}📝 អត្ថបទសុទ្ធ (Text Only){% endif %}
                     </div>
                 </div>
             </div>
@@ -137,7 +137,7 @@
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer">
                             <input type="checkbox" name="send_excel" value="true" {% if config.send_excel %}checked{% endif %} class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4">
-                            <span class="text-xs font-semibold text-slate-700 dark:text-slate-200">ភ្ជាប់ជាមួយឯកសារ Excel ប្រចាំថ្ងៃ</span>
+                            <span class="text-xs font-semibold text-slate-700 dark:text-slate-200">ភ្ជាប់ជាមួយឯកសារ Excel បន្ថែម (ជាជម្រើស)</span>
                         </label>
                     </div>
                 </div>
@@ -158,20 +158,20 @@
                         <span>👁️</span> <span>គំរូសាររបាយការណ៍ (Live Preview)</span>
                     </h3>
                     <span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-sky-300 font-bold">
-                        ទិន្នន័យជាក់ស្តែង
+                        ទម្រង់ផ្លូវការ
                     </span>
                 </div>
 
                 <!-- Telegram Chat Bubble Preview -->
                 <div class="p-4 rounded-2xl bg-[#5484a4]/10 dark:bg-[#0f172a] border border-[#5484a4]/20 shadow-inner text-xs">
                     <div class="bg-white dark:bg-slate-800/90 p-4 rounded-2xl rounded-tl-none shadow-md border border-slate-200/80 dark:border-slate-700/80 leading-relaxed font-sans text-slate-800 dark:text-slate-100 whitespace-pre-wrap selection:bg-blue-100 max-h-[420px] overflow-y-auto custom-scrollbar">
-{{ preview_text }}
+{{ preview_text|safe }}
                     </div>
                 </div>
             </div>
 
             <div class="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
-                <span>📎 ភ្ជាប់ឯកសារ Excel: <strong>{{ 'បើក' if config.send_excel else 'បិទ' }}</strong></span>
+                <span>📎 ភ្ជាប់ឯកសារ Excel: <strong>{{ 'បើក' if config.send_excel else 'បិទ (អត្ថបទសុទ្ធ)' }}</strong></span>
                 <span>ទម្រង់អត្ថបទ៖ <strong>HTML</strong></span>
             </div>
         </div>
@@ -279,7 +279,8 @@
 
         try {
             const formData = new FormData();
-            formData.append('send_excel', 'true');
+            const sendExcelChecked = document.querySelector('input[name="send_excel"]')?.checked || false;
+            formData.append('send_excel', sendExcelChecked ? 'true' : 'false');
 
             const res = await fetch('/api/telegram/send-daily-report', {
                 method: 'POST',
