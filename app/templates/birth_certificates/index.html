@@ -22,12 +22,12 @@
         <!-- 6 Action Cards (Clean, Balanced 2-Column Grid on Mobile, Flex on Desktop) -->
         <div class="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 sm:gap-2.5">
             <!-- 1. Add Birth Record (Primary Action) -->
-            {% if current_user.role in ['admin', 'officer', 'village_chief'] %}
+            {% if current_user.role in ['admin', 'superadmin', 'officer', 'village_chief'] %}
             <button type="button" onclick="openAddBirthModal()" class="btn btn-primary text-xs sm:text-sm shadow-md flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white active:scale-95 transition">
                 <span>➕</span>
                 <span class="whitespace-nowrap">កត់ត្រាថ្មី</span>
             </button>
-            <button type="button" onclick="openBirthExcelImportModal()" class="btn btn-outline border-teal-300 dark:border-teal-700/80 bg-teal-50/50 dark:bg-teal-950/40 hover:bg-teal-100 dark:hover:bg-teal-900/60 text-teal-900 dark:text-teal-300 text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl shadow-2xs active:scale-95 transition">
+            <button type="button" onclick="openBirthExcelImportModal()" class="btn text-xs sm:text-sm shadow-md flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-xl font-bold bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white active:scale-95 transition" title="នាំចូលទិន្នន័យពី Excel">
                 <span>📤</span>
                 <span class="whitespace-nowrap">នាំចូល Excel</span>
             </button>

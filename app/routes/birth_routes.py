@@ -1144,7 +1144,7 @@ async def api_preview_birth_excel_import(
     current_user = get_current_user_optional(request, db)
     if not current_user:
         return JSONResponse({"success": False, "error": "សូមចូលប្រើប្រាស់ប្រព័ន្ធជាមុនសិន"}, status_code=401)
-    if current_user.role not in ["admin", "officer", "village_chief"]:
+    if current_user.role not in ["admin", "superadmin", "officer", "village_chief"]:
         return JSONResponse({"success": False, "error": "លោកអ្នកគ្មានសិទ្ធិនាំចូលទិន្នន័យឡើយ"}, status_code=403)
 
     if not excel_file or not excel_file.filename:
@@ -1172,7 +1172,7 @@ async def api_confirm_birth_excel_import(
     current_user = get_current_user_optional(request, db)
     if not current_user:
         return JSONResponse({"success": False, "error": "សូមចូលប្រើប្រាស់ប្រព័ន្ធជាមុនសិន"}, status_code=401)
-    if current_user.role not in ["admin", "officer", "village_chief"]:
+    if current_user.role not in ["admin", "superadmin", "officer", "village_chief"]:
         return JSONResponse({"success": False, "error": "លោកអ្នកគ្មានសិទ្ធិនាំចូលទិន្នន័យឡើយ"}, status_code=403)
 
     try:
