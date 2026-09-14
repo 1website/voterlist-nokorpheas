@@ -27,6 +27,10 @@
                 <span>➕</span>
                 <span class="whitespace-nowrap">កត់ត្រាថ្មី</span>
             </button>
+            <button type="button" onclick="openBirthExcelImportModal()" class="btn btn-outline border-teal-300 dark:border-teal-700/80 bg-teal-50/50 dark:bg-teal-950/40 hover:bg-teal-100 dark:hover:bg-teal-900/60 text-teal-900 dark:text-teal-300 text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl shadow-2xs active:scale-95 transition">
+                <span>📤</span>
+                <span class="whitespace-nowrap">នាំចូល Excel</span>
+            </button>
             {% endif %}
 
             <!-- 3. Monthly/Yearly Statistics -->
@@ -1374,6 +1378,411 @@ function closeConvertModal() {
     hideBirthModal('convertModal');
 }
 
+// =========================================================================
+// EXCEL BULK IMPORT CONTROLLER
+// =========================================================================
+let currentParsedExcelData = null;
+let selectedExcelFile = null;
+
+function openBirthExcelImportModal() {
+    showBirthModal('birthExcelImportModal');
+    resetBirthExcelModal();
+}
+
+function closeBirthExcelImportModal() {
+    hideBirthModal('birthExcelImportModal');
+    resetBirthExcelModal();
+}
+
+function resetBirthExcelModal() {
+    currentParsedExcelData = null;
+    selectedExcelFile = null;
+    const fileInput = document.getElementById('birthExcelFileInput');
+    if (fileInput) fileInput.value = '';
+
+    const selectedInfo = document.getElementById('excelSelectedFileInfo');
+    if (selectedInfo) selectedInfo.classList.add('hidden');
+
+    const previewContainer = document.getElementById('excelPreviewContainer');
+    if (previewContainer) previewContainer.classList.add('hidden');
+
+    const errorAlert = document.getElementById('excelErrorAlert');
+    if (errorAlert) errorAlert.classList.add('hidden');
+
+    const loadingState = document.getElementById('excelLoadingState');
+    if (loadingState) loadingState.classList.add('hidden');
+
+    const btnPreview = document.getElementById('btnPreviewExcel');
+    if (btnPreview) btnPreview.disabled = true;
+
+    const btnConfirm = document.getElementById('btnConfirmExcelImport');
+    if (btnConfirm) btnConfirm.disabled = true;
+}
+
+function handleExcelFileSelected(files) {
+    if (!files || !files.length) return;
+    const file = files[0];
+    selectedExcelFile = file;
+
+    const infoBox = document.getElementById('excelSelectedFileInfo');
+    const nameEl = document.getElementById('excelFileName');
+    const sizeEl = document.getElementById('excelFileSize');
+    const btnPreview = document.getElementById('btnPreviewExcel');
+
+    if (infoBox && nameEl && sizeEl) {
+        nameEl.textContent = file.name;
+        sizeEl.textContent = `${(file.size / 1024).toFixed(1)} KB`;
+        infoBox.classList.remove('hidden');
+    }
+    if (btnPreview) btnPreview.disabled = false;
+
+    // Automatically trigger preview for smooth UX
+    previewBirthExcel();
+}
+
+function clearSelectedExcelFile(e) {
+    if (e) e.stopPropagation();
+    resetBirthExcelModal();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const dropZone = document.getElementById('excelDropZone');
+    if (!dropZone) return;
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            dropZone.classList.add('border-teal-500', 'bg-teal-50/50');
+        }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-teal-500', 'bg-teal-50/50');
+        }, false);
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        if (dt && dt.files && dt.files.length) {
+            handleExcelFileSelected(dt.files);
+        }
+    }, false);
+});
+
+async function previewBirthExcel() {
+    if (!selectedExcelFile) {
+        alert('សូមជ្រើសរើសឯកសារ Excel ជាមុនសិន!');
+        return;
+    }
+
+    const loadingState = document.getElementById('excelLoadingState');
+    const errorAlert = document.getElementById('excelErrorAlert');
+    const previewContainer = document.getElementById('excelPreviewContainer');
+    const btnConfirm = document.getElementById('btnConfirmExcelImport');
+
+    if (loadingState) loadingState.classList.remove('hidden');
+    if (errorAlert) errorAlert.classList.add('hidden');
+    if (previewContainer) previewContainer.classList.add('hidden');
+    if (btnConfirm) btnConfirm.disabled = true;
+
+    const formData = new FormData();
+    formData.append('excel_file', selectedExcelFile);
+
+    try {
+        const response = await fetch('/api/birth-certificates/import-excel/preview', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.error || 'មិនអាចអានឯកសារ Excel បានទេ');
+        }
+
+        currentParsedExcelData = data;
+        renderExcelPreview(data);
+    } catch (err) {
+        if (errorAlert) {
+            errorAlert.classList.remove('hidden');
+            document.getElementById('excelErrorMsg').textContent = err.message;
+        }
+    } finally {
+        if (loadingState) loadingState.classList.add('hidden');
+    }
+}
+
+function renderExcelPreview(data) {
+    const previewContainer = document.getElementById('excelPreviewContainer');
+    if (!previewContainer) return;
+
+    document.getElementById('statTotalRows').textContent = data.total_rows || 0;
+    document.getElementById('statValidRows').textContent = data.valid_count || 0;
+    document.getElementById('statWarningRows').textContent = data.warning_count || 0;
+    document.getElementById('statErrorRows').textContent = data.error_count || 0;
+
+    const tbody = document.getElementById('excelPreviewTbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    const records = data.records || [];
+    records.forEach((r, idx) => {
+        const tr = document.createElement('tr');
+        tr.className = idx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/50 dark:bg-slate-800/40';
+
+        let statusBadge = '';
+        if (r.status === 'valid') {
+            statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">✅ ត្រឹមត្រូវ</span>`;
+        } else if (r.status === 'warning') {
+            statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300" title="${r.issues.join(', ')}">⚠️ ស្ទួនលេខ</span>`;
+        } else {
+            statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300" title="${r.issues.join(', ')}">❌ កំហុស</span>`;
+        }
+
+        const voterLink = r.matched_voter ? `<span class="text-[9px] text-emerald-600 dark:text-emerald-400 block font-semibold">🔗 ភ្ជាប់បោះឆ្នោត (${r.matched_voter.voter_code})</span>` : '';
+
+        tr.innerHTML = `
+            <td class="py-2 px-2.5 text-center text-slate-400 font-mono">${idx + 1}</td>
+            <td class="py-2 px-2.5 font-mono font-bold text-slate-800 dark:text-slate-200 whitespace-nowrap">${r.certificate_no || '---'}</td>
+            <td class="py-2 px-2.5 font-bold text-slate-900 dark:text-slate-100 whitespace-nowrap">${r.name_kh || '---'}${voterLink}</td>
+            <td class="py-2 px-2.5 font-mono text-slate-600 dark:text-slate-400 text-[10px] whitespace-nowrap">${r.name_en || '---'}</td>
+            <td class="py-2 px-2.5 text-center font-medium">${r.gender || '---'}</td>
+            <td class="py-2 px-2.5 font-mono whitespace-nowrap">${r.dob || '---'} <span class="text-slate-400">(${r.age} ឆ្នាំ)</span></td>
+            <td class="py-2 px-2.5 font-medium whitespace-nowrap text-teal-800 dark:text-teal-300">${r.village_name || '---'}</td>
+            <td class="py-2 px-2.5 text-slate-500 truncate max-w-[120px]">${r.father_name || ''} / ${r.mother_name || ''}</td>
+            <td class="py-2 px-2.5 text-center whitespace-nowrap">${statusBadge}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    const btnConfirm = document.getElementById('btnConfirmExcelImport');
+    const importableCount = (data.valid_count || 0) + (data.warning_count || 0);
+    if (btnConfirm) {
+        btnConfirm.disabled = (importableCount === 0);
+    }
+
+    const subtitle = document.getElementById('previewSubtitleText');
+    if (subtitle) {
+        subtitle.textContent = `បានរកឃើញ ${records.length} ជួរដេក • អាចនាំចូលបាន ${importableCount} នាក់`;
+    }
+
+    previewContainer.classList.remove('hidden');
+}
+
+async function confirmBirthExcelImport() {
+    if (!currentParsedExcelData || !currentParsedExcelData.records || !currentParsedExcelData.records.length) {
+        alert('គ្មានទិន្នន័យសម្រាប់នាំចូលឡើយ!');
+        return;
+    }
+
+    const duplicateHandling = document.getElementById('excelDuplicateHandling').value || 'skip';
+    const btnConfirm = document.getElementById('btnConfirmExcelImport');
+    const loadingState = document.getElementById('excelLoadingState');
+    const loadingText = document.getElementById('excelLoadingText');
+    const errorAlert = document.getElementById('excelErrorAlert');
+
+    const validRecords = currentParsedExcelData.records.filter(r => r.status !== 'error');
+    if (!validRecords.length) {
+        alert('គ្មានកំណត់ត្រាត្រឹមត្រូវដែលអាចនាំចូលបានឡើយ!');
+        return;
+    }
+
+    if (btnConfirm) btnConfirm.disabled = true;
+    if (loadingState) {
+        loadingText.textContent = `កំពុងបញ្ចូលទិន្នន័យចំនួន ${validRecords.length} នាក់ទៅកាន់ប្រព័ន្ធ...`;
+        loadingState.classList.remove('hidden');
+    }
+    if (errorAlert) errorAlert.classList.add('hidden');
+
+    try {
+        const response = await fetch('/api/birth-certificates/import-excel/confirm', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                records: validRecords,
+                on_duplicate: duplicateHandling
+            })
+        });
+        const res = await response.json();
+
+        if (!response.ok || !res.success) {
+            throw new Error(res.error || 'មានបញ្ហាក្នុងការរក្សាទុកទិន្នន័យ');
+        }
+
+        alert(`✅ ជោគជ័យ! បាននាំចូលទិន្នន័យសំបុត្រកំណើតចំនួន ${res.imported_count} នាក់ (កែប្រែ: ${res.updated_count}, រំលងស្ទួន: ${res.skipped_count})។`);
+        window.location.reload();
+    } catch (err) {
+        if (errorAlert) {
+            errorAlert.classList.remove('hidden');
+            document.getElementById('excelErrorMsg').textContent = err.message;
+        }
+        if (btnConfirm) btnConfirm.disabled = false;
+    } finally {
+        if (loadingState) loadingState.classList.add('hidden');
+    }
+}
 </script>
+
+<!-- ========================================================================= -->
+<!-- MODAL: EXCEL BULK IMPORT FOR BIRTH CERTIFICATES -->
+<!-- ========================================================================= -->
+<div id="birthExcelImportModal" class="modal-overlay hidden">
+    <div class="modal-card max-w-4xl overflow-hidden p-0 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800">
+        <!-- Header -->
+        <div class="modal-header bg-gradient-to-r from-teal-800 via-emerald-900 to-slate-900 text-white p-4 sm:p-5 flex items-center justify-between">
+            <h3 class="font-bold text-base sm:text-lg font-kh-heading flex items-center gap-2">
+                <span class="text-xl sm:text-2xl">📤</span> <span>នាំចូលទិន្នន័យសំបុត្រកំណើតពី Excel (Bulk Import)</span>
+            </h3>
+            <button type="button" onclick="closeBirthExcelImportModal()" class="text-white/80 hover:text-white rounded-lg text-xl p-1 leading-none transition" title="បិទ">✕</button>
+        </div>
+
+        <div class="modal-body p-4 sm:p-6 space-y-4 max-h-[82vh] overflow-y-auto custom-scrollbar">
+            
+            <!-- Step 1 & Instructions Card -->
+            <div class="p-4 rounded-2xl bg-gradient-to-br from-teal-50/80 to-emerald-50/80 dark:from-slate-800/80 dark:to-slate-850/80 border border-teal-200/80 dark:border-teal-800/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5 shadow-xs">
+                <div class="space-y-1">
+                    <h4 class="font-bold text-xs sm:text-sm text-teal-950 dark:text-teal-200 flex items-center gap-1.5 font-kh-heading">
+                        <span>📑</span> <span>ទាញយកទម្រង់គំរូ Excel ផ្លូវការ (Official Template)</span>
+                    </h4>
+                    <p class="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+                        សូមទាញយកឯកសារគំរូ និងបំពេញតាមជួរឈរដែលមានកំណត់ (លេខសំបុត្រ, ឈ្មោះ, ភេទ, ថ្ងៃខែឆ្នាំកំណើត, ភូមិ) ដើម្បីធានាភាពសុក្រឹត្យ។
+                    </p>
+                </div>
+                <a href="/birth-certificates/template-excel" class="btn btn-primary bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow-sm flex items-center gap-2 shrink-0 active:scale-95 transition">
+                    <span>📥</span> <span>ទាញយកទម្រង់គំរូ (.xlsx)</span>
+                </a>
+            </div>
+
+            <!-- Upload Area & Drag-and-drop -->
+            <div class="space-y-3">
+                <div id="excelDropZone" onclick="document.getElementById('birthExcelFileInput').click()" class="border-2 border-dashed border-teal-300 dark:border-teal-700/60 hover:border-teal-500 rounded-2xl p-6 text-center cursor-pointer bg-slate-50/60 dark:bg-slate-900/40 hover:bg-teal-50/30 dark:hover:bg-teal-950/20 transition group">
+                    <input type="file" id="birthExcelFileInput" accept=".xlsx, .xls" class="hidden" onchange="handleExcelFileSelected(this.files)">
+                    <div class="space-y-2">
+                        <div class="w-12 h-12 mx-auto rounded-2xl bg-teal-100 dark:bg-teal-900/60 text-teal-700 dark:text-teal-300 flex items-center justify-center text-2xl group-hover:scale-110 transition shadow-xs">
+                            📊
+                        </div>
+                        <div>
+                            <p class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">
+                                ចុចទីនេះដើម្បីជ្រើសរើសឯកសារ ឬអូសទម្លាក់ (Drag & Drop) មកទីនេះ
+                            </p>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                                គាំទ្រឯកសារប្រភេទ <strong>.xlsx</strong> ឬ <strong>.xls</strong> (ទំហំអតិបរមា 15MB)
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Selected File Display -->
+                <div id="excelSelectedFileInfo" class="hidden p-3 rounded-xl bg-teal-50 dark:bg-teal-950/50 border border-teal-200 dark:border-teal-800 flex items-center justify-between">
+                    <div class="flex items-center gap-2.5 overflow-hidden">
+                        <span class="text-xl">📄</span>
+                        <div class="truncate">
+                            <h5 id="excelFileName" class="text-xs font-bold text-teal-950 dark:text-teal-200 truncate"></h5>
+                            <span id="excelFileSize" class="text-[10px] text-teal-700 dark:text-teal-400"></span>
+                        </div>
+                    </div>
+                    <button type="button" onclick="clearSelectedExcelFile(event)" class="text-xs text-rose-600 hover:text-rose-700 font-bold p-1">
+                        ✕ លុបចេញ
+                    </button>
+                </div>
+            </div>
+
+            <!-- Options Row -->
+            <div class="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <label for="excelDuplicateHandling" class="text-xs font-bold text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                        ជម្រើសទិន្នន័យស្ទួន៖
+                    </label>
+                    <select id="excelDuplicateHandling" class="form-control text-xs py-1.5 px-3 rounded-xl flex-1 sm:flex-initial">
+                        <option value="skip" selected>រំលងទិន្នន័យស្ទួនលេខ (Skip Duplicates - ណែនាំ)</option>
+                        <option value="overwrite">កែប្រែទិន្នន័យចាស់ដែលមានស្រាប់ (Overwrite Existing)</option>
+                    </select>
+                </div>
+                <button type="button" id="btnPreviewExcel" onclick="previewBirthExcel()" class="btn btn-primary text-xs py-2 px-4 rounded-xl font-bold flex items-center gap-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed shrink-0 w-full sm:w-auto justify-center" disabled>
+                    <span>🔍</span> <span>អាន & ពិនិត្យទិន្នន័យជាមុន</span>
+                </button>
+            </div>
+
+            <!-- Loading State -->
+            <div id="excelLoadingState" class="hidden py-6 text-center space-y-2">
+                <div class="w-8 h-8 mx-auto border-3 border-teal-200 border-t-teal-600 rounded-full animate-spin"></div>
+                <p id="excelLoadingText" class="text-xs text-slate-500 font-medium">កំពុងអាន និងផ្ទៀងផ្ទាត់ទិន្នន័យ Excel...</p>
+            </div>
+
+            <!-- Error Box -->
+            <div id="excelErrorAlert" class="hidden p-3 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs flex items-center gap-2">
+                <span>⚠️</span> <span id="excelErrorMsg"></span>
+            </div>
+
+            <!-- Preview Result Container -->
+            <div id="excelPreviewContainer" class="hidden space-y-3">
+                <!-- Stats Summary Cards -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <div class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center">
+                        <span class="text-[10px] text-slate-500 font-semibold">សរុបជួរដេក</span>
+                        <div id="statTotalRows" class="text-sm sm:text-base font-black text-slate-800 dark:text-slate-100">0</div>
+                    </div>
+                    <div class="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-center">
+                        <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">ត្រឹមត្រូវ (អាចបញ្ចូលបាន)</span>
+                        <div id="statValidRows" class="text-sm sm:text-base font-black text-emerald-700 dark:text-emerald-300">0</div>
+                    </div>
+                    <div class="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-center">
+                        <span class="text-[10px] text-amber-600 dark:text-amber-400 font-semibold">ស្ទួនក្នុងប្រព័ន្ធ</span>
+                        <div id="statWarningRows" class="text-sm sm:text-base font-black text-amber-700 dark:text-amber-300">0</div>
+                    </div>
+                    <div class="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-center">
+                        <span class="text-[10px] text-rose-600 dark:text-rose-400 font-semibold">មានកំហុស/ខ្វះចន្លោះ</span>
+                        <div id="statErrorRows" class="text-sm sm:text-base font-black text-rose-700 dark:text-rose-300">0</div>
+                    </div>
+                </div>
+
+                <!-- Preview Table -->
+                <div class="rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+                    <div class="p-2.5 bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                        <span class="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                            <span>📋</span> <span>តារាងពិនិត្យទិន្នន័យជាមុន (Preview)</span>
+                        </span>
+                        <span id="previewSubtitleText" class="text-[10px] text-slate-500"></span>
+                    </div>
+                    <div class="max-h-[260px] overflow-y-auto overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-[11px] text-left border-collapse">
+                            <thead class="bg-slate-50 dark:bg-slate-850 text-slate-600 dark:text-slate-300 font-bold sticky top-0 border-b border-slate-200 dark:border-slate-700 shadow-2xs">
+                                <tr>
+                                    <th class="py-2 px-2.5 text-center">#</th>
+                                    <th class="py-2 px-2.5">លេខសំបុត្រ</th>
+                                    <th class="py-2 px-2.5">ឈ្មោះខ្មែរ</th>
+                                    <th class="py-2 px-2.5">ឈ្មោះឡាតាំង</th>
+                                    <th class="py-2 px-2.5 text-center">ភេទ</th>
+                                    <th class="py-2 px-2.5">ថ្ងៃកំណើត</th>
+                                    <th class="py-2 px-2.5">ភូមិ</th>
+                                    <th class="py-2 px-2.5">ឪពុក-ម្តាយ</th>
+                                    <th class="py-2 px-2.5 text-center">ស្ថានភាព</th>
+                                </tr>
+                            </thead>
+                            <tbody id="excelPreviewTbody" class="divide-y divide-slate-100 dark:divide-slate-800">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="modal-footer p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <button type="button" onclick="closeBirthExcelImportModal()" class="btn btn-outline text-xs sm:text-sm py-2 px-5 rounded-xl font-semibold">
+                បោះបង់
+            </button>
+            <button type="button" id="btnConfirmExcelImport" onclick="confirmBirthExcelImport()" class="btn btn-primary bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white text-xs sm:text-sm py-2.5 px-6 rounded-xl font-bold flex items-center gap-2 shadow-md disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                <span>✅</span> <span>យល់ព្រមនាំចូលទិន្នន័យ</span>
+            </button>
+        </div>
+    </div>
+</div>
 {% endblock %}
 

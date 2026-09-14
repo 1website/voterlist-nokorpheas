@@ -1107,3 +1107,84 @@ def print_birth_certificate_card(
             "print_date": get_cambodia_today()
         }
     )
+
+# ==============================================================================
+# EXCEL BULK IMPORT ROUTES FOR BIRTH CERTIFICATES
+# ==============================================================================
+from app.excel_importer import (
+    generate_birth_excel_template,
+    parse_birth_certificates_excel,
+    execute_birth_import
+)
+
+@router.get("/birth-certificates/template-excel")
+def download_birth_certificate_excel_template(
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    current_user = get_current_user_optional(request, db)
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=302)
+
+    villages = db.query(Village).all()
+    excel_stream = generate_birth_excel_template(villages)
+    filename = "form_import_birth_certificates_nokorpheas.xlsx"
+    return StreamingResponse(
+        excel_stream,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+    )
+
+@router.post("/api/birth-certificates/import-excel/preview")
+async def api_preview_birth_excel_import(
+    request: Request,
+    excel_file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    current_user = get_current_user_optional(request, db)
+    if not current_user:
+        return JSONResponse({"success": False, "error": "សូមចូលប្រើប្រាស់ប្រព័ន្ធជាមុនសិន"}, status_code=401)
+    if current_user.role not in ["admin", "officer", "village_chief"]:
+        return JSONResponse({"success": False, "error": "លោកអ្នកគ្មានសិទ្ធិនាំចូលទិន្នន័យឡើយ"}, status_code=403)
+
+    if not excel_file or not excel_file.filename:
+        return JSONResponse({"success": False, "error": "សូមជ្រើសរើសឯកសារ Excel (.xlsx) ដើម្បីផ្ទុកឡើង"}, status_code=400)
+
+    filename = excel_file.filename.lower()
+    if not (filename.endswith(".xlsx") or filename.endswith(".xls")):
+        return JSONResponse({"success": False, "error": "អនុញ្ញាតតែឯកសារ Excel (.xlsx ឬ .xls) ប៉ុណ្ណោះ"}, status_code=400)
+
+    try:
+        content = await excel_file.read()
+        if len(content) > 15 * 1024 * 1024:
+            return JSONResponse({"success": False, "error": "ទំហំឯកសារធំពេក (អតិបរមា 15MB)"}, status_code=400)
+
+        preview_result = parse_birth_certificates_excel(content, excel_file.filename, db)
+        return JSONResponse(preview_result)
+    except Exception as e:
+        return JSONResponse({"success": False, "error": f"កំហុសក្នុងការអានឯកសារ Excel៖ {str(e)}"}, status_code=500)
+
+@router.post("/api/birth-certificates/import-excel/confirm")
+async def api_confirm_birth_excel_import(
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    current_user = get_current_user_optional(request, db)
+    if not current_user:
+        return JSONResponse({"success": False, "error": "សូមចូលប្រើប្រាស់ប្រព័ន្ធជាមុនសិន"}, status_code=401)
+    if current_user.role not in ["admin", "officer", "village_chief"]:
+        return JSONResponse({"success": False, "error": "លោកអ្នកគ្មានសិទ្ធិនាំចូលទិន្នន័យឡើយ"}, status_code=403)
+
+    try:
+        body = await request.json()
+        records = body.get("records", [])
+        on_duplicate = body.get("on_duplicate", "skip")
+
+        if not records:
+            return JSONResponse({"success": False, "error": "គ្មានទិន្នន័យសម្រាប់នាំចូលឡើយ"}, status_code=400)
+
+        result = execute_birth_import(records, current_user, db, on_duplicate=on_duplicate)
+        return JSONResponse(result)
+    except Exception as e:
+        db.rollback()
+        return JSONResponse({"success": False, "error": f"កំហុសក្នុងការរក្សាទុកទិន្នន័យ៖ {str(e)}"}, status_code=500)
