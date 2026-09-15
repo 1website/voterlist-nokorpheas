@@ -3,6 +3,7 @@ import io
 import re
 import uuid
 import shutil
+import base64
 import datetime
 from fastapi import APIRouter, Request, Depends, HTTPException, Query, Form, File, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, StreamingResponse
@@ -36,7 +37,7 @@ def save_birth_attachment(upload_file: UploadFile) -> str:
     ext = os.path.splitext(upload_file.filename)[1].lower()
     allowed_img_exts = [".jpg", ".jpeg", ".png", ".webp", ".gif"]
     
-    # Process images with Pillow to Data URI (100% resilient across redeployments)
+    # 1. Process images with Pillow to Data URI (100% resilient across redeployments)
     if ext in allowed_img_exts or (upload_file.content_type and upload_file.content_type.startswith("image/")):
         try:
             return process_and_encode_image(
@@ -48,15 +49,41 @@ def save_birth_attachment(upload_file: UploadFile) -> str:
         except Exception as e:
             print(f"Birth image processing fallback: {e}")
 
-    # For PDFs and other files
-    allowed_exts = [".pdf"]
-    if ext not in allowed_exts:
-        ext = ".pdf" if "pdf" in (upload_file.content_type or "").lower() else ".jpg"
-    filename = f"birth_{uuid.uuid4().hex[:14]}{ext}"
-    file_path = os.path.join(UPLOAD_DIR_BIRTH, filename)
-    with open(file_path, "wb") as f:
-        shutil.copyfileobj(upload_file.file, f)
-    return f"/static/uploads/birth_certificates/{filename}"
+    # 2. Process PDFs to Base64 Data URI (100% resilient across redeployments and container disk wipes)
+    if ext == ".pdf" or "pdf" in (upload_file.content_type or "").lower():
+        try:
+            content = upload_file.file.read()
+            if content:
+                # Optionally save a local cache file on disk
+                try:
+                    filename = f"birth_{uuid.uuid4().hex[:14]}.pdf"
+                    file_path = os.path.join(UPLOAD_DIR_BIRTH, filename)
+                    with open(file_path, "wb") as f:
+                        f.write(content)
+                except Exception:
+                    pass
+                
+                # Base64 Data URI stored in DB ensures PDF is permanent and never 404s
+                b64_str = base64.b64encode(content).decode("utf-8")
+                return f"data:application/pdf;base64,{b64_str}"
+        except Exception as e:
+            print(f"Birth PDF base64 conversion fallback: {e}")
+
+    # Fallback for any other file
+    try:
+        content = upload_file.file.read()
+        if content:
+            filename = f"birth_{uuid.uuid4().hex[:14]}{ext or '.pdf'}"
+            file_path = os.path.join(UPLOAD_DIR_BIRTH, filename)
+            with open(file_path, "wb") as f:
+                f.write(content)
+            if "pdf" in (upload_file.content_type or "").lower() or ext == ".pdf":
+                b64_str = base64.b64encode(content).decode("utf-8")
+                return f"data:application/pdf;base64,{b64_str}"
+            return f"/static/uploads/birth_certificates/{filename}"
+    except Exception as e:
+        print(f"Birth file fallback error: {e}")
+    return None
 
 def sanitize_id_backend(raw_id: str) -> str:
     if not raw_id:

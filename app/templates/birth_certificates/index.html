@@ -1268,6 +1268,28 @@ function closeEditBirthModal() {
     hideBirthModal('editBirthModal');
 }
 
+function openAttachmentInNewTab(url) {
+    if (!url || url === '#' || url.startsWith('javascript:')) return;
+    if (url.startsWith('data:application/pdf;base64,')) {
+        try {
+            const base64Data = url.split(',')[1];
+            const byteCharacters = atob(base64Data);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], { type: 'application/pdf' });
+            const blobUrl = URL.createObjectURL(blob);
+            window.open(blobUrl, '_blank');
+            return;
+        } catch (e) {
+            console.error('Error opening blob PDF:', e);
+        }
+    }
+    window.open(url, '_blank');
+}
+
 function openPreviewModal(url, title, isPdf) {
     const titleEl = document.getElementById('previewModalTitle');
     const newTabEl = document.getElementById('previewOpenNewTab');
@@ -1279,13 +1301,31 @@ function openPreviewModal(url, title, isPdf) {
     const directLinkEl = document.getElementById('previewModalErrorDirectLink');
 
     if (titleEl) titleEl.innerText = title || 'ពិនិត្យមើលឯកសារភ្ជាប់';
-    if (newTabEl) newTabEl.href = url || '#';
-    if (directLinkEl) directLinkEl.href = url || '#';
+    
+    // Configure new tab and direct link buttons
+    if (newTabEl) {
+        newTabEl.onclick = function(e) {
+            e.preventDefault();
+            openAttachmentInNewTab(url);
+        };
+    }
+    if (directLinkEl) {
+        directLinkEl.onclick = function(e) {
+            e.preventDefault();
+            openAttachmentInNewTab(url);
+        };
+    }
 
     // Hide error & reset views
     if (errorEl) errorEl.classList.add('hidden');
-    if (imgEl) imgEl.classList.add('hidden');
-    if (iframeEl) iframeEl.classList.add('hidden');
+    if (imgEl) {
+        imgEl.classList.add('hidden');
+        imgEl.removeAttribute('src');
+    }
+    if (iframeEl) {
+        iframeEl.classList.add('hidden');
+        iframeEl.src = 'about:blank';
+    }
 
     if (!url || url === 'None' || url === 'null' || url.trim() === '') {
         if (loadingEl) loadingEl.classList.add('hidden');
@@ -1299,7 +1339,10 @@ function openPreviewModal(url, title, isPdf) {
 
     if (isActuallyPdf) {
         if (iconEl) iconEl.innerText = '📄';
-        if (imgEl) { imgEl.src = ''; }
+        if (imgEl) { 
+            imgEl.removeAttribute('src'); 
+            imgEl.classList.add('hidden');
+        }
         if (iframeEl) {
             iframeEl.classList.remove('hidden');
             iframeEl.src = cleanUrl;
@@ -1307,7 +1350,10 @@ function openPreviewModal(url, title, isPdf) {
         if (loadingEl) loadingEl.classList.add('hidden');
     } else {
         if (iconEl) iconEl.innerText = '🖼️';
-        if (iframeEl) { iframeEl.src = ''; }
+        if (iframeEl) { 
+            iframeEl.src = 'about:blank'; 
+            iframeEl.classList.add('hidden');
+        }
         if (loadingEl) loadingEl.classList.remove('hidden');
         if (imgEl) {
             imgEl.src = cleanUrl;
@@ -1323,15 +1369,16 @@ function handlePreviewImageLoaded() {
     const imgEl = document.getElementById('previewModalImage');
     if (loadingEl) loadingEl.classList.add('hidden');
     if (errorEl) errorEl.classList.add('hidden');
-    if (imgEl && imgEl.src && !imgEl.src.endsWith('/')) {
+    if (imgEl && imgEl.getAttribute('src')) {
         imgEl.classList.remove('hidden');
     }
 }
 
 function handlePreviewImageError() {
+    const imgEl = document.getElementById('previewModalImage');
+    if (!imgEl || !imgEl.getAttribute('src')) return;
     const loadingEl = document.getElementById('previewModalLoading');
     const errorEl = document.getElementById('previewModalError');
-    const imgEl = document.getElementById('previewModalImage');
     if (loadingEl) loadingEl.classList.add('hidden');
     if (imgEl) imgEl.classList.add('hidden');
     if (errorEl) errorEl.classList.remove('hidden');
@@ -1345,8 +1392,8 @@ function handlePreviewIframeLoaded() {
 function closePreviewModal() {
     const iframeEl = document.getElementById('previewModalIframe');
     const imgEl = document.getElementById('previewModalImage');
-    if (iframeEl) iframeEl.src = '';
-    if (imgEl) imgEl.src = '';
+    if (iframeEl) iframeEl.src = 'about:blank';
+    if (imgEl) imgEl.removeAttribute('src');
     hideBirthModal('previewModal');
 }
 
