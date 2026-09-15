@@ -158,9 +158,6 @@ def seed_database(db: Session):
         db.commit()
         print("Ensured default admin account exists.")
 
-    # Always ensure birth certificates are seeded if missing
-    seed_birth_certificates(db)
-
     # Check if already seeded
     if db.query(Village).count() > 0:
         print("Database already initialized.")
@@ -385,6 +382,9 @@ def seed_database(db: Session):
 
     db.commit()
     print(f"Successfully seeded database with {len(villages_data)} villages, {len(stations_data)} polling stations, and {voter_idx-1} voters.")
+
+    # 5. Seed demo birth certificates only during first-time database setup
+    seed_birth_certificates(db)
 
 if __name__ == "__main__":
     from app.database import SessionLocal, engine, Base

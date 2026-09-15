@@ -56,8 +56,31 @@
                 <span>📥</span>
                 <span class="whitespace-nowrap">Export Excel</span>
             </a>
+
+            <!-- 7. Clear All Birth Certificates (Admin Only) -->
+            {% if current_user.role == 'admin' and total_count > 0 %}
+            <form method="POST" action="/birth-certificates/delete-all" onsubmit="return confirm('⚠️ ការព្រមានសំខាន់៖\n\nតើលោកអ្នកពិតជាចង់លុបទិន្នន័យសំបុត្រកំណើតទាំងអស់ ({{ total_count }} ច្បាប់) ចេញពីប្រព័ន្ធមែនទេ?\n\nសកម្មភាពនេះនឹងលុបទិន្នន័យទាំងអស់ជាស្ថាពរ ហើយមិនអាចត្រឡប់វិញបានឡើយ!');" class="inline">
+                <button type="submit" class="btn btn-outline border-rose-300 dark:border-rose-800 bg-rose-50/60 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-rose-700 dark:text-rose-300 text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl shadow-2xs active:scale-95 transition" title="លុបទិន្នន័យសំបុត្រកំណើតទាំងអស់">
+                    <span>🗑️</span>
+                    <span class="whitespace-nowrap">លុបទាំងអស់</span>
+                </button>
+            </form>
+            {% endif %}
         </div>
     </div>
+
+    <!-- Flash Messages (Success) -->
+    {% if request.query_params.get('msg') %}
+    <div class="auto-dismiss-alert p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/70 border-2 border-emerald-300 dark:border-emerald-700/80 text-emerald-800 dark:text-emerald-200 flex items-start gap-3 shadow-md relative overflow-hidden">
+        <span class="text-2xl flex-shrink-0">✅</span>
+        <div class="flex-1 min-w-0">
+            <strong class="font-bold text-emerald-900 dark:text-emerald-100 block font-kh-bold text-sm">ប្រតិបត្តិការជោគជ័យ</strong>
+            <p class="text-xs sm:text-sm mt-0.5 text-emerald-700 dark:text-emerald-300 leading-relaxed">{{ request.query_params.get('msg') }}</p>
+        </div>
+        <button type="button" onclick="dismissAlertBanner(this.closest('.auto-dismiss-alert'))" class="text-emerald-400 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-200 font-bold text-lg p-1 rounded-lg transition" title="បិទ">✕</button>
+        <div class="alert-progress-bar bg-emerald-500 dark:bg-emerald-400"></div>
+    </div>
+    {% endif %}
 
     <!-- Flash Messages (Errors) -->
     {% if request.query_params.get('error') %}

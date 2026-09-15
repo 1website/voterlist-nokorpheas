@@ -663,6 +663,38 @@ async def delete_birth_certificate(
         status_code=302
     )
 
+@router.post("/birth-certificates/delete-all")
+async def delete_all_birth_certificates(
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    current_user = get_current_user_optional(request, db)
+    if not current_user or current_user.role != "admin":
+        return RedirectResponse(url="/birth-certificates?error=មានតែ Admin ទើបមានសិទ្ធិលុបទិន្នន័យទាំងអស់", status_code=302)
+
+    count = db.query(BirthCertificate).count()
+    if count == 0:
+        return RedirectResponse(url="/birth-certificates?msg=មិនមានទិន្នន័យសំបុត្រកំណើតសម្រាប់លុបឡើយ", status_code=302)
+
+    db.query(BirthCertificate).delete()
+    db.commit()
+
+    log_activity(
+        db=db,
+        user=current_user,
+        action="CLEAR_ALL_BIRTH_CERTS",
+        description=f"បានលុបទិន្នន័យសំបុត្រកំណើតទាំងអស់ចេញពីប្រព័ន្ធ (សរុប {count} ច្បាប់)",
+        target_type="birth_certificate",
+        target_id=str(count),
+        action_type="danger",
+        request=request
+    )
+
+    return RedirectResponse(
+        url=f"/birth-certificates?msg=បានលុបទិន្នន័យសំបុត្រកំណើតទាំងអស់ដោយជោគជ័យ (សរុប {count} ច្បាប់)",
+        status_code=302
+    )
+
 @router.post("/birth-certificates/convert-to-voter/{id}")
 async def convert_to_voter(
     id: int,
