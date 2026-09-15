@@ -263,7 +263,7 @@
                             <div class="flex items-center gap-2.5">
                                 <img src="{{ v.photo_display }}" alt="{{ v.name_kh }}"
                                     class="w-10 h-10 rounded-xl object-cover border-2 border-blue-200 dark:border-blue-700 shadow-sm bg-slate-100 dark:bg-slate-800 cursor-pointer flex-shrink-0"
-                                    onclick="previewLargePhoto('{{ v.photo_display }}', '{{ v.name_kh }}', '{{ v.voter_code }}', '{{ v.station.code if v.station else '' }} - {{ v.station.name if v.station else '' }}', '{{ v.village.name_kh if v.village else '' }}', '{{ v.national_id }}')"
+                                    onclick="previewLargePhoto('{{ v.photo_display }}', '{{ v.name_kh }}', '{{ v.voter_code }}', '{{ v.station.code if v.station else '' }} - {{ v.station.name if v.station else '' }}', '{{ v.village.name_kh if v.village else '' }}', '{{ v.national_id }}', '{{ v.gender }}', '{{ v.calculated_age if v.calculated_age is not none else '' }}', '{{ v.dob or '' }}')"
                                     title="ចុចដើម្បីមើលរូប & ព័ត៌មានលម្អិត"
                                     onerror="this.onerror=null; this.src='/static/images/avatars/{{ 'female_1.jpg' if v.gender == 'ស្រី' else 'male_1.jpg' }}';">
                                 <div class="min-w-0">
@@ -392,10 +392,13 @@
                     <span id="largePhotoNationalId"
                         class="font-mono text-xs font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 py-1 px-3 rounded-full inline-block border border-slate-200 dark:border-slate-700 shadow-2xs">
                     </span>
+                    <span id="largePhotoAgeBadge"
+                        class="text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/70 py-1 px-3 rounded-full inline-block border border-emerald-200 dark:border-emerald-800/60 shadow-2xs">
+                    </span>
                 </div>
             </div>
 
-            <!-- Polling Station & Village Box -->
+            <!-- Polling Station, Village & Age Box -->
             <div class="p-3.5 bg-slate-50 dark:bg-slate-800/70 rounded-2xl border border-slate-200 dark:border-slate-700/80 text-left space-y-2.5 text-xs shadow-2xs">
                 <!-- Polling Station -->
                 <div class="flex items-start gap-2.5">
@@ -416,6 +419,19 @@
                     <div class="min-w-0 flex-1">
                         <span class="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase block tracking-wider">ភូមិទីលំនៅ</span>
                         <div id="largePhotoVillage" class="font-bold text-slate-900 dark:text-slate-100 mt-0.5 leading-snug">
+                            -
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-200/60 dark:border-slate-700/60"></div>
+
+                <!-- Gender & Age / DOB -->
+                <div class="flex items-start gap-2.5">
+                    <span class="text-base leading-none text-amber-600 dark:text-amber-400 shrink-0 mt-0.5">🎂</span>
+                    <div class="min-w-0 flex-1">
+                        <span class="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase block tracking-wider">ភេទ & អាយុ (ថ្ងៃខែឆ្នាំកំណើត)</span>
+                        <div id="largePhotoAge" class="font-bold text-slate-900 dark:text-slate-100 mt-0.5 leading-snug">
                             -
                         </div>
                     </div>
@@ -463,7 +479,7 @@
         });
     }
 
-    function previewLargePhoto(photoUrl, nameKh, voterCode, stationInfo = '', villageName = '', nationalId = '') {
+    function previewLargePhoto(photoUrl, nameKh, voterCode, stationInfo = '', villageName = '', nationalId = '', gender = '', age = '', dob = '') {
         document.getElementById('largePhotoImg').src = photoUrl;
         document.getElementById('largePhotoName').textContent = nameKh;
         document.getElementById('largePhotoCode').textContent = voterCode;
@@ -471,7 +487,8 @@
         const natIdEl = document.getElementById('largePhotoNationalId');
         if (natIdEl) {
             if (nationalId) {
-                natIdEl.textContent = `ID: ${nationalId}`;
+                const docLabel = (nationalId.trim().length === 8) ? 'អត្តលេខ-ឯ.អ' : 'អត្តលេខ-ស.ប';
+                natIdEl.textContent = `${docLabel}÷ ${nationalId}`;
                 natIdEl.style.display = 'inline-block';
             } else {
                 natIdEl.style.display = 'none';
@@ -486,6 +503,46 @@
         const villageEl = document.getElementById('largePhotoVillage');
         if (villageEl) {
             villageEl.textContent = villageName || 'មិនបានបញ្ជាក់';
+        }
+
+        // Age & Gender Badge and Detail Row
+        const ageBadgeEl = document.getElementById('largePhotoAgeBadge');
+        const ageDetailEl = document.getElementById('largePhotoAge');
+        
+        let ageText = '';
+        if (age && age !== 'None' && age !== '') {
+            ageText = `${age} ឆ្នាំ`;
+        }
+
+        if (ageBadgeEl) {
+            if (ageText) {
+                let badgeContent = `🎂 អាយុ ${ageText}`;
+                if (gender && gender.trim() !== '') {
+                    badgeContent += ` (${gender})`;
+                }
+                ageBadgeEl.textContent = badgeContent;
+                ageBadgeEl.style.display = 'inline-block';
+            } else if (gender && gender.trim() !== '') {
+                ageBadgeEl.textContent = gender;
+                ageBadgeEl.style.display = 'inline-block';
+            } else {
+                ageBadgeEl.style.display = 'none';
+            }
+        }
+
+        if (ageDetailEl) {
+            let detailParts = [];
+            if (gender && gender.trim() !== '') detailParts.push(gender);
+            if (ageText) detailParts.push(`អាយុ ${ageText}`);
+            if (dob && dob.trim() !== '' && dob !== 'None') {
+                detailParts.push(`(កើត៖ ${dob})`);
+            }
+
+            if (detailParts.length > 0) {
+                ageDetailEl.textContent = detailParts.join(' · ');
+            } else {
+                ageDetailEl.textContent = 'មិនបានបញ្ជាក់';
+            }
         }
 
         openModal('largePhotoModal');
