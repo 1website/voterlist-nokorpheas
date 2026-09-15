@@ -6,6 +6,7 @@ import shutil
 import datetime
 from fastapi import APIRouter, Request, Depends, HTTPException, Query, Form, File, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, StreamingResponse
+from fastapi.encoders import jsonable_encoder
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, desc, asc, func
@@ -1160,7 +1161,7 @@ async def api_preview_birth_excel_import(
             return JSONResponse({"success": False, "error": "ទំហំឯកសារធំពេក (អតិបរមា 15MB)"}, status_code=400)
 
         preview_result = parse_birth_certificates_excel(content, excel_file.filename, db)
-        return JSONResponse(preview_result)
+        return JSONResponse(jsonable_encoder(preview_result))
     except Exception as e:
         return JSONResponse({"success": False, "error": f"កំហុសក្នុងការអានឯកសារ Excel៖ {str(e)}"}, status_code=500)
 
@@ -1184,7 +1185,7 @@ async def api_confirm_birth_excel_import(
             return JSONResponse({"success": False, "error": "គ្មានទិន្នន័យសម្រាប់នាំចូលឡើយ"}, status_code=400)
 
         result = execute_birth_import(records, current_user, db, on_duplicate=on_duplicate)
-        return JSONResponse(result)
+        return JSONResponse(jsonable_encoder(result))
     except Exception as e:
         db.rollback()
         return JSONResponse({"success": False, "error": f"កំហុសក្នុងការរក្សាទុកទិន្នន័យ៖ {str(e)}"}, status_code=500)

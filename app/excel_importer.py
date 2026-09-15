@@ -10,7 +10,7 @@ from sqlalchemy import func
 
 from app.models import BirthCertificate, Village, Voter, User, AuditLog
 from app.audit import log_activity
-from app.timezone_utils import get_cambodia_now, get_cambodia_today
+from app.timezone_utils import get_cambodia_now, get_cambodia_today, get_cambodia_today_str
 
 # Khmer Numerals Mapping
 KHMER_NUMERALS = {
@@ -39,8 +39,8 @@ def clean_date_value(val: Any) -> Optional[str]:
     if not s:
         return None
     
-    # 1. Matches YYYY-MM-DD or YYYY/MM/DD
-    m1 = re.match(r"^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})$", s)
+    # 1. Matches YYYY-MM-DD or YYYY/MM/DD or YYYY.MM.DD (supports trailing time)
+    m1 = re.match(r"^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})", s)
     if m1:
         y, m, d = int(m1.group(1)), int(m1.group(2)), int(m1.group(3))
         try:
@@ -48,14 +48,21 @@ def clean_date_value(val: Any) -> Optional[str]:
         except Exception:
             return None
 
-    # 2. Matches DD-MM-YYYY or DD/MM/YYYY or DD.MM.YYYY
-    m2 = re.match(r"^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})$", s)
+    # 2. Matches DD-MM-YYYY or DD/MM/YYYY or DD.MM.YYYY (supports trailing time)
+    m2 = re.match(r"^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})", s)
     if m2:
         d, m, y = int(m2.group(1)), int(m2.group(2)), int(m2.group(3))
         try:
             return f"{y:04d}-{m:02d}-{d:02d}"
         except Exception:
             return None
+
+    # 3. Matches 4-digit year only (e.g. 2008)
+    m3 = re.match(r"^(\d{4})$", s)
+    if m3:
+        y = int(m3.group(1))
+        if 1900 <= y <= 2100:
+            return f"{y:04d}-01-01"
             
     return None
 
@@ -350,78 +357,72 @@ def parse_birth_certificates_excel(file_bytes: bytes, filename: str, db: Session
     if not sheet:
         return {"success": False, "error": "រកមិនឃើញសន្លឹកកិច្ចការ (Worksheet) ក្នុងឯកសារ Excel ឡើយ"}
 
-    # Detect header row
+    # Detect header row by scanning rows for highest column match count
     header_row_idx = None
     header_col_map = {}
-    
-    # Look through first 15 rows to find header row
-    for r in range(1, min(sheet.max_row + 1, 16)):
-        row_vals = [str(sheet.cell(row=r, column=c).value or "").strip() for c in range(1, sheet.max_column + 1)]
-        row_text = " ".join(row_vals).lower()
-        if "លេខសំបុត្រ" in row_text or "ឈ្មោះ" in row_text or "certificate" in row_text:
-            header_row_idx = r
-            for c in range(1, sheet.max_column + 1):
-                val = str(sheet.cell(row=r, column=c).value or "").strip()
-                v_lower = val.lower()
-                if not val:
-                    continue
-                if any(k in v_lower for k in ["លេខសំបុត្រ", "cert_no", "certificate"]):
-                    header_col_map["certificate_no"] = c
-                elif any(k in v_lower for k in ["សៀវភៅ", "book_no", "book"]):
-                    header_col_map["book_no"] = c
-                elif any(k in v_lower for k in ["កាលបរិច្ឆេទចុះ", "registered_date", "reg_date"]):
-                    header_col_map["registered_date"] = c
-                elif any(k in v_lower for k in ["ឈ្មោះជាភាសាខ្មែរ", "ឈ្មោះខ្មែរ", "name_kh"]):
-                    header_col_map["name_kh"] = c
-                elif any(k in v_lower for k in ["ឈ្មោះជាអក្សរឡាតាំង", "ឡាតាំង", "name_en", "latin"]):
-                    header_col_map["name_en"] = c
-                elif any(k in v_lower for k in ["ភេទ", "gender", "sex"]):
-                    header_col_map["gender"] = c
-                elif any(k in v_lower for k in ["ថ្ងៃខែឆ្នាំកំណើត", "ថ្ងៃកំណើត", "dob", "birth_date"]):
-                    header_col_map["dob"] = c
-                elif any(k in v_lower for k in ["ទីកន្លែងកំណើត", "pob", "place_of_birth"]):
-                    header_col_map["pob"] = c
-                elif any(k in v_lower for k in ["ឪពុក", "father", "father_name"]):
-                    header_col_map["father_name"] = c
-                elif any(k in v_lower for k in ["ម្តាយ", "mother", "mother_name"]):
-                    header_col_map["mother_name"] = c
-                elif any(k in v_lower for k in ["ភូមិ", "village", "village_name"]):
-                    header_col_map["village"] = c
-                elif any(k in v_lower for k in ["អាសយដ្ឋាន", "address"]):
-                    header_col_map["address"] = c
-                elif any(k in v_lower for k in ["កំណត់សម្គាល់", "notes", "note"]):
-                    header_col_map["notes"] = c
-            break
+    best_score = 0
+    best_col_map = {}
 
-    # Fallback to positional columns if header recognition was incomplete
-    if not header_row_idx:
+    max_search_rows = min(sheet.max_row + 1, 20)
+    for r in range(1, max_search_rows):
+        candidate_map = {}
+        for c in range(1, sheet.max_column + 1):
+            val = str(sheet.cell(row=r, column=c).value or "").strip()
+            if not val:
+                continue
+            v_lower = val.lower()
+            if any(k in v_lower for k in ["លេខសំបុត្រ", "cert_no", "certificate"]):
+                candidate_map["certificate_no"] = c
+            elif any(k in v_lower for k in ["សៀវភៅ", "book_no", "book"]):
+                candidate_map["book_no"] = c
+            elif any(k in v_lower for k in ["កាលបរិច្ឆេទចុះ", "កាលបរិច្ឆេទ", "registered_date", "reg_date"]):
+                candidate_map["registered_date"] = c
+            elif any(k in v_lower for k in ["ឈ្មោះជាភាសាខ្មែរ", "ឈ្មោះខ្មែរ", "name_kh"]):
+                candidate_map["name_kh"] = c
+            elif any(k in v_lower for k in ["ឈ្មោះជាអក្សរឡាតាំង", "ឡាតាំង", "name_en", "latin"]):
+                candidate_map["name_en"] = c
+            elif any(k in v_lower for k in ["ភេទ", "gender", "sex"]):
+                candidate_map["gender"] = c
+            elif any(k in v_lower for k in ["ថ្ងៃខែឆ្នាំកំណើត", "ថ្ងៃកំណើត", "dob", "birth_date"]):
+                candidate_map["dob"] = c
+            elif any(k in v_lower for k in ["ទីកន្លែងកំណើត", "pob", "place_of_birth"]):
+                candidate_map["pob"] = c
+            elif any(k in v_lower for k in ["ឪពុក", "father", "father_name"]):
+                candidate_map["father_name"] = c
+            elif any(k in v_lower for k in ["ម្តាយ", "mother", "mother_name"]):
+                candidate_map["mother_name"] = c
+            elif any(k in v_lower for k in ["ភូមិ", "village", "village_name"]):
+                candidate_map["village"] = c
+            elif any(k in v_lower for k in ["អាសយដ្ឋាន", "address"]):
+                candidate_map["address"] = c
+            elif any(k in v_lower for k in ["កំណត់សម្គាល់", "notes", "note"]):
+                candidate_map["notes"] = c
+
+        if len(candidate_map) > best_score:
+            best_score = len(candidate_map)
+            header_row_idx = r
+            best_col_map = candidate_map
+
+    # If header found with at least 2 matching columns, use it; otherwise fallback to positional
+    if best_score >= 2 and header_row_idx:
+        header_col_map = best_col_map
+    else:
         header_row_idx = 4
-    if "certificate_no" not in header_col_map:
-        header_col_map["certificate_no"] = 1
-    if "book_no" not in header_col_map:
-        header_col_map["book_no"] = 2
-    if "registered_date" not in header_col_map:
-        header_col_map["registered_date"] = 3
-    if "name_kh" not in header_col_map:
-        header_col_map["name_kh"] = 4
-    if "name_en" not in header_col_map:
-        header_col_map["name_en"] = 5
-    if "gender" not in header_col_map:
-        header_col_map["gender"] = 6
-    if "dob" not in header_col_map:
-        header_col_map["dob"] = 7
-    if "pob" not in header_col_map:
-        header_col_map["pob"] = 8
-    if "father_name" not in header_col_map:
-        header_col_map["father_name"] = 9
-    if "mother_name" not in header_col_map:
-        header_col_map["mother_name"] = 10
-    if "village" not in header_col_map:
-        header_col_map["village"] = 11
-    if "address" not in header_col_map:
-        header_col_map["address"] = 12
-    if "notes" not in header_col_map:
-        header_col_map["notes"] = 13
+        header_col_map = {
+            "certificate_no": 1,
+            "book_no": 2,
+            "registered_date": 3,
+            "name_kh": 4,
+            "name_en": 5,
+            "gender": 6,
+            "dob": 7,
+            "pob": 8,
+            "father_name": 9,
+            "mother_name": 10,
+            "village": 11,
+            "address": 12,
+            "notes": 13
+        }
 
     parsed_records: List[Dict[str, Any]] = []
     seen_in_file_certs = set()
@@ -445,6 +446,14 @@ def parse_birth_certificates_excel(file_bytes: bytes, filename: str, db: Session
         
         # Skip completely empty rows
         if raw_cert_no is None and raw_name_kh is None:
+            continue
+
+        raw_cert_str = str(raw_cert_no or "").strip().lower()
+        raw_name_str = str(raw_name_kh or "").strip().lower()
+
+        # Skip header or instructions if repeated
+        if any(k in raw_cert_str for k in ["លេខសំបុត្រ", "certificate", "cert_no"]) or \
+           any(k in raw_name_str for k in ["ឈ្មោះជាភាសាខ្មែរ", "ឈ្មោះខ្មែរ"]):
             continue
 
         total_rows += 1
@@ -493,7 +502,7 @@ def parse_birth_certificates_excel(file_bytes: bytes, filename: str, db: Session
         # 7. Registration Date
         reg_date_str = clean_date_value(get_val("registered_date"))
         if not reg_date_str:
-            reg_date_str = get_cambodia_today()
+            reg_date_str = get_cambodia_today_str()
 
         # 8. Check Duplicates
         is_dup_db = False
@@ -637,7 +646,7 @@ def execute_birth_import(
                 name_en=(item.get("name_en") or transliterate_khmer_name(name_kh)).upper(),
                 gender=gender,
                 dob=dob,
-                registered_date=item.get("registered_date") or get_cambodia_today(),
+                registered_date=item.get("registered_date") or get_cambodia_today_str(),
                 village_id=village_id,
                 pob=item.get("pob") or None,
                 father_name=item.get("father_name") or None,
