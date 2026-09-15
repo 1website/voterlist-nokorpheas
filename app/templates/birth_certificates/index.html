@@ -98,76 +98,100 @@
     <!-- KPI Summary Stat Cards (6 Cards: Monthly, Yearly, Total, Youth) -->
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3.5">
         <!-- 1. Total Birth Records -->
-        <div class="glass-card p-4 flex items-center gap-3 border-l-4 border-blue-600">
-            <div class="w-11 h-11 rounded-2xl bg-blue-50 dark:bg-sky-950/60 text-blue-700 dark:text-sky-300 flex items-center justify-center text-xl flex-shrink-0 shadow-inner border border-blue-100 dark:border-sky-800/40">
+        <a href="/birth-certificates{% if selected_village_id %}?village_id={{ selected_village_id }}{% endif %}"
+           class="kpi-stat-card kpi-hover-blue group glass-card p-4 flex items-center gap-3 border-l-4 border-blue-600 rounded-2xl no-underline cursor-pointer transition-all duration-300 hover:bg-blue-50/40 dark:hover:bg-blue-950/20 {% if not period and not eligibility and not reg_status and not q %}ring-2 ring-blue-500/30 shadow-md{% endif %}"
+           title="ចុចដើម្បីមើលសំបុត្រកំណើតទាំងអស់">
+            <div class="kpi-shimmer"></div>
+            <div class="kpi-arrow text-blue-600 dark:text-sky-300">↗</div>
+            <div class="kpi-icon w-11 h-11 rounded-2xl bg-blue-50 dark:bg-sky-950/60 text-blue-700 dark:text-sky-300 flex items-center justify-center text-xl flex-shrink-0 shadow-inner border border-blue-100 dark:border-sky-800/40">
                 📜
             </div>
             <div class="min-w-0">
-                <div class="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider truncate">សំបុត្រកំណើតសរុប</div>
-                <div class="text-2xl font-black text-slate-900 dark:text-slate-100 font-mono mt-0.5">{{ kpi_total }} <span class="text-xs font-normal text-slate-400 font-sans">ច្បាប់</span></div>
+                <div class="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider truncate group-hover:text-blue-700 dark:group-hover:text-sky-300 transition-colors">សំបុត្រកំណើតសរុប</div>
+                <div class="text-2xl font-black text-slate-900 dark:text-slate-100 font-mono mt-0.5 group-hover:text-blue-600 dark:group-hover:text-sky-400 transition-colors">{{ kpi_total }} <span class="text-xs font-normal text-slate-400 font-sans">ច្បាប់</span></div>
                 <div class="text-[10px] text-blue-700 dark:text-sky-300 font-medium mt-0.5 truncate">ទិន្នន័យអត្រានុកូលដ្ឋាន</div>
             </div>
-        </div>
+        </a>
 
         <!-- 2. Registered This Month -->
-        <div class="glass-card p-4 flex items-center gap-3 border-l-4 border-emerald-500 bg-emerald-50/20 dark:bg-emerald-950/20">
-            <div class="w-11 h-11 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 flex items-center justify-center text-xl flex-shrink-0 shadow-inner border border-emerald-100 dark:border-emerald-800/40">
+        <a href="/birth-certificates?period=this_month{% if selected_village_id %}&village_id={{ selected_village_id }}{% endif %}"
+           class="kpi-stat-card kpi-hover-emerald group glass-card p-4 flex items-center gap-3 border-l-4 border-emerald-500 bg-emerald-50/20 dark:bg-emerald-950/20 rounded-2xl no-underline cursor-pointer transition-all duration-300 hover:bg-emerald-50/60 dark:hover:bg-emerald-950/40 {% if period == 'this_month' %}ring-2 ring-emerald-500/40 shadow-md{% endif %}"
+           title="ចុចដើម្បីមើលទិន្នន័យចុះក្នុង{{ current_month_name|default('ខែនេះ') }}">
+            <div class="kpi-shimmer"></div>
+            <div class="kpi-arrow text-emerald-600 dark:text-emerald-400">↗</div>
+            <div class="kpi-icon w-11 h-11 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 flex items-center justify-center text-xl flex-shrink-0 shadow-inner border border-emerald-100 dark:border-emerald-800/40">
                 📅
             </div>
             <div class="min-w-0">
-                <div class="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider truncate">ចុះក្នុង{{ current_month_name|default('ខែនេះ') }}</div>
-                <div class="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono mt-0.5">{{ kpi_this_month|default(0) }} <span class="text-xs font-normal text-slate-400 font-sans">ច្បាប់</span></div>
+                <div class="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider truncate group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors">ចុះក្នុង{{ current_month_name|default('ខែនេះ') }}</div>
+                <div class="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono mt-0.5 group-hover:scale-105 transform origin-left transition-transform">{{ kpi_this_month|default(0) }} <span class="text-xs font-normal text-slate-400 font-sans">ច្បាប់</span></div>
                 <div class="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold mt-0.5 truncate">ស្រី {{ kpi_this_month_female|default(0) }} | ប្រុស {{ kpi_this_month_male|default(0) }}</div>
             </div>
-        </div>
+        </a>
 
         <!-- 3. Registered This Year -->
-        <div class="glass-card p-4 flex items-center gap-3 border-l-4 border-indigo-600 bg-indigo-50/20 dark:bg-indigo-950/20">
-            <div class="w-11 h-11 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 flex items-center justify-center text-xl flex-shrink-0 shadow-inner border border-indigo-100 dark:border-indigo-800/40">
+        <a href="/birth-certificates?period=this_year{% if selected_village_id %}&village_id={{ selected_village_id }}{% endif %}"
+           class="kpi-stat-card kpi-hover-indigo group glass-card p-4 flex items-center gap-3 border-l-4 border-indigo-600 bg-indigo-50/20 dark:bg-indigo-950/20 rounded-2xl no-underline cursor-pointer transition-all duration-300 hover:bg-indigo-50/60 dark:hover:bg-indigo-950/40 {% if period == 'this_year' %}ring-2 ring-indigo-500/40 shadow-md{% endif %}"
+           title="ចុចដើម្បីមើលទិន្នន័យចុះក្នុងឆ្នាំ {{ current_year|default(2026) }}">
+            <div class="kpi-shimmer"></div>
+            <div class="kpi-arrow text-indigo-600 dark:text-indigo-400">↗</div>
+            <div class="kpi-icon w-11 h-11 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 flex items-center justify-center text-xl flex-shrink-0 shadow-inner border border-indigo-100 dark:border-indigo-800/40">
                 📈
             </div>
             <div class="min-w-0">
-                <div class="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider truncate">ចុះក្នុងឆ្នាំ {{ current_year|default(2026) }}</div>
-                <div class="text-2xl font-black text-indigo-700 dark:text-indigo-300 font-mono mt-0.5">{{ kpi_this_year|default(0) }} <span class="text-xs font-normal text-slate-400 font-sans">ច្បាប់</span></div>
+                <div class="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider truncate group-hover:text-indigo-700 dark:group-hover:text-indigo-300 transition-colors">ចុះក្នុងឆ្នាំ {{ current_year|default(2026) }}</div>
+                <div class="text-2xl font-black text-indigo-700 dark:text-indigo-300 font-mono mt-0.5 group-hover:scale-105 transform origin-left transition-transform">{{ kpi_this_year|default(0) }} <span class="text-xs font-normal text-slate-400 font-sans">ច្បាប់</span></div>
                 <div class="text-[10px] text-indigo-700 dark:text-indigo-300 font-semibold mt-0.5 truncate">ស្រី {{ kpi_this_year_female|default(0) }} | ប្រុស {{ kpi_this_year_male|default(0) }}</div>
             </div>
-        </div>
+        </a>
 
         <!-- 4. Turning 18 This Year -->
-        <div class="glass-card p-4 flex items-center gap-3 border-l-4 border-amber-500">
-            <div class="w-11 h-11 rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 flex items-center justify-center text-xl flex-shrink-0 shadow-inner border border-amber-100 dark:border-amber-800/40">
+        <a href="/birth-certificates?eligibility=turning_18_this_year{% if selected_village_id %}&village_id={{ selected_village_id }}{% endif %}"
+           class="kpi-stat-card kpi-hover-amber group glass-card p-4 flex items-center gap-3 border-l-4 border-amber-500 rounded-2xl no-underline cursor-pointer transition-all duration-300 hover:bg-amber-50/40 dark:hover:bg-amber-950/20 {% if eligibility == 'turning_18_this_year' and reg_status != 'unregistered' %}ring-2 ring-amber-500/40 shadow-md{% endif %}"
+           title="ចុចដើម្បីមើលយុវជនគ្រប់អាយុឆ្នាំ {{ current_year }}">
+            <div class="kpi-shimmer"></div>
+            <div class="kpi-arrow text-amber-600 dark:text-amber-400">↗</div>
+            <div class="kpi-icon w-11 h-11 rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 flex items-center justify-center text-xl flex-shrink-0 shadow-inner border border-amber-100 dark:border-amber-800/40">
                 ⚡
             </div>
             <div class="min-w-0">
-                <div class="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider truncate">គ្រប់អាយុឆ្នាំ {{ current_year }}</div>
-                <div class="text-2xl font-black text-amber-600 dark:text-amber-400 font-mono mt-0.5">{{ kpi_turning_18_this_year }} <span class="text-xs font-normal text-slate-400 font-sans">នាក់</span></div>
+                <div class="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider truncate group-hover:text-amber-700 dark:group-hover:text-amber-300 transition-colors">គ្រប់អាយុឆ្នាំ {{ current_year }}</div>
+                <div class="text-2xl font-black text-amber-600 dark:text-amber-400 font-mono mt-0.5 group-hover:scale-105 transform origin-left transition-transform">{{ kpi_turning_18_this_year }} <span class="text-xs font-normal text-slate-400 font-sans">នាក់</span></div>
                 <div class="text-[10px] text-amber-700 dark:text-amber-300 font-medium mt-0.5 truncate">យុវជនបោះឆ្នោតលើកដំបូង</div>
             </div>
-        </div>
+        </a>
 
         <!-- 5. Unregistered Youth -->
-        <div class="glass-card p-4 flex items-center gap-3 border-l-4 border-rose-500 bg-rose-50/20 dark:bg-rose-950/20">
-            <div class="w-11 h-11 rounded-2xl bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 flex items-center justify-center text-xl flex-shrink-0 shadow-inner border border-rose-100 dark:border-rose-800/40">
+        <a href="/birth-certificates?eligibility=turning_18_this_year&reg_status=unregistered{% if selected_village_id %}&village_id={{ selected_village_id }}{% endif %}"
+           class="kpi-stat-card kpi-hover-rose group glass-card p-4 flex items-center gap-3 border-l-4 border-rose-500 bg-rose-50/20 dark:bg-rose-950/20 rounded-2xl no-underline cursor-pointer transition-all duration-300 hover:bg-rose-50/60 dark:hover:bg-rose-950/40 {% if reg_status == 'unregistered' and eligibility == 'turning_18_this_year' %}ring-2 ring-rose-500/40 shadow-md{% endif %}"
+           title="ចុចដើម្បីមើលយុវជនមិនទាន់ចុះឈ្មោះបោះឆ្នោត">
+            <div class="kpi-shimmer"></div>
+            <div class="kpi-arrow text-rose-600 dark:text-rose-400">↗</div>
+            <div class="kpi-icon w-11 h-11 rounded-2xl bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 flex items-center justify-center text-xl flex-shrink-0 shadow-inner border border-rose-100 dark:border-rose-800/40">
                 ⚠️
             </div>
             <div class="min-w-0">
                 <div class="text-[11px] text-rose-700 dark:text-rose-300 font-bold uppercase tracking-wider truncate">មិនទាន់ចុះឈ្មោះ</div>
-                <div class="text-2xl font-black text-rose-600 dark:text-rose-400 font-mono mt-0.5">{{ kpi_unregistered_eligible }} <span class="text-xs font-normal text-slate-400 font-sans">នាក់</span></div>
+                <div class="text-2xl font-black text-rose-600 dark:text-rose-400 font-mono mt-0.5 group-hover:scale-105 transform origin-left transition-transform">{{ kpi_unregistered_eligible }} <span class="text-xs font-normal text-slate-400 font-sans">នាក់</span></div>
                 <div class="text-[10px] text-rose-700 dark:text-rose-300 font-semibold mt-0.5 truncate">មុខសញ្ញាត្រូវចុះជំរុញ</div>
             </div>
-        </div>
+        </a>
 
         <!-- 6. Youth Registration Rate -->
-        <div class="glass-card p-4 flex items-center gap-3 border-l-4 border-teal-500">
-            <div class="w-11 h-11 rounded-2xl bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 flex items-center justify-center text-xl flex-shrink-0 shadow-inner border border-teal-100 dark:border-teal-800/40">
+        <a href="/birth-certificates/youth-pipeline{% if selected_village_id %}?village_id={{ selected_village_id }}{% endif %}"
+           class="kpi-stat-card kpi-hover-teal group glass-card p-4 flex items-center gap-3 border-l-4 border-teal-500 rounded-2xl no-underline cursor-pointer transition-all duration-300 hover:bg-teal-50/40 dark:hover:bg-teal-950/20"
+           title="ចុចដើម្បីមើលផ្ទាំងវិភាគយុវជន (Youth Pipeline)">
+            <div class="kpi-shimmer"></div>
+            <div class="kpi-arrow text-teal-600 dark:text-teal-400">↗</div>
+            <div class="kpi-icon w-11 h-11 rounded-2xl bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 flex items-center justify-center text-xl flex-shrink-0 shadow-inner border border-teal-100 dark:border-teal-800/40">
                 🎯
             </div>
             <div class="min-w-0">
-                <div class="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider truncate">អត្រាយុវជនចុះឈ្មោះ</div>
-                <div class="text-2xl font-black text-teal-600 dark:text-teal-400 font-mono mt-0.5">{{ kpi_reg_rate }}%</div>
+                <div class="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider truncate group-hover:text-teal-700 dark:group-hover:text-teal-300 transition-colors">អត្រាយុវជនចុះឈ្មោះ</div>
+                <div class="text-2xl font-black text-teal-600 dark:text-teal-400 font-mono mt-0.5 group-hover:scale-105 transform origin-left transition-transform">{{ kpi_reg_rate }}%</div>
                 <div class="text-[10px] text-teal-700 dark:text-teal-300 font-medium mt-0.5 truncate">ចុះរួច {{ kpi_registered_eligible }} / {{ kpi_eligible_now }} នាក់</div>
             </div>
-        </div>
+        </a>
     </div>
 
     <!-- Search & Multi-Filter Bar -->

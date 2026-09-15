@@ -126,6 +126,104 @@ body {
   box-shadow: var(--shadow-lg);
 }
 
+/* Interactive KPI Stat Card Hover Effects */
+.kpi-stat-card {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.28s cubic-bezier(0.34, 1.4, 0.64, 1), box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, background 0.25s ease !important;
+  will-change: transform, box-shadow;
+}
+
+.kpi-stat-card:hover {
+  transform: translateY(-6px) scale(1.018);
+  z-index: 10;
+}
+
+.kpi-stat-card:active {
+  transform: translateY(-1px) scale(0.99);
+}
+
+.kpi-stat-card .kpi-icon {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.kpi-stat-card:hover .kpi-icon {
+  transform: scale(1.18) rotate(5deg);
+}
+
+.kpi-stat-card .kpi-shimmer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.25) 50%, transparent 100%);
+  transform: translateX(-120%);
+  transition: transform 0.75s ease-in-out;
+}
+
+html.dark .kpi-stat-card .kpi-shimmer {
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.08) 50%, transparent 100%);
+}
+
+.kpi-stat-card:hover .kpi-shimmer {
+  transform: translateX(120%);
+}
+
+.kpi-stat-card .kpi-arrow {
+  position: absolute;
+  top: 0.625rem;
+  right: 0.625rem;
+  opacity: 0;
+  transform: translate(-3px, 3px);
+  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  font-size: 0.85rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.kpi-stat-card:hover .kpi-arrow {
+  opacity: 1;
+  transform: translate(0, 0);
+}
+
+/* Specific Glowing Shadows on Hover */
+.kpi-hover-blue:hover {
+  box-shadow: 0 16px 30px -8px rgba(37, 99, 235, 0.28), 0 6px 14px -3px rgba(37, 99, 235, 0.16) !important;
+  border-color: rgba(59, 130, 246, 0.7) !important;
+}
+
+.kpi-hover-emerald:hover {
+  box-shadow: 0 16px 30px -8px rgba(16, 185, 129, 0.28), 0 6px 14px -3px rgba(16, 185, 129, 0.16) !important;
+  border-color: rgba(16, 185, 129, 0.7) !important;
+}
+
+.kpi-hover-indigo:hover {
+  box-shadow: 0 16px 30px -8px rgba(79, 70, 229, 0.28), 0 6px 14px -3px rgba(79, 70, 229, 0.16) !important;
+  border-color: rgba(99, 102, 241, 0.7) !important;
+}
+
+.kpi-hover-amber:hover {
+  box-shadow: 0 16px 30px -8px rgba(245, 158, 11, 0.28), 0 6px 14px -3px rgba(245, 158, 11, 0.16) !important;
+  border-color: rgba(245, 158, 11, 0.7) !important;
+}
+
+.kpi-hover-rose:hover {
+  box-shadow: 0 16px 30px -8px rgba(244, 63, 94, 0.28), 0 6px 14px -3px rgba(244, 63, 94, 0.16) !important;
+  border-color: rgba(244, 63, 94, 0.7) !important;
+}
+
+.kpi-hover-teal:hover {
+  box-shadow: 0 16px 30px -8px rgba(20, 184, 166, 0.28), 0 6px 14px -3px rgba(20, 184, 166, 0.16) !important;
+  border-color: rgba(20, 184, 166, 0.7) !important;
+}
+
+.kpi-hover-purple:hover {
+  box-shadow: 0 16px 30px -8px rgba(168, 85, 247, 0.28), 0 6px 14px -3px rgba(168, 85, 247, 0.16) !important;
+  border-color: rgba(168, 85, 247, 0.7) !important;
+}
+
 /* App Header & Navbar */
 .app-header {
   background: linear-gradient(135deg, #0a1c3d 0%, #0f2b5c 50%, #1e3a8a 100%);

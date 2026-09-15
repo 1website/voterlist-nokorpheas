@@ -35,32 +35,35 @@
     <!-- 4 KPI Stat Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- Total Eligible Youth -->
-        <div class="glass-card p-4 flex items-center gap-4 border-l-4 border-blue-600">
-            <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-700 flex items-center justify-center text-2xl flex-shrink-0 shadow-inner">
+        <div class="kpi-stat-card kpi-hover-blue group glass-card p-4 flex items-center gap-4 border-l-4 border-blue-600 rounded-2xl">
+            <div class="kpi-shimmer"></div>
+            <div class="kpi-icon w-12 h-12 rounded-2xl bg-blue-50 text-blue-700 flex items-center justify-center text-2xl flex-shrink-0 shadow-inner">
                 👥
             </div>
             <div class="min-w-0">
-                <div class="text-xs text-slate-500 font-bold uppercase tracking-wider">យុវជនគ្រប់អាយុសរុប</div>
-                <div class="text-2xl font-bold text-slate-900 font-mono mt-0.5">{{ all_eligible_count }}</div>
+                <div class="text-xs text-slate-500 font-bold uppercase tracking-wider group-hover:text-blue-700 transition-colors">យុវជនគ្រប់អាយុសរុប</div>
+                <div class="text-2xl font-bold text-slate-900 font-mono mt-0.5 group-hover:text-blue-600 transition-colors">{{ all_eligible_count }}</div>
                 <div class="text-[11px] text-blue-700 font-medium mt-0.5">អាយុ ១៨ ឆ្នាំឡើងទៅ</div>
             </div>
         </div>
 
         <!-- Registered Youth -->
-        <div class="glass-card p-4 flex items-center gap-4 border-l-4 border-emerald-500">
-            <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center text-2xl flex-shrink-0 shadow-inner">
+        <div class="kpi-stat-card kpi-hover-emerald group glass-card p-4 flex items-center gap-4 border-l-4 border-emerald-500 rounded-2xl">
+            <div class="kpi-shimmer"></div>
+            <div class="kpi-icon w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center text-2xl flex-shrink-0 shadow-inner">
                 ✅
             </div>
             <div class="min-w-0">
-                <div class="text-xs text-slate-500 font-bold uppercase tracking-wider">បានចុះឈ្មោះបោះឆ្នោតរួច</div>
+                <div class="text-xs text-slate-500 font-bold uppercase tracking-wider group-hover:text-emerald-700 transition-colors">បានចុះឈ្មោះបោះឆ្នោតរួច</div>
                 <div class="text-2xl font-bold text-emerald-700 font-mono mt-0.5">{{ registered_youth_count }}</div>
                 <div class="text-[11px] text-emerald-600 font-semibold mt-0.5">អត្រាចុះឈ្មោះ {{ reg_rate }}%</div>
             </div>
         </div>
 
         <!-- Unregistered Youth Gap -->
-        <div class="glass-card p-4 flex items-center gap-4 border-l-4 border-rose-500 bg-rose-50/20">
-            <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center text-2xl flex-shrink-0 shadow-inner animate-pulse">
+        <div class="kpi-stat-card kpi-hover-rose group glass-card p-4 flex items-center gap-4 border-l-4 border-rose-500 bg-rose-50/20 rounded-2xl">
+            <div class="kpi-shimmer"></div>
+            <div class="kpi-icon w-12 h-12 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center text-2xl flex-shrink-0 shadow-inner">
                 ⚠️
             </div>
             <div class="min-w-0">
@@ -71,12 +74,13 @@
         </div>
 
         <!-- Turning 18 Next Year -->
-        <div class="glass-card p-4 flex items-center gap-4 border-l-4 border-purple-500">
-            <div class="w-12 h-12 rounded-2xl bg-purple-50 text-purple-700 flex items-center justify-center text-2xl flex-shrink-0 shadow-inner">
+        <div class="kpi-stat-card kpi-hover-purple group glass-card p-4 flex items-center gap-4 border-l-4 border-purple-500 rounded-2xl">
+            <div class="kpi-shimmer"></div>
+            <div class="kpi-icon w-12 h-12 rounded-2xl bg-purple-50 text-purple-700 flex items-center justify-center text-2xl flex-shrink-0 shadow-inner">
                 ⏳
             </div>
             <div class="min-w-0">
-                <div class="text-xs text-slate-500 font-bold uppercase tracking-wider">គ្រប់អាយុឆ្នាំក្រោយ ({{ current_year + 1 }})</div>
+                <div class="text-xs text-slate-500 font-bold uppercase tracking-wider group-hover:text-purple-700 transition-colors">គ្រប់អាយុឆ្នាំក្រោយ ({{ current_year + 1 }})</div>
                 <div class="text-2xl font-bold text-purple-700 font-mono mt-0.5">{{ turning_18_next_year_count }}</div>
                 <div class="text-[11px] text-purple-600 font-medium mt-0.5">ត្រៀមសម្រាប់រដូវកាលក្រោយ</div>
             </div>
