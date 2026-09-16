@@ -38,11 +38,6 @@
             <a href="/reports/daily" class="btn btn-outline-indigo text-sm font-bold flex items-center gap-1.5">
                 <span>📅</span> របាយការណ៍ប្រចាំថ្ងៃ
             </a>
-
-            <!-- Header Export Excel Button (Shown when any filter is active) -->
-            <a id="headerExportExcelBtn" href="{{ export_excel_url }}" class="btn btn-success text-sm font-bold flex items-center gap-1.5 shadow-md transition-all duration-300 {% if not has_active_filter %}hidden{% endif %}">
-                <span>📊</span> <span>នាំចេញ Excel (តាមតម្រង)</span>
-            </a>
         </div>
     </div>
 
@@ -105,22 +100,6 @@
                     </button>
                     <a href="/voters" class="btn btn-outline py-2 px-2.5 text-sm hover:bg-slate-100 dark:hover:bg-slate-800" title="សម្អាតតម្រង">
                         🔄
-                    </a>
-                </div>
-            </div>
-
-            <!-- Filter Action / Export Excel Bar (Conditionally shown when filtered) -->
-            <div id="filterActionBar" class="mt-4 pt-3.5 border-t border-slate-200/80 dark:border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 {% if not has_active_filter %}hidden{% endif %} transition-all duration-200">
-                <div class="flex items-center gap-2 text-xs sm:text-sm text-emerald-800 dark:text-emerald-300 font-medium">
-                    <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 text-xs font-bold">✓</span>
-                    <span>តម្រងកំពុងដំណើរការ • លោកអ្នកអាចនាំចេញទិន្នន័យជា Excel តាមតម្រងនេះបានភ្លាមៗ</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <a id="filterExportExcelBtn" href="{{ export_excel_url }}" class="btn btn-success text-xs sm:text-sm font-bold py-2 px-3.5 shadow-sm flex items-center gap-2 active:scale-95 transition">
-                        <span>📥</span> <span>នាំចេញទិន្នន័យជា Excel (.xlsx)</span>
-                    </a>
-                    <a href="/voters" class="btn btn-outline text-xs sm:text-sm py-2 px-2.5 text-slate-500 hover:text-red-600 hover:border-red-300 flex items-center gap-1">
-                        <span>✕</span> <span>សម្អាតតម្រង</span>
                     </a>
                 </div>
             </div>
@@ -1626,66 +1605,12 @@
         }
     }
 
-    // Real-time filter reactivity: show/hide Export Excel buttons dynamically
-    function checkActiveFilters() {
-        const form = document.getElementById('voterFilterForm');
-        if (!form) return;
-        const qVal = (form.querySelector('[name="q"]')?.value || '').trim();
-        const villageVal = form.querySelector('[name="village_id"]')?.value || '';
-        const stationVal = form.querySelector('[name="station_id"]')?.value || '';
-        const ageVal = form.querySelector('[name="age_group"]')?.value || '';
-        const regTypeVal = form.querySelector('[name="reg_type_filter"]')?.value || '';
-
-        const hasFilter = Boolean(qVal || villageVal || stationVal || ageVal || regTypeVal);
-
-        const params = new URLSearchParams();
-        if (qVal) params.set('q', qVal);
-        if (villageVal) params.set('village_id', villageVal);
-        if (stationVal) params.set('station_id', stationVal);
-        if (ageVal) params.set('age_group', ageVal);
-        if (regTypeVal) params.set('reg_type_filter', regTypeVal);
-        const exportUrl = '/voters/export/excel?' + params.toString();
-
-        const headerBtn = document.getElementById('headerExportExcelBtn');
-        const filterBar = document.getElementById('filterActionBar');
-        const filterExportBtn = document.getElementById('filterExportExcelBtn');
-
-        if (headerBtn) {
-            headerBtn.href = exportUrl;
-            if (hasFilter) {
-                headerBtn.classList.remove('hidden');
-            } else {
-                headerBtn.classList.add('hidden');
-            }
-        }
-
-        if (filterBar) {
-            if (hasFilter) {
-                filterBar.classList.remove('hidden');
-            } else {
-                filterBar.classList.add('hidden');
-            }
-        }
-
-        if (filterExportBtn) {
-            filterExportBtn.href = exportUrl;
-        }
-    }
-
     // Initialize Add form station filter on page load
     document.addEventListener('DOMContentLoaded', () => {
         filterStationsByVillage('addVillageSelect', 'addStationSelect');
         const vSel = document.getElementById('filterVillageSelect');
         if (vSel && vSel.value) {
             filterSearchStations();
-        }
-
-        const filterForm = document.getElementById('voterFilterForm');
-        if (filterForm) {
-            filterForm.querySelectorAll('input, select').forEach(el => {
-                el.addEventListener('input', checkActiveFilters);
-                el.addEventListener('change', checkActiveFilters);
-            });
         }
     });
 </script>
