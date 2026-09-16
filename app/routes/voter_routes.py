@@ -4,11 +4,15 @@ import io
 import uuid
 import base64
 import datetime
+import urllib.parse
 from fastapi import APIRouter, Request, Depends, HTTPException, Query, Form, File, UploadFile
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, desc, asc, func
+import openpyxl
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from openpyxl.utils import get_column_letter
 
 from app.database import get_db
 from app.models import User, Village, PollingStation, Voter
@@ -50,6 +54,229 @@ from app.image_utils import process_and_encode_image
 
 def save_uploaded_photo(upload_file: UploadFile) -> str:
     return process_and_encode_image(upload_file, subfolder="voters", max_size=(300, 300), quality=85)
+
+def calculate_age(dob_str: str) -> str:
+    if not dob_str:
+        return ""
+    try:
+        birth_year = int(str(dob_str).strip()[:4])
+        current_year = get_cambodia_now().year
+        age = current_year - birth_year
+        return str(age) if age >= 0 else ""
+    except Exception:
+        return ""
+
+def build_voter_query(
+    db: Session,
+    current_user: User = None,
+    q: str = "",
+    village_id: str = "",
+    station_id: str = "",
+    status_filter: str = "",
+    gender_filter: str = "",
+    age_group: str = "",
+    voted_filter: str = "",
+    clean_date: str = "",
+    effective_reg_type: str = "",
+    effective_reg_year: str = ""
+):
+    query = db.query(Voter)
+
+    # Role-based restriction
+    if current_user and current_user.role == "officer" and current_user.station_id:
+        query = query.filter(Voter.station_id == current_user.station_id)
+    elif current_user and current_user.role == "village_chief" and current_user.village_id:
+        query = query.filter(Voter.village_id == current_user.village_id)
+
+    # Keyword Search (Name Khmer, Name Latin, National ID, Voter Code)
+    if q and q.strip():
+        search = f"%{q.strip()}%"
+        query = query.filter(
+            or_(
+                Voter.name_kh.ilike(search),
+                Voter.name_en.ilike(search),
+                Voter.national_id.ilike(search),
+                Voter.voter_code.ilike(search)
+            )
+        )
+
+    # Village filter
+    if village_id and str(village_id).isdigit():
+        query = query.filter(Voter.village_id == int(village_id))
+
+    # Polling station filter
+    if station_id and str(station_id).isdigit():
+        query = query.filter(Voter.station_id == int(station_id))
+
+    # Status filter
+    if status_filter:
+        query = query.filter(Voter.status == status_filter)
+
+    # Gender filter
+    if gender_filter:
+        query = query.filter(Voter.gender == gender_filter)
+
+    # Voted filter
+    if voted_filter == "voted":
+        query = query.filter(Voter.has_voted == True)
+    elif voted_filter == "not_voted":
+        query = query.filter(Voter.has_voted == False)
+
+    # Registration date filter (safe ISO date parsing)
+    if clean_date:
+        try:
+            datetime.date.fromisoformat(clean_date)
+            query = query.filter(func.date(Voter.created_at) == clean_date)
+        except ValueError:
+            pass
+
+    # Registration Type filter (new, legacy, transferred)
+    if effective_reg_type:
+        query = query.filter(Voter.reg_type == effective_reg_type)
+
+    # Registration Year filter
+    if effective_reg_year and str(effective_reg_year).isdigit():
+        query = query.filter(Voter.reg_year == int(effective_reg_year))
+
+    # Age group filter (youth: 18-35, adult: 36-59, elderly: 60+)
+    if age_group:
+        current_year = get_cambodia_now().year
+        if age_group == "youth":
+            min_y = current_year - 35
+            max_y = current_year - 18
+            query = query.filter(Voter.dob.isnot(None), Voter.dob >= str(min_y), Voter.dob < str(max_y + 1))
+        elif age_group == "adult":
+            min_y = current_year - 59
+            max_y = current_year - 36
+            query = query.filter(Voter.dob.isnot(None), Voter.dob >= str(min_y), Voter.dob < str(max_y + 1))
+        elif age_group == "elderly":
+            max_y = current_year - 60
+            query = query.filter(Voter.dob.isnot(None), Voter.dob >= "1900", Voter.dob < str(max_y + 1))
+
+    return query
+
+def generate_voters_excel(voters, filter_title: str = "ឃុំនគរភាសទាំងមូល") -> io.BytesIO:
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "បញ្ជីឈ្មោះបោះឆ្នោត"
+
+    # Styles
+    title_font = Font(name="Khmer OS Siemreap", size=14, bold=True, color="001F3F")
+    subtitle_font = Font(name="Khmer OS Siemreap", size=11, bold=True, color="333333")
+    header_font = Font(name="Khmer OS Siemreap", size=10, bold=True, color="FFFFFF")
+    data_font = Font(name="Khmer OS Siemreap", size=10)
+
+    header_fill = PatternFill(start_color="1A365D", end_color="1A365D", fill_type="solid")
+    sub_header_fill = PatternFill(start_color="F0F4F8", end_color="F0F4F8", fill_type="solid")
+
+    thin_border = Border(
+        left=Side(style='thin', color='CBD5E0'),
+        right=Side(style='thin', color='CBD5E0'),
+        top=Side(style='thin', color='CBD5E0'),
+        bottom=Side(style='thin', color='CBD5E0')
+    )
+
+    # Title Rows (15 columns A to O)
+    ws.merge_cells("A1:O1")
+    ws["A1"] = "ព្រះរាជាណាចក្រកម្ពុជា ជាតិ សាសនា ព្រះមហាក្សត្រ"
+    ws["A1"].font = title_font
+    ws["A1"].alignment = Alignment(horizontal="center", vertical="center")
+
+    ws.merge_cells("A2:O2")
+    ws["A2"] = f"បញ្ជីឈ្មោះអ្នកចុះឈ្មោះបោះឆ្នោត - រដ្ឋបាលឃុំនគរភាស ({filter_title})"
+    ws["A2"].font = subtitle_font
+    ws["A2"].alignment = Alignment(horizontal="center", vertical="center")
+
+    ws.merge_cells("A3:O3")
+    now_str = get_cambodia_now().strftime("%d-%m-%Y %H:%M")
+    ws["A3"] = f"កាលបរិច្ឆេទចេញរបាយការណ៍៖ {now_str} | ចំនួនសរុប៖ {len(voters)} នាក់"
+    ws["A3"].font = Font(name="Khmer OS Siemreap", size=9, italic=True, color="666666")
+    ws["A3"].alignment = Alignment(horizontal="center", vertical="center")
+
+    ws.row_dimensions[1].height = 25
+    ws.row_dimensions[2].height = 22
+    ws.row_dimensions[3].height = 18
+    ws.row_dimensions[5].height = 28
+
+    # Headers
+    headers = [
+        "ល.រ", "កូដអ្នកបោះឆ្នោត", "លេខរៀងបញ្ជី", "លេខអត្តសញ្ញាណប័ណ្ណ",
+        "គោត្តនាម-នាម", "អក្សរឡាតាំង", "ភេទ", "ថ្ងៃខែឆ្នាំកំណើត",
+        "អាយុ", "ភូមិ", "ការិយាល័យបោះឆ្នោត", "ប្រភេទបញ្ជី",
+        "ស្ថានភាព", "ស្ថានភាពវត្តមាន", "ហត្ថលេខា / ស្នាមមេដៃ"
+    ]
+
+    for col_num, header in enumerate(headers, 1):
+        cell = ws.cell(row=5, column=col_num, value=header)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+        cell.border = thin_border
+
+    # Mapping helpers for clean Khmer display
+    status_map = {
+        "active": "សកម្ម",
+        "deceased": "ទទួលមរណភាព",
+        "moved": "ផ្ទេរចេញ",
+        "suspended": "ផ្អាក"
+    }
+    reg_type_map = {
+        "new": "ចុះថ្មី",
+        "legacy": "បញ្ជីចាស់",
+        "transferred": "ផ្ទេរចូល"
+    }
+
+    # Data Rows
+    row_num = 6
+    for idx, v in enumerate(voters, 1):
+        voted_status = "បោះឆ្នោតរួច" if v.has_voted else "មិនទាន់បោះ"
+        st_text = status_map.get(v.status, v.status or "")
+        reg_text = reg_type_map.get(v.reg_type, v.reg_type or "")
+        age_text = calculate_age(v.dob)
+
+        ws.cell(row=row_num, column=1, value=idx).alignment = Alignment(horizontal="center")
+        ws.cell(row=row_num, column=2, value=v.voter_code or "").alignment = Alignment(horizontal="center")
+        ws.cell(row=row_num, column=3, value=v.list_no or "").alignment = Alignment(horizontal="center")
+        ws.cell(row=row_num, column=4, value=v.national_id or "").alignment = Alignment(horizontal="center")
+        ws.cell(row=row_num, column=5, value=v.name_kh or "").alignment = Alignment(horizontal="left")
+        ws.cell(row=row_num, column=6, value=v.name_en or "").alignment = Alignment(horizontal="left")
+        ws.cell(row=row_num, column=7, value=v.gender or "").alignment = Alignment(horizontal="center")
+        ws.cell(row=row_num, column=8, value=v.dob or "").alignment = Alignment(horizontal="center")
+        ws.cell(row=row_num, column=9, value=age_text).alignment = Alignment(horizontal="center")
+        ws.cell(row=row_num, column=10, value=v.village.name_kh if v.village else "").alignment = Alignment(horizontal="left")
+        ws.cell(row=row_num, column=11, value=f"{v.station.code} - {v.station.name}" if v.station else "").alignment = Alignment(horizontal="left")
+        ws.cell(row=row_num, column=12, value=reg_text).alignment = Alignment(horizontal="center")
+        ws.cell(row=row_num, column=13, value=st_text).alignment = Alignment(horizontal="center")
+        ws.cell(row=row_num, column=14, value=voted_status).alignment = Alignment(horizontal="center")
+        ws.cell(row=row_num, column=15, value="").alignment = Alignment(horizontal="center")
+
+        for c in range(1, 16):
+            cell = ws.cell(row=row_num, column=c)
+            cell.font = data_font
+            cell.border = thin_border
+            if row_num % 2 == 1:
+                cell.fill = sub_header_fill
+
+        ws.row_dimensions[row_num].height = 20
+        row_num += 1
+
+    # Auto-adjust column widths
+    for col in ws.columns:
+        max_len = 0
+        col_letter = get_column_letter(col[0].column)
+        for cell in col:
+            if cell.row < 5:
+                continue
+            if cell.value:
+                max_len = max(max_len, len(str(cell.value)))
+        ws.column_dimensions[col_letter].width = max(max_len + 4, 11)
+
+    ws.column_dimensions['O'].width = 18  # Signature column
+
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+    return output
 
 @router.get("/voters", response_class=HTMLResponse)
 def voter_list_page(
@@ -132,85 +359,21 @@ def voter_list_page(
             ""
         ).strip()
 
-    query = db.query(Voter)
-
-    # Role-based restriction
-    if current_user.role == "officer" and current_user.station_id:
-        query = query.filter(Voter.station_id == current_user.station_id)
-        station_id = str(current_user.station_id)
-    elif current_user.role == "village_chief" and current_user.village_id:
-        query = query.filter(Voter.village_id == current_user.village_id)
-        village_id = str(current_user.village_id)
-
-    # Keyword Search (Name Khmer, Name Latin, National ID, Voter Code)
-    if q.strip():
-        search = f"%{q.strip()}%"
-        query = query.filter(
-            or_(
-                Voter.name_kh.ilike(search),
-                Voter.name_en.ilike(search),
-                Voter.national_id.ilike(search),
-                Voter.voter_code.ilike(search)
-            )
-        )
-
-    # Village filter
-    if village_id and village_id.isdigit():
-        query = query.filter(Voter.village_id == int(village_id))
-
-    # Polling station filter
-    if station_id and station_id.isdigit():
-        query = query.filter(Voter.station_id == int(station_id))
-
-    # Status filter
-    if status_filter:
-        query = query.filter(Voter.status == status_filter)
-
-    # Gender filter
-    if gender_filter:
-        query = query.filter(Voter.gender == gender_filter)
-
-    # Voted filter
-    if voted_filter == "voted":
-        query = query.filter(Voter.has_voted == True)
-    elif voted_filter == "not_voted":
-        query = query.filter(Voter.has_voted == False)
-
-    # Registration date filter (safe ISO date parsing)
-    if clean_date:
-        try:
-            # Validate ISO date format YYYY-MM-DD
-            datetime.date.fromisoformat(clean_date)
-            query = query.filter(func.date(Voter.created_at) == clean_date)
-        except ValueError:
-            # Ignore invalid date filter gracefully instead of crashing with 500
-            clean_date = ""
-
-    # Registration Type filter (new, legacy, transferred)
-    if effective_reg_type:
-        query = query.filter(Voter.reg_type == effective_reg_type)
-
-    # Registration Year filter
-    if effective_reg_year and effective_reg_year.isdigit():
-        query = query.filter(Voter.reg_year == int(effective_reg_year))
-
-    # Age group filter (youth: 18-35, adult: 36-59, elderly: 60+)
-    if age_group:
-        current_year = get_cambodia_now().year
-        if age_group == "youth":
-            # 18 - 35 years old
-            min_y = current_year - 35
-            max_y = current_year - 18
-            query = query.filter(Voter.dob.isnot(None), Voter.dob >= str(min_y), Voter.dob < str(max_y + 1))
-        elif age_group == "adult":
-            # 36 - 59 years old
-            min_y = current_year - 59
-            max_y = current_year - 36
-            query = query.filter(Voter.dob.isnot(None), Voter.dob >= str(min_y), Voter.dob < str(max_y + 1))
-        elif age_group == "elderly":
-            # 60+ years old
-            max_y = current_year - 60
-            query = query.filter(Voter.dob.isnot(None), Voter.dob >= "1900", Voter.dob < str(max_y + 1))
+    # Build query using shared builder
+    query = build_voter_query(
+        db=db,
+        current_user=current_user,
+        q=q,
+        village_id=village_id,
+        station_id=station_id,
+        status_filter=status_filter,
+        gender_filter=gender_filter,
+        age_group=age_group,
+        voted_filter=voted_filter,
+        clean_date=clean_date,
+        effective_reg_type=effective_reg_type,
+        effective_reg_year=effective_reg_year
+    )
 
     total_count = query.count()
     total_pages = (total_count + limit - 1) // limit if total_count > 0 else 1
@@ -236,7 +399,7 @@ def voter_list_page(
     if 2026 not in available_years:
         available_years.insert(0, 2026)
 
-    # Build clean query string for pagination links
+    # Build clean query string for pagination links & active filters
     active_params = {}
     if q.strip():
         active_params["q"] = q.strip()
@@ -259,8 +422,15 @@ def voter_list_page(
     if age_group:
         active_params["age_group"] = age_group
 
-    import urllib.parse
+    has_active_filter = bool(active_params)
     filter_querystring = ("&" + urllib.parse.urlencode(active_params)) if active_params else ""
+    export_excel_url = f"/voters/export/excel?{urllib.parse.urlencode(active_params)}" if active_params else "/voters/export/excel"
+
+    village_obj = next((v for v in villages if str(v.id) == str(village_id)), None) if village_id else None
+    village_name = village_obj.name_kh if village_obj else ""
+
+    station_obj = next((s for s in stations if str(s.id) == str(station_id)), None) if station_id else None
+    station_name = f"{station_obj.code} - {station_obj.name}" if station_obj else ""
 
     return templates.TemplateResponse(request=request, name="voters/list.html", context={
         "current_user": current_user,
@@ -271,7 +441,9 @@ def voter_list_page(
         "total_pages": total_pages,
         "q": q,
         "village_id": village_id,
+        "village_name": village_name,
         "station_id": station_id,
+        "station_name": station_name,
         "status_filter": status_filter,
         "gender_filter": gender_filter,
         "age_group": age_group,
@@ -282,8 +454,129 @@ def voter_list_page(
         "filter_querystring": filter_querystring,
         "available_years": available_years,
         "villages": villages,
-        "stations": stations
+        "stations": stations,
+        "has_active_filter": has_active_filter,
+        "export_excel_url": export_excel_url
     })
+
+@router.get("/voters/export/excel")
+def export_filtered_voters_excel(
+    request: Request,
+    q: str = Query("", description="Search text"),
+    village_id: str = Query("", description="Village filter"),
+    station_id: str = Query("", description="Station filter"),
+    status_filter: str = Query("", description="Status filter"),
+    gender_filter: str = Query("", description="Gender filter"),
+    age_group: str = Query("", description="Age group filter: youth, adult, elderly"),
+    voted_filter: str = Query("", description="Voted filter (all, voted, not_voted)"),
+    date_created: str = Query("", description="Registration date filter YYYY-MM-DD"),
+    reg_type_filter: str = Query("", description="Registration type filter (new, legacy, transferred)"),
+    reg_year_filter: str = Query("", description="Registration year filter"),
+    _type_filter: str = Query("", description="Legacy alias"),
+    _year_filter: str = Query("", description="Legacy alias"),
+    db: Session = Depends(get_db)
+):
+    current_user = get_current_user_optional(request, db)
+
+    qp = request.query_params
+    raw_date = (date_created or qp.get("date_created") or "").strip()
+    clean_date = ""
+    effective_reg_type = ""
+    effective_reg_year = ""
+
+    if "®" in raw_date or "\u00ae" in raw_date or "_type_filter" in raw_date or "=" in raw_date or len(raw_date) > 10:
+        if "type_filter=" in raw_date:
+            m_t = re.search(r"type_filter=([^&]*)", raw_date)
+            if m_t and m_t.group(1):
+                effective_reg_type = m_t.group(1)
+        if "year_filter=" in raw_date:
+            m_y = re.search(r"year_filter=([^&]*)", raw_date)
+            if m_y and m_y.group(1):
+                effective_reg_year = m_y.group(1)
+        date_match = re.match(r"^(\d{4}-\d{2}-\d{2})", raw_date)
+        if date_match:
+            clean_date = date_match.group(1)
+    else:
+        clean_date = raw_date
+
+    if not effective_reg_type:
+        effective_reg_type = (
+            reg_type_filter or 
+            qp.get("reg_type_filter") or 
+            qp.get("type_filter") or 
+            qp.get("_type_filter") or 
+            qp.get("®_type_filter") or 
+            qp.get("\u00ae_type_filter") or 
+            ""
+        ).strip()
+
+    if not effective_reg_year:
+        effective_reg_year = (
+            reg_year_filter or 
+            qp.get("reg_year_filter") or 
+            qp.get("year_filter") or 
+            qp.get("_year_filter") or 
+            qp.get("®_year_filter") or 
+            qp.get("\u00ae_year_filter") or 
+            ""
+        ).strip()
+
+    # Build filtered query
+    query = build_voter_query(
+        db=db,
+        current_user=current_user,
+        q=q,
+        village_id=village_id,
+        station_id=station_id,
+        status_filter=status_filter,
+        gender_filter=gender_filter,
+        age_group=age_group,
+        voted_filter=voted_filter,
+        clean_date=clean_date,
+        effective_reg_type=effective_reg_type,
+        effective_reg_year=effective_reg_year
+    )
+
+    voters = query.order_by(Voter.station_id.asc(), Voter.list_no.asc()).all()
+
+    # Build human-readable filter title for Excel header
+    title_parts = []
+    if q and q.strip():
+        title_parts.append(f"ស្វែងរក៖ \"{q.strip()}\"")
+    if village_id and str(village_id).isdigit():
+        v_obj = db.query(Village).filter(Village.id == int(village_id)).first()
+        if v_obj:
+            title_parts.append(f"ភូមិ {v_obj.name_kh}")
+    if station_id and str(station_id).isdigit():
+        s_obj = db.query(PollingStation).filter(PollingStation.id == int(station_id)).first()
+        if s_obj:
+            title_parts.append(f"ការិយាល័យ {s_obj.code}")
+    if age_group:
+        age_map = {"youth": "យុវជន (១៨-៣៥)", "adult": "វ័យកណ្តាល (៣៦-៥៩)", "elderly": "មនុស្សចាស់ (៦០+)"}
+        title_parts.append(f"ក្រុមអាយុ៖ {age_map.get(age_group, age_group)}")
+    if effective_reg_type:
+        reg_map = {"new": "ចុះថ្មី", "legacy": "បញ្ជីចាស់", "transferred": "ផ្ទេរចូល"}
+        title_parts.append(f"ប្រភេទ៖ {reg_map.get(effective_reg_type, effective_reg_type)}")
+    if gender_filter:
+        title_parts.append(f"ភេទ៖ {gender_filter}")
+    if status_filter:
+        status_map = {"active": "សកម្ម", "deceased": "ទទួលមរណភាព", "moved": "ផ្ទេរចេញ", "suspended": "ផ្អាក"}
+        title_parts.append(f"ស្ថានភាព៖ {status_map.get(status_filter, status_filter)}")
+    if voted_filter:
+        title_parts.append("បានបោះឆ្នោត" if voted_filter == "voted" else "មិនទាន់បោះ")
+    if clean_date:
+        title_parts.append(f"ថ្ងៃចុះឈ្មោះ៖ {clean_date}")
+
+    filter_title = " • ".join(title_parts) if title_parts else "ឃុំនគរភាសទាំងមូល"
+
+    excel_output = generate_voters_excel(voters, filter_title=filter_title)
+
+    filename = f"Voter_List_Filtered_{get_cambodia_now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    return StreamingResponse(
+        excel_output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
 
 @router.get("/api/voters/check-duplicate-id")
 def check_duplicate_national_id(

@@ -38,96 +38,145 @@
             <a href="/reports/daily" class="btn btn-outline-indigo text-sm font-bold flex items-center gap-1.5">
                 <span>📅</span> របាយការណ៍ប្រចាំថ្ងៃ
             </a>
+
+            <!-- Header Export Excel Button (Shown when any filter is active) -->
+            <a id="headerExportExcelBtn" href="{{ export_excel_url }}" class="btn btn-success text-sm font-bold flex items-center gap-1.5 shadow-md transition-all duration-300 {% if not has_active_filter %}hidden{% endif %}">
+                <span>📊</span> <span>នាំចេញ Excel (តាមតម្រង)</span>
+            </a>
         </div>
     </div>
 
     <!-- Search & Multi-Filter Filter Bar -->
     <div class="glass-card p-5">
-        <form method="GET" action="/voters" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-            <!-- Keyword Search -->
-            <div class="lg:col-span-2">
-                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ស្វែងរក (ឈ្មោះ / ID / កូដ)</label>
-                <input type="text" name="q" value="{{ q }}" placeholder="បញ្ចូលឈ្មោះ ឬលេខអត្តសញ្ញាណប័ណ្ណ..." class="form-control text-sm py-2">
-            </div>
+        <form id="voterFilterForm" method="GET" action="/voters">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                <!-- Keyword Search -->
+                <div class="lg:col-span-2">
+                    <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ស្វែងរក (ឈ្មោះ / ID / កូដ)</label>
+                    <input type="text" name="q" id="filterQ" value="{{ q }}" placeholder="បញ្ចូលឈ្មោះ ឬលេខអត្តសញ្ញាណប័ណ្ណ..." class="form-control text-sm py-2">
+                </div>
 
-            <!-- Village Filter -->
-            <div>
-                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ភូមិ (១០ ភូមិ)</label>
-                <select name="village_id" id="filterVillageSelect" class="form-control text-sm py-2" onchange="filterSearchStations()" {% if current_user.role == 'village_chief' %}disabled{% endif %}>
-                    <option value="">-- គ្រប់ភូមិទាំងអស់ --</option>
-                    {% for v in villages %}
-                    <option value="{{ v.id }}" {% if village_id == v.id|string %}selected{% endif %}>{{ v.name_kh }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <!-- Polling Station Filter -->
-            <div>
-                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ការិយាល័យ</label>
-                <select name="station_id" id="filterStationSelect" class="form-control text-sm py-2" {% if current_user.role == 'officer' %}disabled{% endif %}>
-                    <option value="">-- គ្រប់ការិយាល័យ --</option>
-                    {% for s in stations %}
-                    <option value="{{ s.id }}" data-village-id="{{ s.village_id }}" {% if station_id == s.id|string %}selected{% endif %}>{{ s.code }} - {{ s.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <!-- Age Group Filter -->
-            <div>
-                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ក្រុមអាយុ</label>
-                <select name="age_group" class="form-control text-sm py-2">
-                    <option value="">-- គ្រប់អាយុ --</option>
-                    <option value="youth" {% if age_group == 'youth' %}selected{% endif %}>🟢 យុវជន (១៨-៣៥)</option>
-                    <option value="adult" {% if age_group == 'adult' %}selected{% endif %}>🔵 វ័យកណ្តាល (៣៦-៥៩)</option>
-                    <option value="elderly" {% if age_group == 'elderly' %}selected{% endif %}>🟠 មនុស្សចាស់ (៦០+)</option>
-                </select>
-            </div>
-
-            <!-- Registration Type Filter & Submit Button -->
-            <div class="flex items-end gap-2">
-                <div class="flex-1">
-                    <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ប្រភេទបញ្ជី</label>
-                    <select name="reg_type_filter" class="form-control text-sm py-2">
-                        <option value="">-- គ្រប់ប្រភេទ --</option>
-                        <option value="new" {% if reg_type_filter == 'new' %}selected{% endif %}>✨ ចុះថ្មី (New)</option>
-                        <option value="legacy" {% if reg_type_filter == 'legacy' %}selected{% endif %}>📋 បញ្ជីចាស់ (Legacy)</option>
-                        <option value="transferred" {% if reg_type_filter == 'transferred' %}selected{% endif %}>📦 ផ្ទេរចូល (Transferred)</option>
+                <!-- Village Filter -->
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ភូមិ (១០ ភូមិ)</label>
+                    <select name="village_id" id="filterVillageSelect" class="form-control text-sm py-2" onchange="filterSearchStations()" {% if current_user.role == 'village_chief' %}disabled{% endif %}>
+                        <option value="">-- គ្រប់ភូមិទាំងអស់ --</option>
+                        {% for v in villages %}
+                        <option value="{{ v.id }}" {% if village_id == v.id|string %}selected{% endif %}>{{ v.name_kh }}</option>
+                        {% endfor %}
                     </select>
                 </div>
-                <button type="submit" class="btn btn-primary py-2 px-3 text-sm" title="ស្វែងរក">
-                    🔍
-                </button>
-                <a href="/voters" class="btn btn-outline py-2 px-2.5 text-sm hover:bg-slate-100 dark:hover:bg-slate-800" title="សម្អាតតម្រង">
-                    🔄
-                </a>
+
+                <!-- Polling Station Filter -->
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ការិយាល័យ</label>
+                    <select name="station_id" id="filterStationSelect" class="form-control text-sm py-2" {% if current_user.role == 'officer' %}disabled{% endif %}>
+                        <option value="">-- គ្រប់ការិយាល័យ --</option>
+                        {% for s in stations %}
+                        <option value="{{ s.id }}" data-village-id="{{ s.village_id }}" {% if station_id == s.id|string %}selected{% endif %}>{{ s.code }} - {{ s.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Age Group Filter -->
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ក្រុមអាយុ</label>
+                    <select name="age_group" id="filterAgeGroupSelect" class="form-control text-sm py-2">
+                        <option value="">-- គ្រប់អាយុ --</option>
+                        <option value="youth" {% if age_group == 'youth' %}selected{% endif %}>🟢 យុវជន (១៨-៣៥)</option>
+                        <option value="adult" {% if age_group == 'adult' %}selected{% endif %}>🔵 វ័យកណ្តាល (៣៦-៥៩)</option>
+                        <option value="elderly" {% if age_group == 'elderly' %}selected{% endif %}>🟠 មនុស្សចាស់ (៦០+)</option>
+                    </select>
+                </div>
+
+                <!-- Registration Type Filter & Submit Button -->
+                <div class="flex items-end gap-2">
+                    <div class="flex-1">
+                        <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ប្រភេទបញ្ជី</label>
+                        <select name="reg_type_filter" id="filterRegTypeSelect" class="form-control text-sm py-2">
+                            <option value="">-- គ្រប់ប្រភេទ --</option>
+                            <option value="new" {% if reg_type_filter == 'new' %}selected{% endif %}>✨ ចុះថ្មី (New)</option>
+                            <option value="legacy" {% if reg_type_filter == 'legacy' %}selected{% endif %}>📋 បញ្ជីចាស់ (Legacy)</option>
+                            <option value="transferred" {% if reg_type_filter == 'transferred' %}selected{% endif %}>📦 ផ្ទេរចូល (Transferred)</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary py-2 px-3 text-sm" title="ស្វែងរក">
+                        🔍
+                    </button>
+                    <a href="/voters" class="btn btn-outline py-2 px-2.5 text-sm hover:bg-slate-100 dark:hover:bg-slate-800" title="សម្អាតតម្រង">
+                        🔄
+                    </a>
+                </div>
+            </div>
+
+            <!-- Filter Action / Export Excel Bar (Conditionally shown when filtered) -->
+            <div id="filterActionBar" class="mt-4 pt-3.5 border-t border-slate-200/80 dark:border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 {% if not has_active_filter %}hidden{% endif %} transition-all duration-200">
+                <div class="flex items-center gap-2 text-xs sm:text-sm text-emerald-800 dark:text-emerald-300 font-medium">
+                    <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 text-xs font-bold">✓</span>
+                    <span>តម្រងកំពុងដំណើរការ • លោកអ្នកអាចនាំចេញទិន្នន័យជា Excel តាមតម្រងនេះបានភ្លាមៗ</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a id="filterExportExcelBtn" href="{{ export_excel_url }}" class="btn btn-success text-xs sm:text-sm font-bold py-2 px-3.5 shadow-sm flex items-center gap-2 active:scale-95 transition">
+                        <span>📥</span> <span>នាំចេញទិន្នន័យជា Excel (.xlsx)</span>
+                    </a>
+                    <a href="/voters" class="btn btn-outline text-xs sm:text-sm py-2 px-2.5 text-slate-500 hover:text-red-600 hover:border-red-300 flex items-center gap-1">
+                        <span>✕</span> <span>សម្អាតតម្រង</span>
+                    </a>
+                </div>
             </div>
         </form>
     </div>
 
-    {% if age_group %}
-    <!-- Active Age Filter Indicator -->
-    <div class="flex items-center justify-between px-4 py-2.5 rounded-xl bg-blue-50/90 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 shadow-xs text-sm">
+    {% if has_active_filter %}
+    <!-- Active Filter Indicator Banner -->
+    <div id="activeFilterBanner" class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 py-3 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-blue-50 dark:from-emerald-950/40 dark:via-teal-950/30 dark:to-blue-950/40 border border-emerald-200 dark:border-emerald-800/60 shadow-xs text-sm">
         <div class="flex items-center gap-2 flex-wrap">
-            <span class="text-base">
-                {% if age_group == 'youth' %}🟢
-                {% elif age_group == 'adult' %}🔵
-                {% elif age_group == 'elderly' %}🟠
-                {% else %}🎯{% endif %}
-            </span>
+            <span class="text-base">🎯</span>
             <span class="font-bold text-slate-800 dark:text-slate-100">
-                កំពុងបង្ហាញតាមក្រុមអាយុ៖ 
-                {% if age_group == 'youth' %}យុវជន (១៨ ដល់ ៣៥ ឆ្នាំ)
-                {% elif age_group == 'adult' %}វ័យកណ្តាល (៣៦ ដល់ ៥៩ ឆ្នាំ)
-                {% elif age_group == 'elderly' %}មនុស្សចាស់ (៦០ ឆ្នាំឡើង)
-                {% else %}{{ age_group }}{% endif %}
+                កំពុងបង្ហាញតាមតម្រង៖
             </span>
-            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800 dark:bg-blue-900/70 dark:text-blue-200 font-mono">
+            {% if q %}
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 shadow-2xs">
+                🔍 "{{ q }}"
+            </span>
+            {% endif %}
+            {% if village_name %}
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 shadow-2xs">
+                🏡 ភូមិ {{ village_name }}
+            </span>
+            {% endif %}
+            {% if station_name %}
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 shadow-2xs">
+                🏢 {{ station_name }}
+            </span>
+            {% endif %}
+            {% if age_group %}
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 shadow-2xs">
+                🎂 {% if age_group == 'youth' %}យុវជន (១៨-៣៥ ឆ្នាំ){% elif age_group == 'adult' %}វ័យកណ្តាល (៣៦-៥៩ ឆ្នាំ){% elif age_group == 'elderly' %}មនុស្សចាស់ (៦០ ឆ្នាំឡើង){% else %}{{ age_group }}{% endif %}
+            </span>
+            {% endif %}
+            {% if reg_type_filter %}
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 shadow-2xs">
+                📋 {% if reg_type_filter == 'new' %}ចុះថ្មី{% elif reg_type_filter == 'legacy' %}បញ្ជីចាស់{% elif reg_type_filter == 'transferred' %}ផ្ទេរចូល{% else %}{{ reg_type_filter }}{% endif %}
+            </span>
+            {% endif %}
+            {% if date_created %}
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 shadow-2xs">
+                📅 {{ date_created }}
+            </span>
+            {% endif %}
+            <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/70 dark:text-emerald-200 font-mono">
                 សរុប {{ total_count }} នាក់
             </span>
         </div>
-        <a href="/voters" class="text-xs text-blue-600 hover:text-blue-800 dark:text-sky-400 dark:hover:text-sky-300 font-bold hover:underline flex items-center gap-1">
-            ✕ បោះបង់តម្រង
-        </a>
+        <div class="flex items-center gap-2">
+            <a href="{{ export_excel_url }}" class="btn btn-success text-xs sm:text-sm font-bold py-1.5 px-3 rounded-lg shadow-sm flex items-center gap-1.5 active:scale-95 transition">
+                <span>📥</span> <span>នាំចេញ Excel ({{ total_count }} នាក់)</span>
+            </a>
+            <a href="/voters" class="text-xs text-slate-500 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400 font-bold hover:underline flex items-center gap-1 px-2 py-1">
+                ✕ បោះបង់តម្រង
+            </a>
+        </div>
     </div>
     {% endif %}
 
@@ -1577,12 +1626,66 @@
         }
     }
 
+    // Real-time filter reactivity: show/hide Export Excel buttons dynamically
+    function checkActiveFilters() {
+        const form = document.getElementById('voterFilterForm');
+        if (!form) return;
+        const qVal = (form.querySelector('[name="q"]')?.value || '').trim();
+        const villageVal = form.querySelector('[name="village_id"]')?.value || '';
+        const stationVal = form.querySelector('[name="station_id"]')?.value || '';
+        const ageVal = form.querySelector('[name="age_group"]')?.value || '';
+        const regTypeVal = form.querySelector('[name="reg_type_filter"]')?.value || '';
+
+        const hasFilter = Boolean(qVal || villageVal || stationVal || ageVal || regTypeVal);
+
+        const params = new URLSearchParams();
+        if (qVal) params.set('q', qVal);
+        if (villageVal) params.set('village_id', villageVal);
+        if (stationVal) params.set('station_id', stationVal);
+        if (ageVal) params.set('age_group', ageVal);
+        if (regTypeVal) params.set('reg_type_filter', regTypeVal);
+        const exportUrl = '/voters/export/excel?' + params.toString();
+
+        const headerBtn = document.getElementById('headerExportExcelBtn');
+        const filterBar = document.getElementById('filterActionBar');
+        const filterExportBtn = document.getElementById('filterExportExcelBtn');
+
+        if (headerBtn) {
+            headerBtn.href = exportUrl;
+            if (hasFilter) {
+                headerBtn.classList.remove('hidden');
+            } else {
+                headerBtn.classList.add('hidden');
+            }
+        }
+
+        if (filterBar) {
+            if (hasFilter) {
+                filterBar.classList.remove('hidden');
+            } else {
+                filterBar.classList.add('hidden');
+            }
+        }
+
+        if (filterExportBtn) {
+            filterExportBtn.href = exportUrl;
+        }
+    }
+
     // Initialize Add form station filter on page load
     document.addEventListener('DOMContentLoaded', () => {
         filterStationsByVillage('addVillageSelect', 'addStationSelect');
         const vSel = document.getElementById('filterVillageSelect');
         if (vSel && vSel.value) {
             filterSearchStations();
+        }
+
+        const filterForm = document.getElementById('voterFilterForm');
+        if (filterForm) {
+            filterForm.querySelectorAll('input, select').forEach(el => {
+                el.addEventListener('input', checkActiveFilters);
+                el.addEventListener('change', checkActiveFilters);
+            });
         }
     });
 </script>

@@ -432,134 +432,73 @@ def print_daily_registrations(
 
 @router.get("/reports/export/excel")
 def export_voter_list_excel(
+    request: Request,
+    q: str = Query("", description="Search text"),
     station_id: str = Query("", description="Station ID"),
     village_id: str = Query("", description="Village ID"),
     status_filter: str = Query("active", description="Status filter"),
+    gender_filter: str = Query("", description="Gender filter"),
+    age_group: str = Query("", description="Age group filter"),
+    voted_filter: str = Query("", description="Voted filter"),
+    date_created: str = Query("", description="Registration date filter"),
+    reg_type_filter: str = Query("", description="Registration type filter"),
+    reg_year_filter: str = Query("", description="Registration year filter"),
     db: Session = Depends(get_db)
 ):
-    query = db.query(Voter)
+    from app.routes.voter_routes import build_voter_query, generate_voters_excel
+    current_user = get_current_user_optional(request, db)
 
-    filter_title = "ឃុំនគរភាសទាំងមូល"
-    if station_id and station_id.isdigit():
-        station = db.query(PollingStation).filter(PollingStation.id == int(station_id)).first()
-        if station:
-            query = query.filter(Voter.station_id == int(station_id))
-            filter_title = f"{station.name} ({station.location})"
-
-    if village_id and village_id.isdigit():
-        village = db.query(Village).filter(Village.id == int(village_id)).first()
-        if village:
-            query = query.filter(Voter.village_id == int(village_id))
-            filter_title = f"ភូមិ {village.name_kh} ({village.name_en})"
-
-    if status_filter:
-        query = query.filter(Voter.status == status_filter)
+    query = build_voter_query(
+        db=db,
+        current_user=current_user,
+        q=q,
+        village_id=village_id,
+        station_id=station_id,
+        status_filter=status_filter,
+        gender_filter=gender_filter,
+        age_group=age_group,
+        voted_filter=voted_filter,
+        clean_date=date_created,
+        effective_reg_type=reg_type_filter,
+        effective_reg_year=reg_year_filter
+    )
 
     voters = query.order_by(Voter.station_id.asc(), Voter.list_no.asc()).all()
 
-    # Create OpenPyXL workbook
-    wb = openpyxl.Workbook()
-    ws = wb.active
-    ws.title = "បញ្ជីឈ្មោះបោះឆ្នោត"
+    # Build human-readable filter title for Excel header
+    title_parts = []
+    if q and q.strip():
+        title_parts.append(f"ស្វែងរក៖ \"{q.strip()}\"")
+    if village_id and str(village_id).isdigit():
+        v_obj = db.query(Village).filter(Village.id == int(village_id)).first()
+        if v_obj:
+            title_parts.append(f"ភូមិ {v_obj.name_kh}")
+    if station_id and str(station_id).isdigit():
+        s_obj = db.query(PollingStation).filter(PollingStation.id == int(station_id)).first()
+        if s_obj:
+            title_parts.append(f"ការិយាល័យ {s_obj.code}")
+    if age_group:
+        age_map = {"youth": "យុវជន (១៨-៣៥)", "adult": "វ័យកណ្តាល (៣៦-៥៩)", "elderly": "មនុស្សចាស់ (៦០+)"}
+        title_parts.append(f"ក្រុមអាយុ៖ {age_map.get(age_group, age_group)}")
+    if reg_type_filter:
+        reg_map = {"new": "ចុះថ្មី", "legacy": "បញ្ជីចាស់", "transferred": "ផ្ទេរចូល"}
+        title_parts.append(f"ប្រភេទ៖ {reg_map.get(reg_type_filter, reg_type_filter)}")
+    if gender_filter:
+        title_parts.append(f"ភេទ៖ {gender_filter}")
+    if status_filter:
+        status_map = {"active": "សកម្ម", "deceased": "ទទួលមរណភាព", "moved": "ផ្ទេរចេញ", "suspended": "ផ្អាក"}
+        title_parts.append(f"ស្ថានភាព៖ {status_map.get(status_filter, status_filter)}")
+    if voted_filter:
+        title_parts.append("បានបោះឆ្នោត" if voted_filter == "voted" else "មិនទាន់បោះ")
+    if date_created:
+        title_parts.append(f"ថ្ងៃចុះឈ្មោះ៖ {date_created}")
 
-    # Styles
-    title_font = Font(name="Khmer OS Siemreap", size=14, bold=True, color="001F3F")
-    subtitle_font = Font(name="Khmer OS Siemreap", size=11, bold=True, color="333333")
-    header_font = Font(name="Khmer OS Siemreap", size=10, bold=True, color="FFFFFF")
-    data_font = Font(name="Khmer OS Siemreap", size=10)
-    
-    header_fill = PatternFill(start_color="1A365D", end_color="1A365D", fill_type="solid")
-    sub_header_fill = PatternFill(start_color="F0F4F8", end_color="F0F4F8", fill_type="solid")
+    filter_title = " • ".join(title_parts) if title_parts else "ឃុំនគរភាសទាំងមូល"
 
-    thin_border = Border(
-        left=Side(style='thin', color='CBD5E0'),
-        right=Side(style='thin', color='CBD5E0'),
-        top=Side(style='thin', color='CBD5E0'),
-        bottom=Side(style='thin', color='CBD5E0')
-    )
-
-    # Title Rows
-    ws.merge_cells("A1:J1")
-    ws["A1"] = "ព្រះរាជាណាចក្រកម្ពុជា ជាតិ សាសនា ព្រះមហាក្សត្រ"
-    ws["A1"].font = title_font
-    ws["A1"].alignment = Alignment(horizontal="center", vertical="center")
-
-    ws.merge_cells("A2:J2")
-    ws["A2"] = f"បញ្ជីឈ្មោះអ្នកចុះឈ្មោះបោះឆ្នោតផ្លូវការ - រដ្ឋបាលឃុំនគរភាស ({filter_title})"
-    ws["A2"].font = subtitle_font
-    ws["A2"].alignment = Alignment(horizontal="center", vertical="center")
-
-    ws.merge_cells("A3:J3")
-    now_str = get_cambodia_now().strftime("%d-%m-%Y %H:%M")
-    ws["A3"] = f"កាលបរិច្ឆេទចេញរបាយការណ៍៖ {now_str} | ចំនួនសរុប៖ {len(voters)} នាក់"
-    ws["A3"].font = Font(name="Khmer OS Siemreap", size=9, italic=True, color="666666")
-    ws["A3"].alignment = Alignment(horizontal="center", vertical="center")
-
-    ws.row_dimensions[1].height = 25
-    ws.row_dimensions[2].height = 22
-    ws.row_dimensions[3].height = 18
-    ws.row_dimensions[5].height = 26
-
-    # Headers
-    headers = [
-        "ល.រ", "កូដអ្នកបោះឆ្នោត", "លេខរៀងបញ្ជី", "លេខអត្តសញ្ញាណប័ណ្ណ",
-        "គោត្តនាម-នាម", "អក្សរឡាតាំង", "ភេទ", "ថ្ងៃខែឆ្នាំកំណើត",
-        "ភូមិ", "ការិយាល័យបោះឆ្នោត", "ស្ថានភាពវត្តមាន", "ហត្ថលេខា / ស្នាមមេដៃ"
-    ]
-
-    for col_num, header in enumerate(headers, 1):
-        cell = ws.cell(row=5, column=col_num, value=header)
-        cell.font = header_font
-        cell.fill = header_fill
-        cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
-        cell.border = thin_border
-
-    # Data Rows
-    row_num = 6
-    for idx, v in enumerate(voters, 1):
-        voted_status = "បោះឆ្នោតរួច" if v.has_voted else "មិនទាន់បោះ"
-        ws.cell(row=row_num, column=1, value=idx).alignment = Alignment(horizontal="center")
-        ws.cell(row=row_num, column=2, value=v.voter_code).alignment = Alignment(horizontal="center")
-        ws.cell(row=row_num, column=3, value=v.list_no).alignment = Alignment(horizontal="center")
-        ws.cell(row=row_num, column=4, value=v.national_id).alignment = Alignment(horizontal="center")
-        ws.cell(row=row_num, column=5, value=v.name_kh).alignment = Alignment(horizontal="left")
-        ws.cell(row=row_num, column=6, value=v.name_en).alignment = Alignment(horizontal="left")
-        ws.cell(row=row_num, column=7, value=v.gender).alignment = Alignment(horizontal="center")
-        ws.cell(row=row_num, column=8, value=v.dob).alignment = Alignment(horizontal="center")
-        ws.cell(row=row_num, column=9, value=v.village.name_kh if v.village else "").alignment = Alignment(horizontal="left")
-        ws.cell(row=row_num, column=10, value=f"{v.station.code} - {v.station.name}" if v.station else "").alignment = Alignment(horizontal="left")
-        ws.cell(row=row_num, column=11, value=voted_status).alignment = Alignment(horizontal="center")
-        ws.cell(row=row_num, column=12, value="").alignment = Alignment(horizontal="center") # signature space
-
-        for c in range(1, 13):
-            cell = ws.cell(row=row_num, column=c)
-            cell.font = data_font
-            cell.border = thin_border
-            if row_num % 2 == 1:
-                cell.fill = sub_header_fill
-
-        ws.row_dimensions[row_num].height = 20
-        row_num += 1
-
-    # Auto-adjust column widths
-    for col in ws.columns:
-        max_len = 0
-        col_letter = get_column_letter(col[0].column)
-        for cell in col:
-            if cell.row < 5:
-                continue
-            if cell.value:
-                max_len = max(max_len, len(str(cell.value)))
-        ws.column_dimensions[col_letter].width = max(max_len + 4, 12)
-    ws.column_dimensions['L'].width = 20 # signature column
-
-    output = io.BytesIO()
-    wb.save(output)
-    output.seek(0)
-
+    excel_output = generate_voters_excel(voters, filter_title=filter_title)
     filename = f"Voter_List_Nokor_Pheas_{get_cambodia_now().strftime('%Y%m%d_%H%M%S')}.xlsx"
     return StreamingResponse(
-        output,
+        excel_output,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
