@@ -1,0 +1,389 @@
+{% extends "base.html" %}
+
+{% block title %}របាយការណ៍អត្តសញ្ញាណប័ណ្ណផុតសុពលភាព - រដ្ឋបាលឃុំនគរភាស{% endblock %}
+
+{% block content %}
+<div class="space-y-6 pb-12">
+
+    <!-- ========================================================================= -->
+    <!-- HEADER BANNER: ID CARD EXPIRY MONITORING & ACTION HUB -->
+    <!-- ========================================================================= -->
+    <div class="glass-card p-6 sm:p-7 md:p-8 bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-950 text-white rounded-3xl relative overflow-hidden shadow-2xl border border-indigo-500/20">
+        <!-- Background Decorations -->
+        <div class="absolute -right-8 -bottom-10 opacity-10 text-9xl select-none pointer-events-none">
+            🪪
+        </div>
+        <div class="absolute top-0 right-1/4 w-80 h-80 bg-rose-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute bottom-0 right-12 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
+            <div class="space-y-2">
+                <div class="flex flex-wrap items-center gap-2 mb-1">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30 backdrop-blur-sm shadow-xs">
+                        <span>🚨</span>
+                        <span>ការងារអាទិភាពរដ្ឋបាលឃុំ</span>
+                    </span>
+                    <span class="text-xs text-blue-200/90 bg-white/10 px-3 py-1 rounded-full border border-white/15 backdrop-blur-sm">
+                        អត្តសញ្ញាណប័ណ្ណសញ្ជាតិខ្មែរ (៩ ខ្ទង់) • សុពលភាព ១០ ឆ្នាំ
+                    </span>
+                </div>
+                <h2 class="text-xl sm:text-2xl lg:text-3xl font-bold font-kh-heading text-white tracking-normal leading-snug flex items-center gap-3">
+                    <span>🪪</span>
+                    <span>របាយការណ៍អត្តសញ្ញាណប័ណ្ណផុតសុពលភាព</span>
+                </h2>
+                <p class="text-xs sm:text-sm text-blue-100/80 max-w-3xl leading-relaxed">
+                    ផ្ទៀងផ្ទាត់ និងតាមដានអ្នកបោះឆ្នោតដែលមានអត្តសញ្ញាណប័ណ្ណផុតកំណត់ ឬជិតផុតកំណត់ ដើម្បីសហការជាមួយមេភូមិ ជម្រុញពលរដ្ឋទៅថតធ្វើប័ណ្ណថ្មីទាន់ពេលវេលា។
+                </p>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-wrap items-center gap-2.5 flex-shrink-0 pt-2 md:pt-0">
+                <a href="/reports/id-expiry/export/excel?village_id={{ selected_village_id or '' }}&station_id={{ selected_station_id or '' }}&status={{ selected_status }}&q={{ search_query }}"
+                   class="btn btn-sm bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white border border-emerald-400/40 text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-lg shadow-emerald-950/30 transition-all transform hover:-translate-y-0.5 active:scale-95">
+                    <span>📥</span>
+                    <span>នាំចេញ Excel ({{ filtered_count }} នាក់)</span>
+                </a>
+                <a href="/reports/id-expiry/print?village_id={{ selected_village_id or '' }}&station_id={{ selected_station_id or '' }}&status={{ selected_status }}&q={{ search_query }}"
+                   target="_blank"
+                   class="btn btn-sm bg-white/15 hover:bg-white/25 text-white border border-white/20 text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 backdrop-blur-sm transition-all transform hover:-translate-y-0.5 active:scale-95">
+                    <span>🖨️</span>
+                    <span>ទម្រង់បោះពុម្ព A4</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- STATISTICAL KPI CARDS -->
+    <!-- ========================================================================= -->
+    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 sm:gap-4">
+
+        <!-- 1. Total 9-Digit Cards -->
+        <div class="glass-card p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+            <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-semibold mb-2">
+                <span>កាត ៩ ខ្ទង់សរុប</span>
+                <span class="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-sky-400 flex items-center justify-center text-sm font-bold">🪪</span>
+            </div>
+            <div class="flex items-baseline justify-between">
+                <span class="text-2xl sm:text-3xl font-extrabold font-mono text-slate-900 dark:text-white">{{ total_cards_count }}</span>
+                <span class="text-xs text-slate-500 dark:text-slate-400">នាក់</span>
+            </div>
+            <div class="mt-2 text-[11px] text-blue-600 dark:text-sky-400 font-medium">ប័ណ្ណសញ្ជាតិខ្មែរផ្លូវការ</div>
+        </div>
+
+        <!-- 2. Expired (Critical Action) -->
+        <a href="/reports/id-expiry?status=expired{% if selected_village_id %}&village_id={{ selected_village_id }}{% endif %}{% if selected_station_id %}&station_id={{ selected_station_id }}{% endif %}"
+           class="glass-card p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-rose-50/90 to-red-50/60 dark:from-rose-950/30 dark:to-red-950/20 border-2 border-rose-300 dark:border-rose-800/80 shadow-xs flex flex-col justify-between hover:scale-[1.02] transition cursor-pointer group">
+            <div class="flex items-center justify-between text-xs text-rose-800 dark:text-rose-300 font-bold mb-2">
+                <span>🔴 ផុតសុពលភាព</span>
+                <span class="w-8 h-8 rounded-xl bg-rose-100 dark:bg-rose-900/60 text-rose-600 dark:text-rose-300 flex items-center justify-center text-sm font-bold group-hover:animate-bounce">⚠️</span>
+            </div>
+            <div class="flex items-baseline justify-between">
+                <span class="text-2xl sm:text-3xl font-extrabold font-mono text-rose-700 dark:text-rose-400">{{ expired_total }}</span>
+                <span class="text-xs text-rose-600 dark:text-rose-400 font-semibold">នាក់</span>
+            </div>
+            <div class="mt-2 text-[11px] text-rose-700 dark:text-rose-400 font-bold flex items-center gap-1">
+                <span>👉</span> <span>ត្រូវជម្រុញបន្ទាន់</span>
+            </div>
+        </a>
+
+        <!-- 3. Expiring Soon (Within 90 days) -->
+        <a href="/reports/id-expiry?status=expiring_soon{% if selected_village_id %}&village_id={{ selected_village_id }}{% endif %}{% if selected_station_id %}&station_id={{ selected_station_id }}{% endif %}"
+           class="glass-card p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-amber-50/90 to-yellow-50/60 dark:from-amber-950/30 dark:to-yellow-950/20 border border-amber-300 dark:border-amber-800/80 shadow-xs flex flex-col justify-between hover:scale-[1.02] transition cursor-pointer group">
+            <div class="flex items-center justify-between text-xs text-amber-900 dark:text-amber-300 font-bold mb-2">
+                <span>🟡 ជិតផុតក្នុង ៩០ ថ្ងៃ</span>
+                <span class="w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 flex items-center justify-center text-sm font-bold">⏰</span>
+            </div>
+            <div class="flex items-baseline justify-between">
+                <span class="text-2xl sm:text-3xl font-extrabold font-mono text-amber-800 dark:text-amber-400">{{ expiring_soon_total }}</span>
+                <span class="text-xs text-amber-700 dark:text-amber-400 font-semibold">នាក់</span>
+            </div>
+            <div class="mt-2 text-[11px] text-amber-800 dark:text-amber-400 font-semibold">ត្រៀមរំលឹកជាមុន</div>
+        </a>
+
+        <!-- 4. Valid ID Cards -->
+        <a href="/reports/id-expiry?status=valid{% if selected_village_id %}&village_id={{ selected_village_id }}{% endif %}{% if selected_station_id %}&station_id={{ selected_station_id }}{% endif %}"
+           class="glass-card p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-800/60 shadow-xs flex flex-col justify-between hover:scale-[1.02] transition cursor-pointer">
+            <div class="flex items-center justify-between text-xs text-emerald-800 dark:text-emerald-300 font-semibold mb-2">
+                <span>🟢 នៅមានសុពលភាព</span>
+                <span class="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm font-bold">✓</span>
+            </div>
+            <div class="flex items-baseline justify-between">
+                <span class="text-2xl sm:text-3xl font-extrabold font-mono text-emerald-700 dark:text-emerald-400">{{ valid_total }}</span>
+                <span class="text-xs text-emerald-600 dark:text-emerald-400">នាក់</span>
+            </div>
+            <div class="mt-2 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">លើសពី ៩០ ថ្ងៃឡើង</div>
+        </a>
+
+        <!-- 5. Missing Expiry Date -->
+        <a href="/reports/id-expiry?status=none{% if selected_village_id %}&village_id={{ selected_village_id }}{% endif %}{% if selected_station_id %}&station_id={{ selected_station_id }}{% endif %}"
+           class="glass-card p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between hover:scale-[1.02] transition cursor-pointer">
+            <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-semibold mb-2">
+                <span>⚪ មិនទាន់មានថ្ងៃខែ</span>
+                <span class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 flex items-center justify-center text-sm font-bold">?</span>
+            </div>
+            <div class="flex items-baseline justify-between">
+                <span class="text-2xl sm:text-3xl font-extrabold font-mono text-slate-700 dark:text-slate-300">{{ missing_date_total }}</span>
+                <span class="text-xs text-slate-500 dark:text-slate-400">នាក់</span>
+            </div>
+            <div class="mt-2 text-[11px] text-slate-500 dark:text-slate-400 font-medium">ត្រូវពិនិត្យបញ្ចូលបន្ថែម</div>
+        </a>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- FILTER BAR & STATUS TABS -->
+    <!-- ========================================================================= -->
+    <div class="glass-card p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+        
+        <!-- Status Tab Buttons -->
+        <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+            <a href="/reports/id-expiry?status=all{% if selected_village_id %}&village_id={{ selected_village_id }}{% endif %}{% if selected_station_id %}&station_id={{ selected_station_id }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}"
+               class="px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 {% if selected_status == 'all' %}bg-blue-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-750{% endif %}">
+                <span>📋</span> <span>ទាំងអស់ ({{ total_cards_count }})</span>
+            </a>
+
+            <a href="/reports/id-expiry?status=attention{% if selected_village_id %}&village_id={{ selected_village_id }}{% endif %}{% if selected_station_id %}&station_id={{ selected_station_id }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}"
+               class="px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 {% if selected_status == 'attention' %}bg-gradient-to-r from-rose-600 to-amber-600 text-white shadow-sm{% else %}bg-rose-50 dark:bg-rose-950/50 text-rose-800 dark:text-rose-300 hover:bg-rose-100 border border-rose-200 dark:border-rose-800/60{% endif %}">
+                <span>🚨</span> <span>ត្រូវតាមដានបន្ទាន់ ({{ expired_total + expiring_soon_total }})</span>
+            </a>
+
+            <a href="/reports/id-expiry?status=expired{% if selected_village_id %}&village_id={{ selected_village_id }}{% endif %}{% if selected_station_id %}&station_id={{ selected_station_id }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}"
+               class="px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 {% if selected_status == 'expired' %}bg-rose-600 text-white shadow-sm{% else %}bg-rose-50/80 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/60{% endif %}">
+                <span>🔴</span> <span>ផុតសុពលភាព ({{ expired_total }})</span>
+            </a>
+
+            <a href="/reports/id-expiry?status=expiring_soon{% if selected_village_id %}&village_id={{ selected_village_id }}{% endif %}{% if selected_station_id %}&station_id={{ selected_station_id }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}"
+               class="px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 {% if selected_status == 'expiring_soon' %}bg-amber-500 text-white shadow-sm{% else %}bg-amber-50/80 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/60{% endif %}">
+                <span>🟡</span> <span>ជិតផុតក្នុង ៩០ ថ្ងៃ ({{ expiring_soon_total }})</span>
+            </a>
+
+            <a href="/reports/id-expiry?status=valid{% if selected_village_id %}&village_id={{ selected_village_id }}{% endif %}{% if selected_station_id %}&station_id={{ selected_station_id }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}"
+               class="px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 {% if selected_status == 'valid' %}bg-emerald-600 text-white shadow-sm{% else %}bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/60{% endif %}">
+                <span>🟢</span> <span>នៅមានសុពលភាព ({{ valid_total }})</span>
+            </a>
+
+            <a href="/reports/id-expiry?status=none{% if selected_village_id %}&village_id={{ selected_village_id }}{% endif %}{% if selected_station_id %}&station_id={{ selected_station_id }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}"
+               class="px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 {% if selected_status == 'none' %}bg-slate-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}">
+                <span>⚪</span> <span>មិនទាន់កំណត់ ({{ missing_date_total }})</span>
+            </a>
+        </div>
+
+        <!-- Filter Controls Form -->
+        <form method="GET" action="/reports/id-expiry" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+            <input type="hidden" name="status" value="{{ selected_status }}">
+
+            <!-- Village Filter -->
+            <div>
+                <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-1">ភូមិ (Village)</label>
+                <select name="village_id" class="form-control text-xs" onchange="this.form.submit()">
+                    <option value="">-- ភូមិទាំងអស់ក្នុងឃុំ --</option>
+                    {% for v in villages %}
+                    <option value="{{ v.id }}" {% if selected_village_id == v.id %}selected{% endif %}>
+                        {{ v.name_kh }} ({{ v.code }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Station Filter -->
+            <div>
+                <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-1">ការិយាល័យបោះឆ្នោត</label>
+                <select name="station_id" class="form-control text-xs" onchange="this.form.submit()">
+                    <option value="">-- ការិយាល័យទាំងអស់ --</option>
+                    {% for s in stations %}
+                    <option value="{{ s.id }}" {% if selected_station_id == s.id %}selected{% endif %}>
+                        {{ s.code }} - {{ s.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Search Query Input -->
+            <div>
+                <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-1">ស្វែងរកតាមឈ្មោះ ឬ លេខ ID</label>
+                <div class="relative">
+                    <input type="text" name="q" value="{{ search_query }}" placeholder="វាយឈ្មោះ, ID 9 ខ្ទង់..." class="form-control text-xs pl-8">
+                    <span class="absolute left-2.5 top-2.5 text-xs text-slate-400">🔍</span>
+                </div>
+            </div>
+
+            <!-- Filter Buttons -->
+            <div class="flex items-end gap-2">
+                <button type="submit" class="btn btn-primary text-xs py-2 px-4 rounded-xl font-bold flex-1 flex items-center justify-center gap-1.5 shadow-xs">
+                    <span>🔍</span> <span>ស្វែងរក</span>
+                </button>
+                {% if selected_village_id or selected_station_id or search_query or selected_status != 'all' %}
+                <a href="/reports/id-expiry" class="btn btn-outline text-xs py-2 px-3 rounded-xl font-medium text-slate-600 dark:text-slate-300 hover:text-red-600" title="សម្អាតតម្រង">
+                    ✕
+                </a>
+                {% endif %}
+            </div>
+        </form>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- VOTER TABLE WITH VILLAGE CHIEF CONTACT & EXPIRY ACTIONS -->
+    <!-- ========================================================================= -->
+    <div class="glass-card rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div class="p-4 sm:p-5 border-b border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/70 dark:bg-slate-850/70">
+            <div>
+                <h3 class="font-bold text-slate-900 dark:text-slate-100 text-sm sm:text-base font-kh-heading flex items-center gap-2">
+                    <span>👥</span> <span>បញ្ជីឈ្មោះអ្នកបោះឆ្នោត (កំពុងបង្ហាញ {{ filtered_count }} នាក់)</span>
+                </h3>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                    រៀបតាមអាទិភាព៖ ផុតសុពលភាពមុន ជិតផុតសុពលភាព និងប័ណ្ណនៅមានសុពលភាព
+                </p>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="/reports/id-expiry/export/excel?village_id={{ selected_village_id or '' }}&station_id={{ selected_station_id or '' }}&status={{ selected_status }}&q={{ search_query }}"
+                   class="btn btn-sm bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-xs">
+                    <span>📥</span> <span>Excel</span>
+                </a>
+                <a href="/reports/id-expiry/print?village_id={{ selected_village_id or '' }}&station_id={{ selected_station_id or '' }}&status={{ selected_status }}&q={{ search_query }}"
+                   target="_blank"
+                   class="btn btn-sm btn-outline text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+                    <span>🖨️</span> <span>បោះពុម្ព</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-700 dark:text-slate-200 border-collapse">
+                <thead class="bg-slate-100/90 dark:bg-slate-800/90 text-slate-700 dark:text-slate-300 font-bold uppercase text-[10.5px] tracking-wider border-b border-slate-200 dark:border-slate-700">
+                    <tr>
+                        <th class="py-3 px-3 text-center w-12">ល.រ</th>
+                        <th class="py-3 px-3">កូដ & គោត្តនាម-នាម</th>
+                        <th class="py-3 px-3">ភេទ / អាយុ / ថ្ងៃកំណើត</th>
+                        <th class="py-3 px-3">លេខអត្តសញ្ញាណប័ណ្ណ</th>
+                        <th class="py-3 px-3 text-center">ថ្ងៃផុតសុពលភាព</th>
+                        <th class="py-3 px-3 text-center">ស្ថានភាពប័ណ្ណ</th>
+                        <th class="py-3 px-3">ភូមិ & ការិយាល័យ</th>
+                        <th class="py-3 px-3">មេភូមិទទួលបន្ទុក & ទូរស័ព្ទ</th>
+                        <th class="py-3 px-3 text-center w-20">សកម្មភាព</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200/70 dark:divide-slate-800/70 font-medium">
+                    {% if voters %}
+                        {% for v in voters %}
+                        {% set st = v.id_card_expiry_status %}
+                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors {% if st.key == 'expired' %}bg-rose-50/30 dark:bg-rose-950/10{% elif st.key == 'expiring_soon' %}bg-amber-50/30 dark:bg-amber-950/10{% endif %}">
+                            <!-- No -->
+                            <td class="py-3 px-3 text-center font-bold text-slate-400 font-mono">{{ loop.index }}</td>
+
+                            <!-- Code & Name -->
+                            <td class="py-3 px-3">
+                                <div class="flex items-center gap-2.5">
+                                    <img src="{{ v.photo_display }}" alt="{{ v.name_kh }}" class="w-9 h-9 rounded-full object-cover border border-slate-200 dark:border-slate-700 shadow-2xs shrink-0" onerror="this.onerror=null; this.src='/static/images/avatars/male_1.jpg';">
+                                    <div class="min-w-0">
+                                        <div class="font-bold text-slate-900 dark:text-slate-100 text-xs font-kh-bold truncate">{{ v.name_kh }}</div>
+                                        <div class="text-[10px] font-mono text-blue-700 dark:text-sky-400 font-semibold">{{ v.voter_code }}</div>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <!-- Gender / Age / DOB -->
+                            <td class="py-3 px-3">
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <span class="font-semibold text-slate-700 dark:text-slate-200">{{ v.gender }}</span>
+                                    {% if v.calculated_age is not none %}
+                                    <span class="text-[11px] font-bold text-slate-600 dark:text-slate-400">· {{ v.calculated_age }} ឆ្នាំ</span>
+                                    {% endif %}
+                                </div>
+                                <div class="text-[10.5px] font-mono text-slate-500 dark:text-slate-400">
+                                    {{ v.dob or '-' }}
+                                </div>
+                            </td>
+
+                            <!-- National ID -->
+                            <td class="py-3 px-3">
+                                <div class="font-mono font-bold text-xs text-blue-900 dark:text-sky-300 tracking-wide bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded border border-blue-200 dark:border-blue-800/60 inline-block">
+                                    {{ v.national_id }}
+                                </div>
+                            </td>
+
+                            <!-- Expiry Date -->
+                            <td class="py-3 px-3 text-center">
+                                {% if v.id_expiry_date %}
+                                <div class="font-mono font-bold text-xs {% if st.key == 'expired' %}text-rose-700 dark:text-rose-300{% elif st.key == 'expiring_soon' %}text-amber-800 dark:text-amber-300{% else %}text-slate-800 dark:text-slate-200{% endif %}">
+                                    {{ v.id_expiry_date }}
+                                </div>
+                                {% else %}
+                                <span class="text-[11px] text-slate-400 italic">មិនទាន់កំណត់</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Status Badge -->
+                            <td class="py-3 px-3 text-center">
+                                {% if st.key == 'expired' %}
+                                <div class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-rose-100 dark:bg-rose-950/80 text-rose-800 dark:text-rose-300 border border-rose-300 dark:border-rose-700 shadow-2xs whitespace-nowrap">
+                                    <span>⚠️</span> <span>{{ st.label }}</span>
+                                </div>
+                                {% elif st.key == 'expiring_soon' %}
+                                <div class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-100 dark:bg-amber-950/80 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-700 shadow-2xs whitespace-nowrap">
+                                    <span>⏰</span> <span>{{ st.label }}</span>
+                                </div>
+                                {% elif st.key == 'valid' %}
+                                <div class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 whitespace-nowrap">
+                                    <span>🟢</span> <span>{{ st.short_label }}</span>
+                                </div>
+                                {% else %}
+                                <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10.5px] text-slate-500 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700">
+                                    <span>⚪</span> <span>មិនទាន់កំណត់</span>
+                                </div>
+                                {% endif %}
+                            </td>
+
+                            <!-- Village & Station -->
+                            <td class="py-3 px-3">
+                                <div class="font-bold text-slate-800 dark:text-slate-200">{{ v.village.name_kh if v.village else '-' }}</div>
+                                <div class="text-[10px] text-slate-500 dark:text-slate-400 truncate max-w-[180px]">
+                                    {{ v.station.code if v.station else '' }} - {{ v.station.name if v.station else '' }}
+                                </div>
+                            </td>
+
+                            <!-- Village Chief Contact -->
+                            <td class="py-3 px-3">
+                                <div class="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1">
+                                    <span>🏡</span> <span>{{ v.village.chief_name if v.village and v.village.chief_name else 'មិនទាន់កំណត់' }}</span>
+                                </div>
+                                {% if v.village and v.village.chief_phone %}
+                                <div class="mt-0.5">
+                                    <a href="tel:{{ v.village.chief_phone }}" class="text-[11px] font-mono font-bold text-blue-600 dark:text-sky-400 hover:underline inline-flex items-center gap-1" title="ចុចដើម្បីតេទៅមេភូមិ">
+                                        <span>📞</span> <span>{{ v.village.chief_phone }}</span>
+                                    </a>
+                                </div>
+                                {% else %}
+                                <span class="text-[10px] text-slate-400">-</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Actions -->
+                            <td class="py-3 px-3 text-center">
+                                <a href="/voters?search={{ v.voter_code }}" target="_blank" class="btn btn-xs btn-outline px-2 py-1 rounded-lg text-[11px] font-bold text-blue-700 dark:text-sky-300 border-blue-300 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950" title="កែប្រែទិន្នន័យ">
+                                    ✏️ កែប្រែ
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="9" class="py-12 text-center text-slate-400">
+                                <div class="flex flex-col items-center justify-center space-y-2">
+                                    <span class="text-4xl">📭</span>
+                                    <p class="text-sm font-semibold">មិនមានអ្នកបោះឆ្នោតតាមលក្ខខណ្ឌតម្រងនេះទេ</p>
+                                    <a href="/reports/id-expiry" class="btn btn-sm btn-outline text-xs px-3 py-1.5 rounded-xl mt-2">
+                                        សម្អាតតម្រងទាំងអស់
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

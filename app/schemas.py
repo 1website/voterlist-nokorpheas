@@ -7,6 +7,7 @@ class VoterCreateSchema(BaseModel):
     gender: str
     dob: str
     national_id: str
+    id_expiry_date: Optional[str] = None
     address: Optional[str] = ""
     village_id: int
     station_id: int
@@ -18,6 +19,7 @@ class VoterUpdateSchema(BaseModel):
     gender: str
     dob: str
     national_id: str
+    id_expiry_date: Optional[str] = None
     address: Optional[str] = ""
     village_id: int
     station_id: int

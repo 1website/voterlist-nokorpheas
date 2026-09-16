@@ -265,7 +265,8 @@ function checkDuplicateID(inputElement, excludeId = 0, feedbackId = 'idCheckFeed
     // 8 ខ្ទង់ = អត្តលេខ-ឯ.អ (ឯកសារបញ្ជាក់អត្តសញ្ញាណបម្រើឱ្យការបោះឆ្នោត)
     // 9 ខ្ទង់ = លេខអត្តសញ្ញាណប័ណ្ណ (អត្តសញ្ញាណប័ណ្ណសញ្ជាតិខ្មែរ)
     let docTypeLabel = 'លេខអត្តសញ្ញាណប័ណ្ណ';
-    let docTypeIcon = '🪪';
+    const expiryGroupEl = document.getElementById(isEdit ? 'editIdExpiryGroup' : 'addIdExpiryGroup');
+    const expiryNoticeEl = document.getElementById(isEdit ? 'editIdExpiryNotice' : 'addIdExpiryNotice');
 
     if (val.length === 8) {
         docTypeLabel = 'អត្តលេខ-ឯ.អ';
@@ -275,6 +276,14 @@ function checkDuplicateID(inputElement, excludeId = 0, feedbackId = 'idCheckFeed
             badgeEl.className = "text-[11px] text-emerald-800 dark:text-emerald-300 font-bold bg-emerald-100 dark:bg-emerald-950/80 px-2.5 py-0.5 rounded-full border border-emerald-300 dark:border-emerald-700 transition-all duration-200 shadow-2xs";
             badgeEl.innerHTML = `📄 អត្តលេខ-ឯ.អ (៨ ខ្ទង់)`;
         }
+        if (expiryGroupEl) {
+            expiryGroupEl.classList.remove('hidden');
+            expiryGroupEl.classList.remove('ring-2', 'ring-amber-400', 'border-amber-400');
+            expiryGroupEl.classList.add('opacity-70');
+        }
+        if (expiryNoticeEl) {
+            expiryNoticeEl.innerHTML = `<span class="text-emerald-700 dark:text-emerald-400 font-semibold">📄 អត្តលេខ-ឯ.អ ៨ ខ្ទង់៖ ពុំចាំបាច់បញ្ចូលថ្ងៃផុតសុពលភាព ១០ ឆ្នាំទេ</span>`;
+        }
     } else if (val.length === 9) {
         docTypeLabel = 'លេខអត្តសញ្ញាណប័ណ្ណ';
         docTypeIcon = '🪪';
@@ -283,11 +292,25 @@ function checkDuplicateID(inputElement, excludeId = 0, feedbackId = 'idCheckFeed
             badgeEl.className = "text-[11px] text-blue-800 dark:text-sky-300 font-bold bg-blue-100 dark:bg-blue-950/80 px-2.5 py-0.5 rounded-full border border-blue-300 dark:border-blue-700 transition-all duration-200 shadow-2xs";
             badgeEl.innerHTML = `🪪 លេខអត្តសញ្ញាណប័ណ្ណ (៩ ខ្ទង់)`;
         }
+        // Highlight ID Card Expiry Date field for 9-digit national ID
+        if (expiryGroupEl) {
+            expiryGroupEl.classList.remove('hidden', 'opacity-70');
+            expiryGroupEl.classList.add('ring-2', 'ring-amber-400', 'border-amber-400');
+        }
+        if (expiryNoticeEl) {
+            expiryNoticeEl.innerHTML = `<span class="text-amber-800 dark:text-amber-300 font-bold flex items-center gap-1"><span>✨</span> <span>ប័ណ្ណ ៩ ខ្ទង់៖ សូមបញ្ចូលថ្ងៃខែឆ្នាំផុតកំណត់ (គិតត្រឹម ១០ ឆ្នាំ)</span></span>`;
+        }
     } else {
         if (labelEl) labelEl.innerHTML = `លេខអត្តសញ្ញាណប័ណ្ណ / ឯ.អ *`;
         if (badgeEl) {
             badgeEl.className = "text-[11px] text-slate-600 dark:text-slate-300 font-semibold bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 rounded-full border border-slate-300 dark:border-slate-600";
             badgeEl.innerHTML = `៨ ខ្ទង់ (ឯ.អ) ឬ ៩ ខ្ទង់ (អ.ប)`;
+        }
+        if (expiryGroupEl) {
+            expiryGroupEl.classList.remove('hidden', 'opacity-70', 'ring-2', 'ring-amber-400', 'border-amber-400');
+        }
+        if (expiryNoticeEl) {
+            expiryNoticeEl.innerHTML = `<span class="text-slate-500 dark:text-slate-400">សម្រាប់អត្តសញ្ញាណប័ណ្ណសញ្ជាតិខ្មែរ (៩ ខ្ទង់) មានសុពលភាព ១០ ឆ្នាំ</span>`;
         }
     }
 
@@ -397,6 +420,20 @@ function checkDuplicateID(inputElement, excludeId = 0, feedbackId = 'idCheckFeed
             console.error("ID duplication check error:", e);
         }
     }, 280);
+}
+
+// Quick shortcut to set Expiry Date (+10 years from today or offset)
+function setExpiryYearsFromToday(inputId, years = 10) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    const now = new Date();
+    now.setFullYear(now.getFullYear() + years);
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    input.value = `${yyyy}-${mm}-${dd}`;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(new Event('change', { bubbles: true }));
 }
 
 // Calculate age and validate >= 18 years old

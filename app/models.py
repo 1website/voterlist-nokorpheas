@@ -95,6 +95,7 @@ class Voter(Base):
     reg_type = Column(String(30), default="new")                              # new (ចុះថ្មី), legacy (បញ្ជីចាស់), transferred (ផ្ទេរចូល)
     reg_year = Column(Integer, default=2026)                                  # ឆ្នាំចុះឈ្មោះ (2026, 2025, 2024...)
     reg_reason = Column(String(100), nullable=True)                           # first_time_18, never_registered, relocated, legacy
+    id_expiry_date = Column(String(50), nullable=True)                        # ថ្ងៃផុតសុពលភាពអត្តសញ្ញាណប័ណ្ណ (YYYY-MM-DD)
     photo_url = Column(Text, nullable=True)                                  # Base64 Data URI or Image path
     has_voted = Column(Boolean, default=False)
     voted_at = Column(DateTime, nullable=True)
@@ -121,6 +122,86 @@ class Voter(Base):
     @property
     def is_cert_election(self):
         return len((self.national_id or "").strip()) in [7, 8]
+
+    @property
+    def id_card_expiry_status(self):
+        clean_id = (self.national_id or "").strip()
+        if len(clean_id) != 9:
+            return {
+                "key": "na",
+                "label": "ឯកសារ ឯ.អ",
+                "short_label": "ឯ.អ",
+                "badge_class": "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700",
+                "color": "slate",
+                "days_left": None,
+                "is_expired": False,
+                "is_warning": False
+            }
+
+        if not self.id_expiry_date:
+            return {
+                "key": "none",
+                "label": "មិនទាន់កំណត់ថ្ងៃផុតកំណត់",
+                "short_label": "មិនកំណត់",
+                "badge_class": "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700",
+                "color": "slate",
+                "days_left": None,
+                "is_expired": False,
+                "is_warning": False
+            }
+
+        try:
+            import datetime
+            from app.timezone_utils import get_cambodia_now
+            today = get_cambodia_now().date()
+            parts = [int(p) for p in self.id_expiry_date.strip().split("-")]
+            expiry_dt = datetime.date(parts[0], parts[1], parts[2])
+            diff_days = (expiry_dt - today).days
+
+            if diff_days < 0:
+                return {
+                    "key": "expired",
+                    "label": f"ផុតសុពលភាព (កាលពី {abs(diff_days)} ថ្ងៃមុន)",
+                    "short_label": "ផុតសុពលភាព",
+                    "badge_class": "bg-rose-100 text-rose-800 dark:bg-rose-950/80 dark:text-rose-300 border border-rose-300 dark:border-rose-700 font-bold",
+                    "color": "rose",
+                    "days_left": diff_days,
+                    "is_expired": True,
+                    "is_warning": False
+                }
+            elif diff_days <= 90:
+                return {
+                    "key": "expiring_soon",
+                    "label": f"ជិតផុតសុពលភាព (សល់ {diff_days} ថ្ងៃ)",
+                    "short_label": f"សល់ {diff_days} ថ្ងៃ",
+                    "badge_class": "bg-amber-100 text-amber-900 dark:bg-amber-950/80 dark:text-amber-300 border border-amber-300 dark:border-amber-700 font-bold",
+                    "color": "amber",
+                    "days_left": diff_days,
+                    "is_expired": False,
+                    "is_warning": True
+                }
+            else:
+                return {
+                    "key": "valid",
+                    "label": f"មានសុពលភាព (សល់ {diff_days} ថ្ងៃ)",
+                    "short_label": "មានសុពលភាព",
+                    "badge_class": "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700",
+                    "color": "emerald",
+                    "days_left": diff_days,
+                    "is_expired": False,
+                    "is_warning": False
+                }
+        except Exception:
+            return {
+                "key": "unknown",
+                "label": self.id_expiry_date,
+                "short_label": self.id_expiry_date,
+                "badge_class": "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
+                "color": "slate",
+                "days_left": None,
+                "is_expired": False,
+                "is_warning": False
+            }
 
     @property
     def calculated_age(self):

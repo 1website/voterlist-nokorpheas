@@ -74,6 +74,8 @@ def ensure_schema_migrations():
                     conn.execute(text("ALTER TABLE voters ADD COLUMN reg_year INTEGER DEFAULT 2026"))
                 if "reg_reason" not in voter_columns:
                     conn.execute(text("ALTER TABLE voters ADD COLUMN reg_reason VARCHAR(100)"))
+                if "id_expiry_date" not in voter_columns:
+                    conn.execute(text("ALTER TABLE voters ADD COLUMN id_expiry_date VARCHAR(50)"))
                 conn.commit()
 
         if "birth_certificates" in tables:

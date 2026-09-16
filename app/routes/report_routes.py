@@ -4,6 +4,7 @@ import math
 import urllib.parse
 import datetime
 import calendar
+from typing import Optional, List, Dict, Any
 from fastapi import APIRouter, Request, Depends, HTTPException, Query
 from fastapi.responses import HTMLResponse, StreamingResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -1712,3 +1713,496 @@ def export_cashbook_excel(
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
+
+
+# =========================================================================
+# REPORT: NATIONAL ID EXPIRY MONITORING & RENEWAL REPORT (របាយការណ៍ផុតសុពលភាពអត្តសញ្ញាណប័ណ្ណ)
+# =========================================================================
+
+@router.get("/reports/id-expiry", response_class=HTMLResponse)
+def id_expiry_report(
+    request: Request,
+    village_id: Optional[int] = Query(None),
+    station_id: Optional[int] = Query(None),
+    status: Optional[str] = Query("all"),
+    q: Optional[str] = Query(None),
+    db: Session = Depends(get_db)
+):
+    current_user = get_current_user_optional(request, db)
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=302)
+
+    today = get_cambodia_now().date()
+    today_str = today.strftime("%Y-%m-%d")
+    ninety_days_str = (today + datetime.timedelta(days=90)).strftime("%Y-%m-%d")
+
+    # Base query for all voters with 9-digit ID cards or assigned expiry date
+    base_cards = db.query(Voter).filter(
+        Voter.status == "active",
+        or_(func.length(Voter.national_id) == 9, Voter.id_expiry_date.isnot(None))
+    )
+
+    # Global KPI counts across commune
+    total_cards_count = base_cards.count()
+    expired_total = base_cards.filter(
+        Voter.id_expiry_date.isnot(None),
+        Voter.id_expiry_date != "",
+        Voter.id_expiry_date < today_str
+    ).count()
+    expiring_soon_total = base_cards.filter(
+        Voter.id_expiry_date.isnot(None),
+        Voter.id_expiry_date >= today_str,
+        Voter.id_expiry_date <= ninety_days_str
+    ).count()
+    valid_total = base_cards.filter(
+        Voter.id_expiry_date.isnot(None),
+        Voter.id_expiry_date > ninety_days_str
+    ).count()
+    missing_date_total = base_cards.filter(
+        or_(Voter.id_expiry_date.is_(None), Voter.id_expiry_date == "")
+    ).count()
+
+    # Filtered query
+    query = base_cards
+    if village_id:
+        query = query.filter(Voter.village_id == village_id)
+    if station_id:
+        query = query.filter(Voter.station_id == station_id)
+    if q and q.strip():
+        search_term = f"%{q.strip()}%"
+        query = query.filter(
+            or_(
+                Voter.name_kh.ilike(search_term),
+                Voter.national_id.ilike(search_term),
+                Voter.voter_code.ilike(search_term)
+            )
+        )
+
+    # Status filter
+    if status == "expired":
+        query = query.filter(Voter.id_expiry_date.isnot(None), Voter.id_expiry_date != "", Voter.id_expiry_date < today_str)
+    elif status == "expiring_soon":
+        query = query.filter(Voter.id_expiry_date.isnot(None), Voter.id_expiry_date >= today_str, Voter.id_expiry_date <= ninety_days_str)
+    elif status == "attention":
+        query = query.filter(Voter.id_expiry_date.isnot(None), Voter.id_expiry_date != "", Voter.id_expiry_date <= ninety_days_str)
+    elif status == "valid":
+        query = query.filter(Voter.id_expiry_date.isnot(None), Voter.id_expiry_date > ninety_days_str)
+    elif status == "none":
+        query = query.filter(or_(Voter.id_expiry_date.is_(None), Voter.id_expiry_date == ""))
+
+    # Priority sorting: Expired (1), Expiring soon (2), Missing date (3), Valid (4)
+    query = query.order_by(
+        case(
+            (Voter.id_expiry_date.is_(None) | (Voter.id_expiry_date == ""), 3),
+            (Voter.id_expiry_date < today_str, 1),
+            (Voter.id_expiry_date <= ninety_days_str, 2),
+            else_=4
+        ),
+        Voter.id_expiry_date.asc(),
+        Voter.name_kh.asc()
+    )
+
+    voters = query.all()
+    villages = db.query(Village).order_by(Village.code).all()
+    stations = db.query(PollingStation).order_by(PollingStation.code).all()
+
+    return templates.TemplateResponse(
+        request=request,
+        name="reports/id_expiry.html",
+        context={
+            "current_user": current_user,
+            "voters": voters,
+            "villages": villages,
+            "stations": stations,
+            "selected_village_id": village_id,
+            "selected_station_id": station_id,
+            "selected_status": status or "all",
+            "search_query": q or "",
+            "total_cards_count": total_cards_count,
+            "expired_total": expired_total,
+            "expiring_soon_total": expiring_soon_total,
+            "valid_total": valid_total,
+            "missing_date_total": missing_date_total,
+            "filtered_count": len(voters),
+            "today_str": today_str,
+        }
+    )
+
+@router.get("/reports/id-expiry/export/excel")
+def export_id_expiry_excel(
+    request: Request,
+    village_id: Optional[int] = Query(None),
+    station_id: Optional[int] = Query(None),
+    status: Optional[str] = Query("all"),
+    q: Optional[str] = Query(None),
+    db: Session = Depends(get_db)
+):
+    current_user = get_current_user_optional(request, db)
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=302)
+
+    today = get_cambodia_now().date()
+    today_str = today.strftime("%Y-%m-%d")
+    ninety_days_str = (today + datetime.timedelta(days=90)).strftime("%Y-%m-%d")
+
+    base_cards = db.query(Voter).filter(
+        Voter.status == "active",
+        or_(func.length(Voter.national_id) == 9, Voter.id_expiry_date.isnot(None))
+    )
+
+    query = base_cards
+    if village_id:
+        query = query.filter(Voter.village_id == village_id)
+    if station_id:
+        query = query.filter(Voter.station_id == station_id)
+    if q and q.strip():
+        search_term = f"%{q.strip()}%"
+        query = query.filter(
+            or_(
+                Voter.name_kh.ilike(search_term),
+                Voter.national_id.ilike(search_term),
+                Voter.voter_code.ilike(search_term)
+            )
+        )
+
+    if status == "expired":
+        query = query.filter(Voter.id_expiry_date.isnot(None), Voter.id_expiry_date != "", Voter.id_expiry_date < today_str)
+    elif status == "expiring_soon":
+        query = query.filter(Voter.id_expiry_date.isnot(None), Voter.id_expiry_date >= today_str, Voter.id_expiry_date <= ninety_days_str)
+    elif status == "attention":
+        query = query.filter(Voter.id_expiry_date.isnot(None), Voter.id_expiry_date != "", Voter.id_expiry_date <= ninety_days_str)
+    elif status == "valid":
+        query = query.filter(Voter.id_expiry_date.isnot(None), Voter.id_expiry_date > ninety_days_str)
+    elif status == "none":
+        query = query.filter(or_(Voter.id_expiry_date.is_(None), Voter.id_expiry_date == ""))
+
+    query = query.order_by(
+        case(
+            (Voter.id_expiry_date.is_(None) | (Voter.id_expiry_date == ""), 3),
+            (Voter.id_expiry_date < today_str, 1),
+            (Voter.id_expiry_date <= ninety_days_str, 2),
+            else_=4
+        ),
+        Voter.id_expiry_date.asc(),
+        Voter.name_kh.asc()
+    )
+    voters = query.all()
+
+    village_obj = db.query(Village).filter(Village.id == village_id).first() if village_id else None
+    station_obj = db.query(PollingStation).filter(PollingStation.id == station_id).first() if station_id else None
+
+    # Create Workbook
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "អត្តសញ្ញាណប័ណ្ណផុតសុពលភាព"
+    ws.views.sheetView[0].showGridLines = True
+
+    # Styling definitions
+    font_family = "Khmer OS Siemreap"
+    title_font = Font(name=font_family, size=14, bold=True, color="1E3A8A")
+    subtitle_font = Font(name=font_family, size=11, bold=True, color="1F2937")
+    info_font = Font(name=font_family, size=10, italic=True, color="4B5563")
+    header_font = Font(name=font_family, size=10, bold=True, color="FFFFFF")
+    data_font = Font(name=font_family, size=9.5, color="111827")
+    bold_data_font = Font(name=font_family, size=9.5, bold=True, color="111827")
+
+    expired_fill = PatternFill(start_color="FEE2E2", end_color="FEE2E2", fill_type="solid")
+    expired_font = Font(name=font_family, size=9.5, bold=True, color="991B1B")
+
+    expiring_fill = PatternFill(start_color="FEF3C7", end_color="FEF3C7", fill_type="solid")
+    expiring_font = Font(name=font_family, size=9.5, bold=True, color="92400E")
+
+    valid_fill = PatternFill(start_color="DCFCE7", end_color="DCFCE7", fill_type="solid")
+    valid_font = Font(name=font_family, size=9.5, color="166534")
+
+    header_fill = PatternFill(start_color="1E3A8A", end_color="1E3A8A", fill_type="solid")
+    kpi_header_fill = PatternFill(start_color="F1F5F9", end_color="F1F5F9", fill_type="solid")
+
+    thin_border = Border(
+        left=Side(style='thin', color='CBD5E1'),
+        right=Side(style='thin', color='CBD5E1'),
+        top=Side(style='thin', color='CBD5E1'),
+        bottom=Side(style='thin', color='CBD5E1')
+    )
+
+    # Kingdom Header
+    ws.merge_cells("A1:N1")
+    ws.cell(row=1, column=1, value="ព្រះរាជាណាចក្រកម្ពុជា").font = Font(name=font_family, size=13, bold=True, color="1E3A8A")
+    ws.cell(row=1, column=1).alignment = Alignment(horizontal="center", vertical="center")
+
+    ws.merge_cells("A2:N2")
+    ws.cell(row=2, column=1, value="ជាតិ សាសនា ព្រះមហាក្សត្រ").font = Font(name=font_family, size=12, bold=True, color="1E3A8A")
+    ws.cell(row=2, column=1).alignment = Alignment(horizontal="center", vertical="center")
+
+    ws.cell(row=3, column=1, value="រដ្ឋបាលខេត្តសៀមរាប").font = info_font
+    ws.cell(row=4, column=1, value="រដ្ឋបាលស្រុកបន្ទាយស្រី").font = info_font
+    ws.cell(row=5, column=1, value="រដ្ឋបាលឃុំនគរភាស").font = subtitle_font
+
+    # Report Title
+    ws.merge_cells("A6:N6")
+    title_text = "តារាងស្ថិតិ និងបញ្ជីឈ្មោះអ្នកបោះឆ្នោតដែលអត្តសញ្ញាណប័ណ្ណផុត ឬជិតផុតសុពលភាព (ត្រូវជម្រុញទៅថតបន្ត)"
+    ws.cell(row=6, column=1, value=title_text).font = title_font
+    ws.cell(row=6, column=1).alignment = Alignment(horizontal="center", vertical="center")
+
+    scope_str = "វិសាលភាព៖ ឃុំនគរភាសទាំងមូល"
+    if village_obj:
+        scope_str = f"វិសាលភាព៖ {village_obj.name_kh} ({village_obj.code})"
+    if station_obj:
+        scope_str += f" · ការិយាល័យលេខ {station_obj.code}"
+    status_label_map = {
+        "all": "ទាំងអស់",
+        "attention": "ត្រូវតាមដានបន្ទាន់ (ផុត + ជិតផុត)",
+        "expired": "ផុតសុពលភាព",
+        "expiring_soon": "ជិតផុតសុពលភាព (ក្នុង ៩០ ថ្ងៃ)",
+        "valid": "នៅមានសុពលភាព",
+        "none": "មិនទាន់មានថ្ងៃខែផុតកំណត់"
+    }
+    scope_str += f" | តម្រង៖ {status_label_map.get(status, status)} | កាលបរិច្ឆេទរបាយការណ៍៖ {today_str}"
+
+    ws.merge_cells("A7:N7")
+    ws.cell(row=7, column=1, value=scope_str).font = info_font
+    ws.cell(row=7, column=1).alignment = Alignment(horizontal="center", vertical="center")
+
+    # KPI Statistics Summary Block
+    expired_cnt = len([v for v in voters if v.id_card_expiry_status['key'] == 'expired'])
+    expiring_cnt = len([v for v in voters if v.id_card_expiry_status['key'] == 'expiring_soon'])
+    valid_cnt = len([v for v in voters if v.id_card_expiry_status['key'] == 'valid'])
+    none_cnt = len([v for v in voters if v.id_card_expiry_status['key'] == 'none'])
+
+    curr_row = 9
+    kpi_headers = ["សរុបក្នុងបញ្ជីនេះ", "🔴 ផុតសុពលភាព (Expired)", "🟡 ជិតផុតក្នុង ៩០ ថ្ងៃ (Expiring)", "🟢 នៅមានសុពលភាព (Valid)", "⚪ មិនទាន់មានថ្ងៃផុតកំណត់"]
+    kpi_values = [len(voters), expired_cnt, expiring_cnt, valid_cnt, none_cnt]
+
+    for col_idx, (kh, val) in enumerate(zip(kpi_headers, kpi_values), start=2):
+        cell_h = ws.cell(row=curr_row, column=col_idx, value=kh)
+        cell_h.font = bold_data_font
+        cell_h.fill = kpi_header_fill
+        cell_h.alignment = Alignment(horizontal="center", vertical="center")
+        cell_h.border = thin_border
+
+        cell_v = ws.cell(row=curr_row + 1, column=col_idx, value=val)
+        cell_v.font = Font(name=font_family, size=12, bold=True, color="1E3A8A")
+        cell_v.alignment = Alignment(horizontal="center", vertical="center")
+        cell_v.border = thin_border
+        if col_idx == 3:  # expired
+            cell_v.font = Font(name=font_family, size=12, bold=True, color="991B1B")
+            cell_v.fill = expired_fill
+        elif col_idx == 4: # expiring
+            cell_v.font = Font(name=font_family, size=12, bold=True, color="92400E")
+            cell_v.fill = expiring_fill
+
+    curr_row = 12
+
+    # Data Table Headers
+    headers = [
+        "ល.រ",
+        "កូដអ្នកបោះឆ្នោត",
+        "គោត្តនាម-នាម",
+        "ភេទ",
+        "ថ្ងៃខែឆ្នាំកំណើត",
+        "អាយុ",
+        "លេខអត្តសញ្ញាណប័ណ្ណ",
+        "ថ្ងៃផុតសុពលភាព",
+        "ស្ថានភាពប័ណ្ណ",
+        "រយៈពេលលើស/នៅសល់",
+        "ភូមិទីលំនៅ",
+        "ការិយាល័យ",
+        "មេភូមិទទួលបន្ទុក",
+        "លេខទូរស័ព្ទមេភូមិ"
+    ]
+
+    for col_num, h_text in enumerate(headers, 1):
+        c = ws.cell(row=curr_row, column=col_num, value=h_text)
+        c.font = header_font
+        c.fill = header_fill
+        c.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+        c.border = thin_border
+    ws.row_dimensions[curr_row].height = 28
+
+    curr_row += 1
+
+    # Populate Rows
+    for idx, v in enumerate(voters, 1):
+        status_info = v.id_card_expiry_status
+
+        ws.cell(row=curr_row, column=1, value=idx).alignment = Alignment(horizontal="center", vertical="center")
+        ws.cell(row=curr_row, column=2, value=v.voter_code or "").alignment = Alignment(horizontal="center", vertical="center")
+        ws.cell(row=curr_row, column=3, value=v.name_kh).alignment = Alignment(horizontal="left", vertical="center")
+        ws.cell(row=curr_row, column=4, value=v.gender or "").alignment = Alignment(horizontal="center", vertical="center")
+        ws.cell(row=curr_row, column=5, value=str(v.dob or "")).alignment = Alignment(horizontal="center", vertical="center")
+        ws.cell(row=curr_row, column=6, value=f"{v.calculated_age} ឆ្នាំ" if v.calculated_age is not None else "").alignment = Alignment(horizontal="center", vertical="center")
+        ws.cell(row=curr_row, column=7, value=v.national_id or "").alignment = Alignment(horizontal="center", vertical="center")
+        ws.cell(row=curr_row, column=8, value=v.id_expiry_date or "មិនទាន់កំណត់").alignment = Alignment(horizontal="center", vertical="center")
+
+        status_text = status_info.get("short_label", "")
+        ws.cell(row=curr_row, column=9, value=status_text).alignment = Alignment(horizontal="center", vertical="center")
+
+        days_text = ""
+        days_left = status_info.get("days_left")
+        if days_left is not None:
+            if days_left < 0:
+                days_text = f"ហួស {abs(days_left)} ថ្ងៃ"
+            elif days_left == 0:
+                days_text = "ផុតកំណត់ថ្ងៃនេះ!"
+            else:
+                days_text = f"សល់ {days_left} ថ្ងៃ"
+        ws.cell(row=curr_row, column=10, value=days_text).alignment = Alignment(horizontal="center", vertical="center")
+
+        ws.cell(row=curr_row, column=11, value=v.village.name_kh if v.village else "").alignment = Alignment(horizontal="left", vertical="center")
+        st_text = f"{v.station.code} - {v.station.name}" if v.station else ""
+        ws.cell(row=curr_row, column=12, value=st_text).alignment = Alignment(horizontal="left", vertical="center")
+
+        chief_name = v.village.chief_name if v.village and v.village.chief_name else "មិនទាន់កំណត់"
+        ws.cell(row=curr_row, column=13, value=chief_name).alignment = Alignment(horizontal="left", vertical="center")
+
+        chief_phone = v.village.chief_phone if v.village and v.village.chief_phone else "មិនទាន់កំណត់"
+        ws.cell(row=curr_row, column=14, value=chief_phone).alignment = Alignment(horizontal="center", vertical="center")
+
+        for col_idx in range(1, 15):
+            cell = ws.cell(row=curr_row, column=col_idx)
+            cell.font = data_font
+            cell.border = thin_border
+
+            # Highlight status columns based on expiry
+            if col_idx in [8, 9, 10]:
+                if status_info.get("key") == "expired":
+                    cell.fill = expired_fill
+                    cell.font = expired_font
+                elif status_info.get("key") == "expiring_soon":
+                    cell.fill = expiring_fill
+                    cell.font = expiring_font
+                elif status_info.get("key") == "valid":
+                    cell.fill = valid_fill
+                    cell.font = valid_font
+
+        ws.row_dimensions[curr_row].height = 22
+        curr_row += 1
+
+    # Column Widths
+    col_widths = {
+        'A': 6,   # No
+        'B': 16,  # Voter Code
+        'C': 22,  # Name
+        'D': 8,   # Gender
+        'E': 14,  # DOB
+        'F': 10,  # Age
+        'G': 18,  # National ID
+        'H': 16,  # Expiry Date
+        'I': 18,  # Status
+        'J': 18,  # Days
+        'K': 18,  # Village
+        'L': 24,  # Station
+        'M': 20,  # Chief
+        'N': 16   # Phone
+    }
+    for col_letter, width in col_widths.items():
+        ws.column_dimensions[col_letter].width = width
+
+    # Signature Block
+    curr_row += 2
+    ws.cell(row=curr_row, column=2, value="បានឃើញ និងឯកភាព").font = bold_data_font
+    ws.cell(row=curr_row + 1, column=2, value="មេឃុំនគរភាស").font = title_font
+
+    ws.cell(row=curr_row, column=7, value="បានពិនិត្យផ្ទៀងផ្ទាត់ត្រឹមត្រូវ").font = bold_data_font
+    ws.cell(row=curr_row + 1, column=7, value="ស្មៀនឃុំ").font = title_font
+
+    ws.cell(row=curr_row, column=12, value=f"នគរភាស, ថ្ងៃទី {today.day:02d} ខែ {today.month:02d} ឆ្នាំ {today.year}").font = data_font
+    ws.cell(row=curr_row + 1, column=12, value="មន្ត្រីទទួលបន្ទុកទិន្នន័យ").font = title_font
+
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    filename = f"National_ID_Expiry_Report_Nokor_Pheas_{today_str}.xlsx"
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+@router.get("/reports/id-expiry/print", response_class=HTMLResponse)
+def print_id_expiry_report(
+    request: Request,
+    village_id: Optional[int] = Query(None),
+    station_id: Optional[int] = Query(None),
+    status: Optional[str] = Query("all"),
+    q: Optional[str] = Query(None),
+    db: Session = Depends(get_db)
+):
+    current_user = get_current_user_optional(request, db)
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=302)
+
+    today = get_cambodia_now().date()
+    today_str = today.strftime("%Y-%m-%d")
+    ninety_days_str = (today + datetime.timedelta(days=90)).strftime("%Y-%m-%d")
+
+    base_cards = db.query(Voter).filter(
+        Voter.status == "active",
+        or_(func.length(Voter.national_id) == 9, Voter.id_expiry_date.isnot(None))
+    )
+
+    query = base_cards
+    if village_id:
+        query = query.filter(Voter.village_id == village_id)
+    if station_id:
+        query = query.filter(Voter.station_id == station_id)
+    if q and q.strip():
+        search_term = f"%{q.strip()}%"
+        query = query.filter(
+            or_(
+                Voter.name_kh.ilike(search_term),
+                Voter.national_id.ilike(search_term),
+                Voter.voter_code.ilike(search_term)
+            )
+        )
+
+    if status == "expired":
+        query = query.filter(Voter.id_expiry_date.isnot(None), Voter.id_expiry_date != "", Voter.id_expiry_date < today_str)
+    elif status == "expiring_soon":
+        query = query.filter(Voter.id_expiry_date.isnot(None), Voter.id_expiry_date >= today_str, Voter.id_expiry_date <= ninety_days_str)
+    elif status == "attention":
+        query = query.filter(Voter.id_expiry_date.isnot(None), Voter.id_expiry_date != "", Voter.id_expiry_date <= ninety_days_str)
+    elif status == "valid":
+        query = query.filter(Voter.id_expiry_date.isnot(None), Voter.id_expiry_date > ninety_days_str)
+    elif status == "none":
+        query = query.filter(or_(Voter.id_expiry_date.is_(None), Voter.id_expiry_date == ""))
+
+    query = query.order_by(
+        case(
+            (Voter.id_expiry_date.is_(None) | (Voter.id_expiry_date == ""), 3),
+            (Voter.id_expiry_date < today_str, 1),
+            (Voter.id_expiry_date <= ninety_days_str, 2),
+            else_=4
+        ),
+        Voter.id_expiry_date.asc(),
+        Voter.name_kh.asc()
+    )
+    voters = query.all()
+
+    village_obj = db.query(Village).filter(Village.id == village_id).first() if village_id else None
+    station_obj = db.query(PollingStation).filter(PollingStation.id == station_id).first() if station_id else None
+
+    expired_cnt = len([v for v in voters if v.id_card_expiry_status['key'] == 'expired'])
+    expiring_cnt = len([v for v in voters if v.id_card_expiry_status['key'] == 'expiring_soon'])
+    valid_cnt = len([v for v in voters if v.id_card_expiry_status['key'] == 'valid'])
+    none_cnt = len([v for v in voters if v.id_card_expiry_status['key'] == 'none'])
+
+    return templates.TemplateResponse(
+        request=request,
+        name="reports/id_expiry_print.html",
+        context={
+            "current_user": current_user,
+            "voters": voters,
+            "village": village_obj,
+            "station": station_obj,
+            "status": status or "all",
+            "expired_cnt": expired_cnt,
+            "expiring_cnt": expiring_cnt,
+            "valid_cnt": valid_cnt,
+            "none_cnt": none_cnt,
+            "today_str": today_str,
+            "today": today
+        }
+    )
+

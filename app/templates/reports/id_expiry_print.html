@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>បញ្ជីអត្តសញ្ញាណប័ណ្ណផុតសុពលភាព - រដ្ឋបាលឃុំនគរភាស</title>
+    <link rel="stylesheet" href="/static/css/style.css?v=4.0">
+    <link rel="stylesheet" href="/static/css/print.css?v=4.0" media="print">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Kantumruy+Pro:wght@400;500;600;700&family=Siemreap&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #e2e8f0;
+            font-family: 'Kantumruy Pro', 'Siemreap', 'Battambang', sans-serif;
+            color: #0f172a;
+            padding: 20px;
+            line-height: 1.4;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .print-toolbar {
+            max-width: 297mm;
+            margin: 0 auto 16px auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .sheet {
+            background: white;
+            width: 297mm;
+            min-height: 210mm;
+            margin: 0 auto;
+            padding: 14mm 16mm;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+            border-radius: 6px;
+        }
+
+        @media print {
+            body {
+                background: white !important;
+                padding: 0 !important;
+            }
+            .print-toolbar {
+                display: none !important;
+            }
+            .sheet {
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+            }
+            @page {
+                size: A4 landscape;
+                margin: 10mm 12mm;
+            }
+        }
+
+        .kh-title {
+            font-family: 'Kantumruy Pro', 'Battambang', sans-serif;
+            font-weight: 700;
+        }
+
+        table.print-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 11px;
+        }
+
+        table.print-table th {
+            background-color: #f1f5f9;
+            color: #0f172a;
+            border: 1px solid #94a3b8;
+            padding: 6px 5px;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        table.print-table td {
+            border: 1px solid #cbd5e1;
+            padding: 5px 6px;
+            vertical-align: middle;
+        }
+
+        .badge-expired {
+            background-color: #fee2e2;
+            color: #991b1b;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .badge-expiring {
+            background-color: #fef3c7;
+            color: #92400e;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .badge-valid {
+            background-color: #dcfce7;
+            color: #166534;
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- On-screen Print Toolbar -->
+    <div class="print-toolbar">
+        <div class="flex items-center gap-3">
+            <span class="text-xl">🖨️</span>
+            <div>
+                <strong class="text-sm font-bold text-slate-800">របាយការណ៍អត្តសញ្ញាណប័ណ្ណផុតសុពលភាព (ទម្រង់បោះពុម្ព A4)</strong>
+                <div class="text-xs text-slate-500">ឃុំនគរភាស • សរុប {{ voters|length }} នាក់</div>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <a href="/reports/id-expiry" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 border border-slate-300">
+                ✕ ត្រឡប់ក្រោយ
+            </a>
+            <button onclick="window.print()" class="px-4 py-1.5 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-1.5 shadow-sm">
+                <span>🖨️</span> <span>បោះពុម្ពឯកសារ</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Printable Sheet -->
+    <div class="sheet">
+
+        <!-- Kingdom Header -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+            <div style="text-align: left; font-size: 11px;">
+                <div style="font-weight: 700;">រដ្ឋបាលខេត្តសៀមរាប</div>
+                <div style="font-weight: 700;">រដ្ឋបាលស្រុកបន្ទាយស្រី</div>
+                <div style="font-weight: 700; color: #1e3a8a; font-size: 13px;">រដ្ឋបាលឃុំនគរភាស</div>
+            </div>
+            <div style="text-align: center;">
+                <div class="kh-title" style="font-size: 14px; letter-spacing: 0.5px;">ព្រះរាជាណាចក្រកម្ពុជា</div>
+                <div class="kh-title" style="font-size: 13px;">ជាតិ សាសនា ព្រះមហាក្សត្រ</div>
+                <div style="font-family: monospace; font-size: 9px; letter-spacing: 2px;">2 2 2</div>
+            </div>
+            <div style="text-align: right; font-size: 11px; color: #64748b;">
+                <div>កាលបរិច្ឆេទ៖ {{ today_str }}</div>
+                <div>ទំព័រទី 1</div>
+            </div>
+        </div>
+
+        <!-- Title -->
+        <div style="text-align: center; margin: 10px 0 14px 0;">
+            <h2 class="kh-title" style="font-size: 15px; color: #0f172a; margin-bottom: 2px;">
+                តារាងស្ថិតិ និងបញ្ជីឈ្មោះអ្នកបោះឆ្នោតដែលអត្តសញ្ញាណប័ណ្ណផុតសុពលភាព ឬជិតផុតសុពលភាព
+            </h2>
+            <p style="font-size: 11px; color: #475569;">
+                {% if village %}ភូមិ៖ <strong>{{ village.name_kh }} ({{ village.code }})</strong> | {% endif %}
+                {% if station %}ការិយាល័យ៖ <strong>{{ station.code }} - {{ station.name }}</strong> | {% endif %}
+                គិតត្រឹមថ្ងៃទី {{ today.day }} ខែ {{ today.month }} ឆ្នាំ {{ today.year }} (សម្រាប់សហការជាមួយមេភូមិ ជម្រុញទៅថតបន្ត)
+            </p>
+        </div>
+
+        <!-- Summary KPIs -->
+        <div style="display: flex; justify-content: center; gap: 16px; margin-bottom: 12px; font-size: 11px;">
+            <div style="padding: 6px 14px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; text-align: center;">
+                សរុបក្នុងបញ្ជីនេះ៖ <strong style="color: #1e3a8a; font-size: 13px;">{{ voters|length }}</strong> នាក់
+            </div>
+            <div style="padding: 6px 14px; background: #fee2e2; border: 1px solid #fca5a5; border-radius: 6px; text-align: center; color: #991b1b;">
+                🔴 ផុតសុពលភាព៖ <strong style="font-size: 13px;">{{ expired_cnt }}</strong> នាក់
+            </div>
+            <div style="padding: 6px 14px; background: #fef3c7; border: 1px solid #fcd34d; border-radius: 6px; text-align: center; color: #92400e;">
+                🟡 ជិតផុតក្នុង ៩០ ថ្ងៃ៖ <strong style="font-size: 13px;">{{ expiring_cnt }}</strong> នាក់
+            </div>
+            <div style="padding: 6px 14px; background: #dcfce7; border: 1px solid #86efac; border-radius: 6px; text-align: center; color: #166534;">
+                🟢 នៅមានសុពលភាព៖ <strong style="font-size: 13px;">{{ valid_cnt }}</strong> នាក់
+            </div>
+        </div>
+
+        <!-- Data Table -->
+        <table class="print-table">
+            <thead>
+                <tr>
+                    <th style="width: 32px;">ល.រ</th>
+                    <th style="width: 80px;">កូដអ្នកបោះឆ្នោត</th>
+                    <th>គោត្តនាម-នាម</th>
+                    <th style="width: 40px;">ភេទ</th>
+                    <th style="width: 75px;">ថ្ងៃកំណើត</th>
+                    <th style="width: 40px;">អាយុ</th>
+                    <th style="width: 95px;">លេខអត្តសញ្ញាណ</th>
+                    <th style="width: 85px;">ថ្ងៃផុតសុពលភាព</th>
+                    <th style="width: 120px;">ស្ថានភាពសុពលភាព</th>
+                    <th style="width: 85px;">ភូមិ</th>
+                    <th style="width: 130px;">ការិយាល័យ</th>
+                    <th style="width: 130px;">មេភូមិ & ទូរស័ព្ទ</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if voters %}
+                    {% for v in voters %}
+                    {% set st = v.id_card_expiry_status %}
+                    <tr>
+                        <td style="text-align: center; font-family: monospace;">{{ loop.index }}</td>
+                        <td style="text-align: center; font-family: monospace; font-weight: 700;">{{ v.voter_code }}</td>
+                        <td style="font-weight: 700;">{{ v.name_kh }}</td>
+                        <td style="text-align: center;">{{ v.gender }}</td>
+                        <td style="text-align: center; font-family: monospace;">{{ v.dob or '-' }}</td>
+                        <td style="text-align: center;">{{ v.calculated_age if v.calculated_age is not none else '-' }}</td>
+                        <td style="text-align: center; font-family: monospace; font-weight: 700;">{{ v.national_id }}</td>
+                        <td style="text-align: center; font-family: monospace; font-weight: 700;">{{ v.id_expiry_date or 'មិនទាន់កំណត់' }}</td>
+                        <td style="text-align: center;">
+                            {% if st.key == 'expired' %}
+                            <span class="badge-expired">⚠️ {{ st.short_label }}</span>
+                            {% elif st.key == 'expiring_soon' %}
+                            <span class="badge-expiring">⏰ {{ st.short_label }}</span>
+                            {% elif st.key == 'valid' %}
+                            <span class="badge-valid">🟢 {{ st.short_label }}</span>
+                            {% else %}
+                            <span style="color: #94a3b8;">មិនទាន់កំណត់</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ v.village.name_kh if v.village else '-' }}</td>
+                        <td style="font-size: 10px;">{{ v.station.code if v.station else '' }} - {{ v.station.name if v.station else '' }}</td>
+                        <td style="font-size: 10px;">
+                            {{ v.village.chief_name if v.village and v.village.chief_name else '-' }}
+                            {% if v.village and v.village.chief_phone %}
+                            <div style="font-family: monospace; color: #1e3a8a;">{{ v.village.chief_phone }}</div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="12" style="text-align: center; padding: 20px; color: #94a3b8;">
+                            មិនមានអ្នកបោះឆ្នោតតាមលក្ខខណ្ឌនេះទេ
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+
+        <!-- Signatures Block -->
+        <div style="display: flex; justify-content: space-between; margin-top: 30px; font-size: 11px; page-break-inside: avoid;">
+            <div style="text-align: center; width: 220px;">
+                <div style="font-weight: 700;">បានឃើញ និងឯកភាព</div>
+                <div class="kh-title" style="font-size: 12px; margin-top: 2px;">មេឃុំនគរភាស</div>
+                <div style="margin-top: 60px; font-weight: 700;">....................................</div>
+            </div>
+
+            <div style="text-align: center; width: 220px;">
+                <div style="font-weight: 700;">បានពិនិត្យផ្ទៀងផ្ទាត់ត្រឹមត្រូវ</div>
+                <div class="kh-title" style="font-size: 12px; margin-top: 2px;">ស្មៀនឃុំ</div>
+                <div style="margin-top: 60px; font-weight: 700;">....................................</div>
+            </div>
+
+            <div style="text-align: center; width: 240px;">
+                <div>នគរភាស, ថ្ងៃទី {{ today.day }} ខែ {{ today.month }} ឆ្នាំ {{ today.year }}</div>
+                <div class="kh-title" style="font-size: 12px; margin-top: 2px;">មន្ត្រីទទួលបន្ទុកទិន្នន័យ</div>
+                <div style="margin-top: 60px; font-weight: 700;">....................................</div>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>

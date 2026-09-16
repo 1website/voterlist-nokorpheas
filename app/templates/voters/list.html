@@ -84,15 +84,27 @@
                     </select>
                 </div>
 
-                <!-- Registration Type Filter & Submit Button -->
+                <!-- Registration Type Filter -->
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ប្រភេទបញ្ជី</label>
+                    <select name="reg_type_filter" id="filterRegTypeSelect" class="form-control text-sm py-2">
+                        <option value="">-- គ្រប់ប្រភេទ --</option>
+                        <option value="new" {% if reg_type_filter == 'new' %}selected{% endif %}>✨ ចុះថ្មី (New)</option>
+                        <option value="legacy" {% if reg_type_filter == 'legacy' %}selected{% endif %}>📋 បញ្ជីចាស់ (Legacy)</option>
+                        <option value="transferred" {% if reg_type_filter == 'transferred' %}selected{% endif %}>📦 ផ្ទេរចូល (Transferred)</option>
+                    </select>
+                </div>
+
+                <!-- ID Card Expiry Status Filter & Buttons -->
                 <div class="flex items-end gap-2">
                     <div class="flex-1">
-                        <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">ប្រភេទបញ្ជី</label>
-                        <select name="reg_type_filter" id="filterRegTypeSelect" class="form-control text-sm py-2">
-                            <option value="">-- គ្រប់ប្រភេទ --</option>
-                            <option value="new" {% if reg_type_filter == 'new' %}selected{% endif %}>✨ ចុះថ្មី (New)</option>
-                            <option value="legacy" {% if reg_type_filter == 'legacy' %}selected{% endif %}>📋 បញ្ជីចាស់ (Legacy)</option>
-                            <option value="transferred" {% if reg_type_filter == 'transferred' %}selected{% endif %}>📦 ផ្ទេរចូល (Transferred)</option>
+                        <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">សុពលភាព អ.ប</label>
+                        <select name="id_status" id="filterIdStatusSelect" class="form-control text-sm py-2">
+                            <option value="">-- គ្រប់ស្ថានភាព --</option>
+                            <option value="expired" {% if id_status == 'expired' %}selected{% endif %}>🔴 ផុតសុពលភាព</option>
+                            <option value="expiring_soon" {% if id_status == 'expiring_soon' %}selected{% endif %}>🟡 ជិតផុតក្នុង ៩០ ថ្ងៃ</option>
+                            <option value="valid" {% if id_status == 'valid' %}selected{% endif %}>🟢 មានសុពលភាព</option>
+                            <option value="none" {% if id_status == 'none' %}selected{% endif %}>⚪ មិនទាន់កំណត់</option>
                         </select>
                     </div>
                     <button type="submit" class="btn btn-primary py-2 px-3 text-sm" title="ស្វែងរក">
@@ -144,6 +156,11 @@
                 📅 {{ date_created }}
             </span>
             {% endif %}
+            {% if id_status %}
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 shadow-2xs">
+                🪪 {% if id_status == 'expired' %}🔴 អ.ប ផុតសុពលភាព{% elif id_status == 'expiring_soon' %}🟡 អ.ប ជិតផុតសុពលភាព{% elif id_status == 'valid' %}🟢 អ.ប មានសុពលភាព{% elif id_status == 'none' %}⚪ អ.ប មិនទាន់កំណត់{% else %}{{ id_status }}{% endif %}
+            </span>
+            {% endif %}
             <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/70 dark:text-emerald-200 font-mono">
                 សរុប {{ total_count }} នាក់
             </span>
@@ -188,12 +205,29 @@
                                 <span class="font-bold text-emerald-900 dark:text-emerald-200">{{ v.national_id }}</span>
                             </div>
                             {% elif v.national_id|length == 9 %}
-                            <div class="inline-flex items-center gap-1.5" title="លេខអត្តសញ្ញាណប័ណ្ណសញ្ជាតិខ្មែរ">
-                                <span class="px-1.5 py-0.5 text-[10px] font-bold rounded bg-blue-100 dark:bg-blue-950/80 text-blue-800 dark:text-sky-300 border border-blue-300 dark:border-blue-700">អ.ប</span>
-                                <span class="font-semibold text-slate-800 dark:text-slate-200">{{ v.national_id }}</span>
+                            <div class="space-y-1">
+                                <div class="inline-flex items-center gap-1.5" title="លេខអត្តសញ្ញាណប័ណ្ណសញ្ជាតិខ្មែរ (៩ ខ្ទង់)">
+                                    <span class="px-1.5 py-0.5 text-[10px] font-bold rounded bg-blue-100 dark:bg-blue-950/80 text-blue-800 dark:text-sky-300 border border-blue-300 dark:border-blue-700">អ.ប</span>
+                                    <span class="font-semibold text-slate-800 dark:text-slate-200 font-mono">{{ v.national_id }}</span>
+                                </div>
+                                {% if v.id_expiry_date %}
+                                    {% if v.id_card_expiry_status.is_expired %}
+                                    <div class="inline-flex items-center gap-1 text-[9.5px] font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/70 px-1.5 py-0.5 rounded border border-rose-200 dark:border-rose-800 shadow-2xs" title="ផុតសុពលភាព៖ {{ v.id_expiry_date }}">
+                                        <span>⚠️</span> <span>ផុត៖ {{ v.id_expiry_date }}</span>
+                                    </div>
+                                    {% elif v.id_card_expiry_status.is_warning %}
+                                    <div class="inline-flex items-center gap-1 text-[9.5px] font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/70 px-1.5 py-0.5 rounded border border-amber-200 dark:border-amber-800 shadow-2xs" title="ជិតផុតសុពលភាព៖ {{ v.id_expiry_date }}">
+                                        <span>⏰</span> <span>ជិតផុត៖ {{ v.id_expiry_date }}</span>
+                                    </div>
+                                    {% else %}
+                                    <div class="text-[9px] text-slate-400 dark:text-slate-500 font-mono" title="ថ្ងៃផុតសុពលភាព">
+                                        ផុត៖ {{ v.id_expiry_date }}
+                                    </div>
+                                    {% endif %}
+                                {% endif %}
                             </div>
                             {% else %}
-                            <span class="font-semibold text-slate-700 dark:text-slate-300">{{ v.national_id }}</span>
+                            <span class="font-semibold text-slate-700 dark:text-slate-300 font-mono">{{ v.national_id }}</span>
                             {% endif %}
                         </td>
                         <td class="col-photo-name">
@@ -203,7 +237,7 @@
                                          alt="{{ v.name_kh }}" 
                                          id="voter-avatar-{{ v.id }}"
                                          class="w-11 h-11 rounded-full object-cover border-2 border-blue-200 shadow-sm transition-transform duration-200 group-hover:scale-105 cursor-pointer bg-slate-100"
-                                         onclick="previewLargePhoto('{{ v.photo_display }}', '{{ v.name_kh }}', '{{ v.voter_code }}', '{{ v.station.code if v.station else '' }} - {{ v.station.name if v.station else '' }}', '{{ v.village.name_kh if v.village else '' }}', '{{ v.national_id }}', '{{ v.gender }}', '{{ v.calculated_age if v.calculated_age is not none else '' }}', '{{ v.dob or '' }}')"
+                                         onclick="previewLargePhoto('{{ v.photo_display }}', '{{ v.name_kh }}', '{{ v.voter_code }}', '{{ v.station.code if v.station else '' }} - {{ v.station.name if v.station else '' }}', '{{ v.village.name_kh if v.village else '' }}', '{{ v.national_id }}', '{{ v.gender }}', '{{ v.calculated_age if v.calculated_age is not none else '' }}', '{{ v.dob or '' }}', '{{ v.id_expiry_date or '' }}', '{{ v.id_card_expiry_status.status if v.id_card_expiry_status else '' }}')"
                                          title="ចុចដើម្បីមើលរូប & ព័ត៌មានលម្អិត"
                                          onerror="this.onerror=null; this.src='/static/images/avatars/{{ 'female_1.jpg' if v.gender == 'ស្រី' else 'male_1.jpg' }}';">
                                     {% if current_user.role in ['admin', 'officer'] %}
@@ -501,6 +535,34 @@
                     </div>
                     <input type="text" name="national_id" id="addNationalId" required maxlength="9" inputmode="numeric" placeholder="ឧ. 08531702 (៨ ខ្ទង់ ឯ.អ) ឬ 020491999 (៩ ខ្ទង់ អត្តសញ្ញាណប័ណ្ណ)" oninput="checkDuplicateID(this, 0, 'idCheckFeedback', 'addVoterSubmitBtn', 'addVoterForceSave')" class="form-control font-mono">
                     <div id="idCheckFeedback"></div>
+
+                    <!-- ID Card Expiry Date Box (Prominently displayed) -->
+                    <div id="addIdExpiryGroup" class="mt-3 p-3 sm:p-3.5 rounded-2xl bg-gradient-to-r from-amber-50/90 via-orange-50/70 to-amber-50/90 dark:from-amber-950/40 dark:via-orange-950/30 dark:to-amber-950/40 border border-amber-300/80 dark:border-amber-700/80 transition-all duration-300 shadow-2xs">
+                        <div class="flex items-center justify-between mb-2 flex-wrap gap-1">
+                            <label class="form-label text-xs font-bold text-amber-950 dark:text-amber-200 mb-0 flex items-center gap-1.5">
+                                <span>📅</span> <span>ថ្ងៃខែឆ្នាំផុតសុពលភាព អត្តសញ្ញាណប័ណ្ណ</span>
+                            </label>
+                            <span class="text-[10px] text-amber-900 dark:text-amber-200 bg-amber-200/80 dark:bg-amber-900/80 px-2 py-0.5 rounded-full font-bold border border-amber-300 dark:border-amber-700">
+                                សុពលភាព ១០ ឆ្នាំ (ប័ណ្ណ ៩ ខ្ទង់)
+                            </span>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                            <input type="date" name="id_expiry_date" id="addIdExpiryDate" class="form-control font-mono text-sm bg-white dark:bg-slate-900 border-amber-300 dark:border-amber-700/70 focus:border-amber-500 focus:ring-amber-400 flex-1">
+                            <div class="flex items-center gap-1.5 shrink-0">
+                                <button type="button" onclick="setExpiryYearsFromToday('addIdExpiryDate', 10)" class="px-2.5 py-2 rounded-xl text-xs font-bold bg-amber-200/80 hover:bg-amber-300 dark:bg-amber-900/60 dark:hover:bg-amber-800 text-amber-950 dark:text-amber-200 border border-amber-300 dark:border-amber-700 transition flex items-center gap-1 shadow-2xs" title="កំណត់ ១០ ឆ្នាំពីថ្ងៃនេះ">
+                                    <span>⚡</span> <span>+១០ ឆ្នាំ</span>
+                                </button>
+                                <button type="button" onclick="document.getElementById('addIdExpiryDate').value='';" class="px-2 py-2 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700 transition" title="សម្អាតថ្ងៃខែ">
+                                    ✕
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="addIdExpiryNotice" class="text-[11px] mt-1.5 leading-tight">
+                            <span class="text-slate-500 dark:text-slate-400">សម្រាប់អត្តសញ្ញាណប័ណ្ណសញ្ជាតិខ្មែរ (៩ ខ្ទង់) មានសុពលភាព ១០ ឆ្នាំ។ ឯ.អ (៨ ខ្ទង់) មិនបាច់បញ្ចូលទេ។</span>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -672,6 +734,34 @@
                         </div>
                         <input type="text" name="national_id" id="editNationalId" required maxlength="9" inputmode="numeric" placeholder="បញ្ចូល ៨ ខ្ទង់ (ឯ.អ) ឬ ៩ ខ្ទង់ (អត្តសញ្ញាណប័ណ្ណ)" oninput="checkDuplicateID(this, document.getElementById('editVoterId').value, 'editIdCheckFeedback', 'editVoterSubmitBtn', 'editVoterForceSave')" class="form-control font-mono">
                         <div id="editIdCheckFeedback"></div>
+
+                        <!-- ID Card Expiry Date Box (Prominently displayed) -->
+                        <div id="editIdExpiryGroup" class="mt-3 p-3 sm:p-3.5 rounded-2xl bg-gradient-to-r from-amber-50/90 via-orange-50/70 to-amber-50/90 dark:from-amber-950/40 dark:via-orange-950/30 dark:to-amber-950/40 border border-amber-300/80 dark:border-amber-700/80 transition-all duration-300 shadow-2xs">
+                            <div class="flex items-center justify-between mb-2 flex-wrap gap-1">
+                                <label class="form-label text-xs font-bold text-amber-950 dark:text-amber-200 mb-0 flex items-center gap-1.5">
+                                    <span>📅</span> <span>ថ្ងៃខែឆ្នាំផុតសុពលភាព អត្តសញ្ញាណប័ណ្ណ</span>
+                                </label>
+                                <span class="text-[10px] text-amber-900 dark:text-amber-200 bg-amber-200/80 dark:bg-amber-900/80 px-2 py-0.5 rounded-full font-bold border border-amber-300 dark:border-amber-700">
+                                    សុពលភាព ១០ ឆ្នាំ (ប័ណ្ណ ៩ ខ្ទង់)
+                                </span>
+                            </div>
+
+                            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                                <input type="date" name="id_expiry_date" id="editIdExpiryDate" class="form-control font-mono text-sm bg-white dark:bg-slate-900 border-amber-300 dark:border-amber-700/70 focus:border-amber-500 focus:ring-amber-400 flex-1">
+                                <div class="flex items-center gap-1.5 shrink-0">
+                                    <button type="button" onclick="setExpiryYearsFromToday('editIdExpiryDate', 10)" class="px-2.5 py-2 rounded-xl text-xs font-bold bg-amber-200/80 hover:bg-amber-300 dark:bg-amber-900/60 dark:hover:bg-amber-800 text-amber-950 dark:text-amber-200 border border-amber-300 dark:border-amber-700 transition flex items-center gap-1 shadow-2xs" title="កំណត់ ១០ ឆ្នាំពីថ្ងៃនេះ">
+                                        <span>⚡</span> <span>+១០ ឆ្នាំ</span>
+                                    </button>
+                                    <button type="button" onclick="document.getElementById('editIdExpiryDate').value='';" class="px-2 py-2 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700 transition" title="សម្អាតថ្ងៃខែ">
+                                        ✕
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div id="editIdExpiryNotice" class="text-[11px] mt-1.5 leading-tight">
+                                <span class="text-slate-500 dark:text-slate-400">សម្រាប់អត្តសញ្ញាណប័ណ្ណសញ្ជាតិខ្មែរ (៩ ខ្ទង់) មានសុពលភាព ១០ ឆ្នាំ។ ឯ.អ (៨ ខ្ទង់) មិនបាច់បញ្ចូលទេ។</span>
+                            </div>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">ស្ថានភាពអ្នកបោះឆ្នោត *</label>
@@ -841,6 +931,19 @@
                         </div>
                     </div>
                 </div>
+
+                <div id="largePhotoExpiryDivider" class="border-t border-slate-200/60 dark:border-slate-700/60"></div>
+
+                <!-- ID Card Expiry Date -->
+                <div id="largePhotoExpiryRow" class="flex items-start gap-2.5">
+                    <span class="text-base leading-none text-purple-600 dark:text-purple-400 shrink-0 mt-0.5">📅</span>
+                    <div class="min-w-0 flex-1">
+                        <span class="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase block tracking-wider">សុពលភាពអត្តសញ្ញាណប័ណ្ណ</span>
+                        <div id="largePhotoIdExpiry" class="mt-0.5">
+                            -
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="modal-footer justify-center p-4 border-t border-slate-100 dark:border-slate-800">
@@ -976,7 +1079,7 @@
                             <input type="hidden" id="ocrFieldNameEn" value="">
                         </div>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             <div>
                                 <label class="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">ភេទ *</label>
                                 <select id="ocrFieldGender" class="form-control text-xs font-semibold">
@@ -991,6 +1094,10 @@
                             <div>
                                 <label class="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">លេខអត្តសញ្ញាណប័ណ្ណ *</label>
                                 <input type="text" id="ocrFieldNationalId" class="form-control text-xs font-mono font-bold" placeholder="020491001">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-amber-700 dark:text-amber-300 uppercase mb-0.5">ថ្ងៃផុតសុពលភាព</label>
+                                <input type="date" id="ocrFieldIdExpiryDate" class="form-control text-xs font-mono border-amber-300 dark:border-amber-700">
                             </div>
                         </div>
                     </div>
@@ -1266,7 +1373,7 @@
         }
     }
 
-    function previewLargePhoto(photoUrl, nameKh, voterCode, stationInfo = '', villageName = '', nationalId = '', gender = '', age = '', dob = '') {
+    function previewLargePhoto(photoUrl, nameKh, voterCode, stationInfo = '', villageName = '', nationalId = '', gender = '', age = '', dob = '', idExpiry = '', idStatus = '') {
         document.getElementById('largePhotoImg').src = photoUrl;
         document.getElementById('largePhotoName').textContent = nameKh;
         document.getElementById('largePhotoCode').textContent = voterCode;
@@ -1329,6 +1436,35 @@
                 ageDetailEl.textContent = detailParts.join(' · ');
             } else {
                 ageDetailEl.textContent = 'មិនបានបញ្ជាក់';
+            }
+        }
+
+        // ID Card Expiry Row
+        const expiryDivEl = document.getElementById('largePhotoExpiryDivider');
+        const expiryRowEl = document.getElementById('largePhotoExpiryRow');
+        const idExpiryEl = document.getElementById('largePhotoIdExpiry');
+        if (idExpiryEl) {
+            if (nationalId && nationalId.trim().length === 9) {
+                if (expiryDivEl) expiryDivEl.style.display = 'block';
+                if (expiryRowEl) expiryRowEl.style.display = 'flex';
+                if (idExpiry && idExpiry !== 'None') {
+                    if (idStatus === 'expired') {
+                        idExpiryEl.innerHTML = `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-100 dark:bg-rose-950/80 text-rose-800 dark:text-rose-300 border border-rose-300 dark:border-rose-700 shadow-2xs">⚠️ ផុតសុពលភាព៖ ${idExpiry}</span>`;
+                    } else if (idStatus === 'expiring_soon') {
+                        idExpiryEl.innerHTML = `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700 shadow-2xs">⏰ ជិតផុតសុពលភាព៖ ${idExpiry}</span>`;
+                    } else {
+                        idExpiryEl.innerHTML = `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 shadow-2xs">🟢 នៅមានសុពលភាព៖ ${idExpiry}</span>`;
+                    }
+                } else {
+                    idExpiryEl.innerHTML = `<span class="text-xs text-slate-500 font-medium">⚪ មិនទាន់បានបញ្ចូលថ្ងៃផុតសុពលភាព</span>`;
+                }
+            } else if (nationalId && nationalId.trim().length === 8) {
+                if (expiryDivEl) expiryDivEl.style.display = 'block';
+                if (expiryRowEl) expiryRowEl.style.display = 'flex';
+                idExpiryEl.innerHTML = `<span class="text-xs text-emerald-700 dark:text-emerald-400 font-semibold">📄 ឯកសារបញ្ជាក់អត្តសញ្ញាណបម្រើឱ្យការបោះឆ្នោត (ឯ.អ)</span>`;
+            } else {
+                if (expiryDivEl) expiryDivEl.style.display = 'none';
+                if (expiryRowEl) expiryRowEl.style.display = 'none';
             }
         }
 
@@ -1424,6 +1560,10 @@
         document.getElementById('addPresetInput').value = '/static/images/avatars/male_1.jpg';
         document.getElementById('addRegYear').value = new Date().getFullYear();
         document.getElementById('addRegReason').value = 'first_time_18';
+        const addExpiryGroup = document.getElementById('addIdExpiryGroup');
+        if (addExpiryGroup) addExpiryGroup.classList.add('hidden');
+        const addExpiryDate = document.getElementById('addIdExpiryDate');
+        if (addExpiryDate) addExpiryDate.value = '';
         filterStationsByVillage('addVillageSelect', 'addStationSelect');
         checkVoterAge(document.getElementById('addDobInput'), 'addDobFeedback', 'addVoterSubmitBtn');
         openModal('addVoterModal');
@@ -1497,6 +1637,14 @@
 
                 // Check age
                 checkVoterAge(document.getElementById('editDob'), 'editDobFeedback', 'editVoterSubmitBtn');
+
+                // Set ID Card Expiry Date
+                const editExpiryInput = document.getElementById('editIdExpiryDate');
+                if (editExpiryInput) editExpiryInput.value = data.id_expiry_date || '';
+                const editExpiryGroup = document.getElementById('editIdExpiryGroup');
+                if (editExpiryGroup) {
+                    editExpiryGroup.classList.remove('hidden');
+                }
 
                 openModal('editVoterModal');
             }

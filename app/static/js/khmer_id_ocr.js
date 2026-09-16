@@ -254,6 +254,9 @@ function displayOcrResults(data, cardImage) {
     const dobInput = document.getElementById('ocrFieldDob');
     if (dobInput) dobInput.value = data.dob || "1995-05-15";
 
+    const expiryInput = document.getElementById('ocrFieldIdExpiryDate');
+    if (expiryInput) expiryInput.value = data.id_expiry_date || "";
+
     // Duplicate ID Warning Badge
     const dupBadge = document.getElementById('ocrDuplicateAlert');
     if (dupBadge) {
@@ -293,6 +296,7 @@ function applyOcrDataToVoterForm() {
     const nameEn = document.getElementById('ocrFieldNameEn')?.value || "";
     const gender = document.getElementById('ocrFieldGender')?.value || "ប្រុស";
     const dob = document.getElementById('ocrFieldDob')?.value || "1995-05-15";
+    const idExpiryDate = document.getElementById('ocrFieldIdExpiryDate')?.value || "";
     const photoUrl = document.getElementById('ocrExtractedPhoto')?.src || "";
 
     // Close OCR Scanner Modal
@@ -327,6 +331,11 @@ function applyOcrDataToVoterForm() {
         if (typeof checkDuplicateID === 'function') {
             checkDuplicateID(targetNationalId);
         }
+    }
+
+    const targetIdExpiry = document.getElementById('addIdExpiryDate');
+    if (targetIdExpiry && idExpiryDate) {
+        targetIdExpiry.value = idExpiryDate;
     }
 
     // Set Photo Preview and Hidden Preset Input

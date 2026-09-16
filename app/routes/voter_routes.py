@@ -19,7 +19,7 @@ from app.models import User, Village, PollingStation, Voter
 from app.auth import get_current_user_optional, get_current_user, require_admin, require_admin_or_officer
 from app.schemas import VoterCreateSchema, VoterUpdateSchema
 from app.audit import log_activity
-from app.timezone_utils import get_cambodia_now, get_cambodia_today
+from app.timezone_utils import get_cambodia_now, get_cambodia_today, get_cambodia_today_str
 from app.ocr_utils import parse_khmer_id_text, extract_id_card_face_portrait
 
 router = APIRouter()
@@ -78,7 +78,8 @@ def build_voter_query(
     voted_filter: str = "",
     clean_date: str = "",
     effective_reg_type: str = "",
-    effective_reg_year: str = ""
+    effective_reg_year: str = "",
+    id_status: str = ""
 ):
     query = db.query(Voter)
 
@@ -152,6 +153,21 @@ def build_voter_query(
         elif age_group == "elderly":
             max_y = current_year - 60
             query = query.filter(Voter.dob.isnot(None), Voter.dob >= "1900", Voter.dob < str(max_y + 1))
+
+    # National ID Expiry status filter (for 9-digit Cambodian National IDs)
+    if id_status:
+        today_str = get_cambodia_today_str()
+        ninety_days_str = (get_cambodia_now() + datetime.timedelta(days=90)).strftime('%Y-%m-%d')
+        # Target 9-digit national IDs
+        query = query.filter(func.length(Voter.national_id) == 9)
+        if id_status == "expired":
+            query = query.filter(Voter.id_expiry_date.isnot(None), Voter.id_expiry_date != "", Voter.id_expiry_date < today_str)
+        elif id_status == "expiring_soon":
+            query = query.filter(Voter.id_expiry_date.isnot(None), Voter.id_expiry_date >= today_str, Voter.id_expiry_date <= ninety_days_str)
+        elif id_status == "valid":
+            query = query.filter(Voter.id_expiry_date.isnot(None), Voter.id_expiry_date > ninety_days_str)
+        elif id_status == "none":
+            query = query.filter(or_(Voter.id_expiry_date.is_(None), Voter.id_expiry_date == ""))
 
     return query
 
@@ -290,6 +306,7 @@ def voter_list_page(
     date_created: str = Query("", description="Registration date filter YYYY-MM-DD"),
     reg_type_filter: str = Query("", description="Registration type filter (new, legacy, transferred)"),
     reg_year_filter: str = Query("", description="Registration year filter"),
+    id_status: str = Query("", description="ID card status: expired, expiring_soon, valid, none"),
     _type_filter: str = Query("", description="Legacy alias for reg_type_filter"),
     _year_filter: str = Query("", description="Legacy alias for reg_year_filter"),
     page: int = Query(1),
@@ -371,7 +388,8 @@ def voter_list_page(
         voted_filter=voted_filter,
         clean_date=clean_date,
         effective_reg_type=effective_reg_type,
-        effective_reg_year=effective_reg_year
+        effective_reg_year=effective_reg_year,
+        id_status=id_status
     )
 
     total_count = query.count()
@@ -420,6 +438,8 @@ def voter_list_page(
         active_params["reg_year_filter"] = effective_reg_year
     if age_group:
         active_params["age_group"] = age_group
+    if id_status:
+        active_params["id_status"] = id_status
 
     has_active_filter = bool(active_params)
     filter_querystring = ("&" + urllib.parse.urlencode(active_params)) if active_params else ""
@@ -450,6 +470,7 @@ def voter_list_page(
         "date_created": date_created,
         "reg_type_filter": effective_reg_type,
         "reg_year_filter": effective_reg_year,
+        "id_status": id_status,
         "filter_querystring": filter_querystring,
         "available_years": available_years,
         "villages": villages,
@@ -471,6 +492,7 @@ def export_filtered_voters_excel(
     date_created: str = Query("", description="Registration date filter YYYY-MM-DD"),
     reg_type_filter: str = Query("", description="Registration type filter (new, legacy, transferred)"),
     reg_year_filter: str = Query("", description="Registration year filter"),
+    id_status: str = Query("", description="ID card status filter: expired, expiring_soon, valid, none"),
     _type_filter: str = Query("", description="Legacy alias"),
     _year_filter: str = Query("", description="Legacy alias"),
     db: Session = Depends(get_db)
@@ -533,7 +555,8 @@ def export_filtered_voters_excel(
         voted_filter=voted_filter,
         clean_date=clean_date,
         effective_reg_type=effective_reg_type,
-        effective_reg_year=effective_reg_year
+        effective_reg_year=effective_reg_year,
+        id_status=id_status
     )
 
     voters = query.order_by(Voter.station_id.asc(), Voter.list_no.asc()).all()
@@ -670,6 +693,7 @@ def create_voter(
     gender: str = Form(...),
     dob: str = Form(...),
     national_id: str = Form(...),
+    id_expiry_date: Optional[str] = Form(None),
     village_id: int = Form(...),
     station_id: int = Form(...),
     reg_type: str = Form("new"),
@@ -734,6 +758,7 @@ def create_voter(
         reg_type=reg_type.strip() if reg_type else "new",
         reg_year=reg_year if reg_year else 2026,
         reg_reason=reg_reason.strip() if reg_reason else None,
+        id_expiry_date=id_expiry_date.strip() if id_expiry_date and id_expiry_date.strip() else None,
         photo_url=photo_url,
         has_voted=False,
         notes=notes.strip(),
@@ -846,6 +871,8 @@ def get_voter_detail(voter_id: int, db: Session = Depends(get_db)):
         "station_name": voter.station.name if voter.station else "",
         "station_location": voter.station.location if voter.station else "",
         "status": voter.status,
+        "id_expiry_date": voter.id_expiry_date or "",
+        "id_card_expiry_status": voter.id_card_expiry_status,
         "reg_type": voter.reg_type or "new",
         "reg_year": voter.reg_year or 2026,
         "reg_reason": voter.reg_reason or "",
@@ -899,6 +926,7 @@ def update_voter(
     gender: str = Form(...),
     dob: str = Form(...),
     national_id: str = Form(...),
+    id_expiry_date: Optional[str] = Form(None),
     village_id: int = Form(...),
     station_id: int = Form(...),
     status: str = Form("active"),
@@ -949,6 +977,7 @@ def update_voter(
     voter.reg_type = reg_type.strip() if reg_type else "new"
     voter.reg_year = reg_year if reg_year else 2026
     voter.reg_reason = reg_reason.strip() if reg_reason else None
+    voter.id_expiry_date = id_expiry_date.strip() if id_expiry_date and id_expiry_date.strip() else None
     voter.address = address.strip()
     voter.notes = notes.strip()
     voter.updated_at = get_cambodia_now()
@@ -1127,6 +1156,7 @@ async def ocr_khmer_id_card(
             "name_en": name_en,
             "gender": gender,
             "dob": dob,
+            "id_expiry_date": parsed.get("id_expiry_date", ""),
             "photo_url": portrait_url,
             "address": address,
             "is_duplicate": is_duplicate,

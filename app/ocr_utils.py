@@ -115,12 +115,24 @@ def parse_khmer_id_text(raw_text: str) -> dict:
     if addr_match:
         address = addr_match.group(0).strip()
 
+    # 7. Expiry Date (ថ្ងៃផុតសុពលភាព - for 9-digit Khmer ID Card)
+    id_expiry_date = ""
+    # Look for any date with year >= 2020 that is not the date of birth
+    all_dates = re.findall(r"\b([0-3]?\d)[./\-_]([0-1]?\d)[./\-_]((?:20)\d{2})\b", normalized)
+    for d_str, m_str, y_str in all_dates:
+        d, m, y = int(d_str), int(m_str), int(y_str)
+        iso_str = f"{y:04d}-{m:02d}-{d:02d}"
+        if iso_str != dob and 1 <= d <= 31 and 1 <= m <= 12 and y >= 2020:
+            id_expiry_date = iso_str
+            break
+
     return {
         "national_id": national_id,
         "name_kh": name_kh,
         "name_en": name_en,
         "gender": gender,
         "dob": dob or "1995-05-15",
+        "id_expiry_date": id_expiry_date,
         "address": address,
         "raw_text": raw_text
     }
