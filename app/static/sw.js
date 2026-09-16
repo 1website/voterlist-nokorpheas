@@ -1,9 +1,11 @@
 // Service Worker for VoterList PWA (Nokor Pheas Commune)
-const CACHE_NAME = 'voterlist-cache-v2.0';
+const CACHE_NAME = 'voterlist-cache-v3.0';
 
 // Assets to cache on install
 const PRECACHE_ASSETS = [
-  '/static/css/style.css?v=28.0',
+  '/static/css/style.css?v=29.0',
+  '/static/js/app.js?v=3.0',
+  '/static/js/khmer_id_ocr.js?v=3.0',
   '/static/manifest.json',
   '/static/icons/icon-192x192.png',
   '/static/icons/icon-512x512.png',
