@@ -21,16 +21,18 @@ def get_setting(db: Session, key: str, default: str = "") -> str:
     if db:
         try:
             row = db.query(SystemSetting).filter(SystemSetting.key == key).first()
-            if row and row.value is not None and row.value != "":
-                return row.value.strip()
-        except Exception:
-            pass
+            if row and row.value is not None:
+                val = str(row.value).strip()
+                if val != "":
+                    return val
+        except Exception as e:
+            print(f"Notice: Failed to fetch setting '{key}': {e}")
     env_val = os.getenv(key.upper(), "")
     if env_val:
         return env_val.strip()
     return default
 
-def set_setting(db: Session, key: str, value: str, description: str = ""):
+def set_setting(db: Session, key: str, value: str, description: str = "") -> bool:
     """Store or update a setting in system_settings table."""
     try:
         row = db.query(SystemSetting).filter(SystemSetting.key == key).first()
@@ -48,17 +50,20 @@ def set_setting(db: Session, key: str, value: str, description: str = ""):
             )
             db.add(new_row)
         db.commit()
+        return True
     except Exception as e:
         db.rollback()
         print(f"Error saving setting {key}: {e}")
+        return False
 
 def get_telegram_config(db: Session = None) -> dict:
     """Retrieve the full Telegram Bot configuration."""
     token = get_setting(db, "telegram_bot_token", DEFAULT_BOT_TOKEN)
     chat_id = get_setting(db, "telegram_chat_id", DEFAULT_CHAT_ID)
     chat_title = get_setting(db, "telegram_chat_title", DEFAULT_CHAT_TITLE)
-    enabled = get_setting(db, "telegram_enabled", "true").lower() in ["true", "1", "yes"]
-    auto_send = get_setting(db, "telegram_auto_send", "true").lower() in ["true", "1", "yes"]
+    # Default MUST be 'false' so that unconfigured/fresh databases never trigger automated daily reports
+    enabled = get_setting(db, "telegram_enabled", "false").lower() in ["true", "1", "yes"]
+    auto_send = get_setting(db, "telegram_auto_send", "false").lower() in ["true", "1", "yes"]
     auto_time = get_setting(db, "telegram_auto_time", "17:00")
     send_excel = get_setting(db, "telegram_send_excel", "false").lower() in ["true", "1", "yes"]
 

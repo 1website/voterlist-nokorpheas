@@ -145,11 +145,14 @@ async def telegram_daily_report_scheduler():
             db = SessionLocal()
             try:
                 cfg = get_telegram_config(db)
-                if cfg.get("enabled") and cfg.get("auto_send"):
+                is_enabled = bool(cfg.get("enabled", False))
+                is_auto_send = bool(cfg.get("auto_send", False))
+
+                if is_enabled and is_auto_send:
                     target_time = cfg.get("auto_time", "17:00")
                     if time_hm == target_time and last_sent_date != today_str:
                         print(f"🤖 [Telegram Bot] Triggering automated daily report for {today_str} at {time_hm} (KH Time)...")
-                        res = send_daily_report(db, target_date_str=today_str, send_excel=cfg.get("send_excel", False))
+                        res = send_daily_report(db, target_date_str=today_str, send_excel=bool(cfg.get("send_excel", False)))
                         if res.get("success"):
                             last_sent_date = today_str
                             print(f"✅ [Telegram Bot] Automated daily report sent successfully for {today_str}!")

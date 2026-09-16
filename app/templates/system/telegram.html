@@ -63,9 +63,16 @@
             <div class="flex items-center gap-3 bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-xl border border-white/10 text-xs">
                 <div>
                     <div class="text-blue-200 text-[11px]">ម៉ោងផ្ញើស្វ័យប្រវត្តិ</div>
-                    <div class="font-bold text-amber-300 font-mono text-sm sm:text-base">
-                        ⏰ {{ config.auto_time }} នាទីល្ងាច
+                    {% if config.enabled and config.auto_send %}
+                    <div class="font-bold text-amber-300 font-mono text-sm sm:text-base flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span>⏰ {{ config.auto_time }} នាទីល្ងាច</span>
                     </div>
+                    {% else %}
+                    <div class="font-bold text-rose-300 text-xs sm:text-sm flex items-center gap-1">
+                        <span>🚫</span> <span>បានបិទ (Disabled)</span>
+                    </div>
+                    {% endif %}
                 </div>
                 <div class="border-l border-white/20 pl-3">
                     <div class="text-blue-200 text-[11px]">ទម្រង់របាយការណ៍</div>
@@ -126,18 +133,33 @@
                         <p class="text-[10px] text-slate-400 mt-1">ម៉ោងបិទការិយាល័យ (ម៉ោង 5 ល្ងាច)</p>
                     </div>
 
-                    <div class="space-y-2 pt-1">
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" name="enabled" value="true" {% if config.enabled %}checked{% endif %} class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4">
-                            <span class="text-xs font-bold text-slate-700 dark:text-slate-200">បើកដំណើរការ Telegram Bot</span>
+                    <div class="space-y-2.5 pt-1 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-200/80 dark:border-slate-700/80">
+                        <label class="flex items-center justify-between gap-2 cursor-pointer select-none">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" name="enabled" id="enabledCheck" value="true" onchange="updateCheckboxBadges()" {% if config.enabled %}checked{% endif %} class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4">
+                                <span class="text-xs font-bold text-slate-700 dark:text-slate-200">បើកដំណើរការ Telegram Bot</span>
+                            </div>
+                            <span id="enabledBadge" class="text-[10px] font-semibold px-2 py-0.5 rounded-md {% if config.enabled %}bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300{% else %}bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400{% endif %}">
+                                {{ 'បើក' if config.enabled else 'បិទ' }}
+                            </span>
                         </label>
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" name="auto_send" value="true" {% if config.auto_send %}checked{% endif %} class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4">
-                            <span class="text-xs font-semibold text-slate-700 dark:text-slate-200">ផ្ញើស្វ័យប្រវត្តិតាមម៉ោងកំណត់</span>
+                        <label class="flex items-center justify-between gap-2 cursor-pointer select-none">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" name="auto_send" id="autoSendCheck" value="true" onchange="updateCheckboxBadges()" {% if config.auto_send %}checked{% endif %} class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4">
+                                <span class="text-xs font-semibold text-slate-700 dark:text-slate-200">ផ្ញើស្វ័យប្រវត្តិតាមម៉ោងកំណត់</span>
+                            </div>
+                            <span id="autoSendBadge" class="text-[10px] font-semibold px-2 py-0.5 rounded-md {% if config.auto_send %}bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300{% else %}bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300{% endif %}">
+                                {{ 'បើកស្វ័យប្រវត្តិ' if config.auto_send else 'បិទស្វ័យប្រវត្តិ' }}
+                            </span>
                         </label>
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" name="send_excel" value="true" {% if config.send_excel %}checked{% endif %} class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4">
-                            <span class="text-xs font-semibold text-slate-700 dark:text-slate-200">ភ្ជាប់ជាមួយឯកសារ Excel បន្ថែម (ជាជម្រើស)</span>
+                        <label class="flex items-center justify-between gap-2 cursor-pointer select-none">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" name="send_excel" id="sendExcelCheck" value="true" onchange="updateCheckboxBadges()" {% if config.send_excel %}checked{% endif %} class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4">
+                                <span class="text-xs font-semibold text-slate-700 dark:text-slate-200">ភ្ជាប់ជាមួយឯកសារ Excel បន្ថែម</span>
+                            </div>
+                            <span id="sendExcelBadge" class="text-[10px] font-semibold px-2 py-0.5 rounded-md {% if config.send_excel %}bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300{% else %}bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400{% endif %}">
+                                {{ 'ភ្ជាប់' if config.send_excel else 'មិនភ្ជាប់' }}
+                            </span>
                         </label>
                     </div>
                 </div>
@@ -204,10 +226,58 @@
 
 {% block scripts %}
 <script>
+    function updateCheckboxBadges() {
+        const enCheck = document.getElementById('enabledCheck');
+        const enBadge = document.getElementById('enabledBadge');
+        if (enCheck && enBadge) {
+            if (enCheck.checked) {
+                enBadge.className = "text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300";
+                enBadge.textContent = "បើក";
+            } else {
+                enBadge.className = "text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400";
+                enBadge.textContent = "បិទ";
+            }
+        }
+
+        const asCheck = document.getElementById('autoSendCheck');
+        const asBadge = document.getElementById('autoSendBadge');
+        if (asCheck && asBadge) {
+            if (asCheck.checked) {
+                asBadge.className = "text-[10px] font-semibold px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300";
+                asBadge.textContent = "បើកស្វ័យប្រវត្តិ";
+            } else {
+                asBadge.className = "text-[10px] font-semibold px-2 py-0.5 rounded-md bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300";
+                asBadge.textContent = "បិទស្វ័យប្រវត្តិ";
+            }
+        }
+
+        const seCheck = document.getElementById('sendExcelCheck');
+        const seBadge = document.getElementById('sendExcelBadge');
+        if (seCheck && seBadge) {
+            if (seCheck.checked) {
+                seBadge.className = "text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300";
+                seBadge.textContent = "ភ្ជាប់";
+            } else {
+                seBadge.className = "text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400";
+                seBadge.textContent = "មិនភ្ជាប់";
+            }
+        }
+    }
+
     async function saveSettings(e) {
         e.preventDefault();
         const form = document.getElementById('telegramSettingsForm');
         const formData = new FormData(form);
+
+        // Explicitly set checkbox booleans so unchecking sends 'false'
+        const enabledChecked = form.querySelector('input[name="enabled"]')?.checked || false;
+        const autoSendChecked = form.querySelector('input[name="auto_send"]')?.checked || false;
+        const sendExcelChecked = form.querySelector('input[name="send_excel"]')?.checked || false;
+
+        formData.set('enabled', enabledChecked ? 'true' : 'false');
+        formData.set('auto_send', autoSendChecked ? 'true' : 'false');
+        formData.set('send_excel', sendExcelChecked ? 'true' : 'false');
+
         const btn = document.getElementById('saveBtn');
         const originalHtml = btn.innerHTML;
 

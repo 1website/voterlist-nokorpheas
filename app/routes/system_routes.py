@@ -627,16 +627,23 @@ def telegram_settings_page(request: Request, db: Session = Depends(get_db)):
         "preview_text": preview_text
     })
 
+def _parse_form_bool(val) -> bool:
+    if isinstance(val, bool):
+        return val
+    if val is None:
+        return False
+    return str(val).strip().lower() in ["true", "1", "yes", "on"]
+
 @router.post("/api/telegram/settings")
 def save_telegram_settings(
     token: str = Form(None),
     bot_token: str = Form(None),
     chat_id: str = Form(...),
     chat_title: str = Form(""),
-    enabled: bool = Form(False),
-    auto_send: bool = Form(False),
+    enabled: str = Form(None),
+    auto_send: str = Form(None),
     auto_time: str = Form("17:00"),
-    send_excel: bool = Form(False),
+    send_excel: str = Form(None),
     request: Request = None,
     db: Session = Depends(get_db)
 ):
@@ -648,16 +655,24 @@ def save_telegram_settings(
     if not final_token:
         raise HTTPException(status_code=400, detail="សូមបញ្ចូល Bot Token")
 
-    set_setting(db, "telegram_bot_token", final_token, "Telegram Bot API Token")
-    set_setting(db, "telegram_chat_id", chat_id.strip(), "Telegram Group / Channel Chat ID")
+    is_enabled = _parse_form_bool(enabled)
+    is_auto_send = _parse_form_bool(auto_send)
+    is_send_excel = _parse_form_bool(send_excel)
+
+    ok1 = set_setting(db, "telegram_bot_token", final_token, "Telegram Bot API Token")
+    ok2 = set_setting(db, "telegram_chat_id", chat_id.strip(), "Telegram Group / Channel Chat ID")
     if chat_title.strip():
         set_setting(db, "telegram_chat_title", chat_title.strip(), "Telegram Chat Title")
-    set_setting(db, "telegram_enabled", "true" if enabled else "false", "Telegram Integration Enabled")
-    set_setting(db, "telegram_auto_send", "true" if auto_send else "false", "Automated Daily Report Sending")
-    set_setting(db, "telegram_auto_time", auto_time.strip() or "17:00", "Daily Report Scheduled Time")
-    set_setting(db, "telegram_send_excel", "true" if send_excel else "false", "Attach Excel in Daily Report")
+    ok3 = set_setting(db, "telegram_enabled", "true" if is_enabled else "false", "Telegram Integration Enabled")
+    ok4 = set_setting(db, "telegram_auto_send", "true" if is_auto_send else "false", "Automated Daily Report Sending")
+    ok5 = set_setting(db, "telegram_auto_time", auto_time.strip() or "17:00", "Daily Report Scheduled Time")
+    ok6 = set_setting(db, "telegram_send_excel", "true" if is_send_excel else "false", "Attach Excel in Daily Report")
 
-    log_activity(db, current_user, "TELEGRAM_CONFIG", "បានកែប្រែការកំណត់ Telegram Bot", "system", action_type="info", request=request)
+    if not all([ok1, ok2, ok3, ok4, ok5, ok6]):
+        raise HTTPException(status_code=500, detail="កំហុសក្នុងការរក្សាទុកការកំណត់ចូលក្នុង Database សូមព្យាយាមម្តងទៀត")
+
+    status_msg = "បើកផ្ញើស្វ័យប្រវត្តិ" if is_auto_send else "បិទផ្ញើស្វ័យប្រវត្តិ"
+    log_activity(db, current_user, "TELEGRAM_CONFIG", f"បានកែប្រែការកំណត់ Telegram Bot ({status_msg})", "system", action_type="info", request=request)
     return JSONResponse({"success": True, "message": "បានរក្សាទុកការកំណត់ Telegram Bot ដោយជោគជ័យ!"})
 
 @router.post("/api/telegram/test")
