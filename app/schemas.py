@@ -3,7 +3,7 @@ from typing import Optional
 
 class VoterCreateSchema(BaseModel):
     name_kh: str
-    name_en: str
+    name_en: Optional[str] = ""
     gender: str
     dob: str
     national_id: str
@@ -14,7 +14,7 @@ class VoterCreateSchema(BaseModel):
 
 class VoterUpdateSchema(BaseModel):
     name_kh: str
-    name_en: str
+    name_en: Optional[str] = ""
     gender: str
     dob: str
     national_id: str

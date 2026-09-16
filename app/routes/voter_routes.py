@@ -176,18 +176,18 @@ def generate_voters_excel(voters, filter_title: str = "ឃុំនគរភា�
         bottom=Side(style='thin', color='CBD5E0')
     )
 
-    # Title Rows (15 columns A to O)
-    ws.merge_cells("A1:O1")
+    # Title Rows (14 columns A to N)
+    ws.merge_cells("A1:N1")
     ws["A1"] = "ព្រះរាជាណាចក្រកម្ពុជា ជាតិ សាសនា ព្រះមហាក្សត្រ"
     ws["A1"].font = title_font
     ws["A1"].alignment = Alignment(horizontal="center", vertical="center")
 
-    ws.merge_cells("A2:O2")
+    ws.merge_cells("A2:N2")
     ws["A2"] = f"បញ្ជីឈ្មោះអ្នកចុះឈ្មោះបោះឆ្នោត - រដ្ឋបាលឃុំនគរភាស ({filter_title})"
     ws["A2"].font = subtitle_font
     ws["A2"].alignment = Alignment(horizontal="center", vertical="center")
 
-    ws.merge_cells("A3:O3")
+    ws.merge_cells("A3:N3")
     now_str = get_cambodia_now().strftime("%d-%m-%Y %H:%M")
     ws["A3"] = f"កាលបរិច្ឆេទចេញរបាយការណ៍៖ {now_str} | ចំនួនសរុប៖ {len(voters)} នាក់"
     ws["A3"].font = Font(name="Khmer OS Siemreap", size=9, italic=True, color="666666")
@@ -201,7 +201,7 @@ def generate_voters_excel(voters, filter_title: str = "ឃុំនគរភា�
     # Headers
     headers = [
         "ល.រ", "កូដអ្នកបោះឆ្នោត", "លេខរៀងបញ្ជី", "លេខអត្តសញ្ញាណប័ណ្ណ",
-        "គោត្តនាម-នាម", "អក្សរឡាតាំង", "ភេទ", "ថ្ងៃខែឆ្នាំកំណើត",
+        "គោត្តនាម-នាម", "ភេទ", "ថ្ងៃខែឆ្នាំកំណើត",
         "អាយុ", "ភូមិ", "ការិយាល័យបោះឆ្នោត", "ប្រភេទបញ្ជី",
         "ស្ថានភាព", "ស្ថានភាពវត្តមាន", "ហត្ថលេខា / ស្នាមមេដៃ"
     ]
@@ -239,18 +239,17 @@ def generate_voters_excel(voters, filter_title: str = "ឃុំនគរភា�
         ws.cell(row=row_num, column=3, value=v.list_no or "").alignment = Alignment(horizontal="center")
         ws.cell(row=row_num, column=4, value=v.national_id or "").alignment = Alignment(horizontal="center")
         ws.cell(row=row_num, column=5, value=v.name_kh or "").alignment = Alignment(horizontal="left")
-        ws.cell(row=row_num, column=6, value=v.name_en or "").alignment = Alignment(horizontal="left")
-        ws.cell(row=row_num, column=7, value=v.gender or "").alignment = Alignment(horizontal="center")
-        ws.cell(row=row_num, column=8, value=v.dob or "").alignment = Alignment(horizontal="center")
-        ws.cell(row=row_num, column=9, value=age_text).alignment = Alignment(horizontal="center")
-        ws.cell(row=row_num, column=10, value=v.village.name_kh if v.village else "").alignment = Alignment(horizontal="left")
-        ws.cell(row=row_num, column=11, value=f"{v.station.code} - {v.station.name}" if v.station else "").alignment = Alignment(horizontal="left")
-        ws.cell(row=row_num, column=12, value=reg_text).alignment = Alignment(horizontal="center")
-        ws.cell(row=row_num, column=13, value=st_text).alignment = Alignment(horizontal="center")
-        ws.cell(row=row_num, column=14, value=voted_status).alignment = Alignment(horizontal="center")
-        ws.cell(row=row_num, column=15, value="").alignment = Alignment(horizontal="center")
+        ws.cell(row=row_num, column=6, value=v.gender or "").alignment = Alignment(horizontal="center")
+        ws.cell(row=row_num, column=7, value=v.dob or "").alignment = Alignment(horizontal="center")
+        ws.cell(row=row_num, column=8, value=age_text).alignment = Alignment(horizontal="center")
+        ws.cell(row=row_num, column=9, value=v.village.name_kh if v.village else "").alignment = Alignment(horizontal="left")
+        ws.cell(row=row_num, column=10, value=f"{v.station.code} - {v.station.name}" if v.station else "").alignment = Alignment(horizontal="left")
+        ws.cell(row=row_num, column=11, value=reg_text).alignment = Alignment(horizontal="center")
+        ws.cell(row=row_num, column=12, value=st_text).alignment = Alignment(horizontal="center")
+        ws.cell(row=row_num, column=13, value=voted_status).alignment = Alignment(horizontal="center")
+        ws.cell(row=row_num, column=14, value="").alignment = Alignment(horizontal="center")
 
-        for c in range(1, 16):
+        for c in range(1, 15):
             cell = ws.cell(row=row_num, column=c)
             cell.font = data_font
             cell.border = thin_border
@@ -271,7 +270,7 @@ def generate_voters_excel(voters, filter_title: str = "ឃុំនគរភា�
                 max_len = max(max_len, len(str(cell.value)))
         ws.column_dimensions[col_letter].width = max(max_len + 4, 11)
 
-    ws.column_dimensions['O'].width = 18  # Signature column
+    ws.column_dimensions['N'].width = 18  # Signature column
 
     output = io.BytesIO()
     wb.save(output)
@@ -667,7 +666,7 @@ def validate_voter_age_backend(dob_str: str) -> None:
 @router.post("/api/voters")
 def create_voter(
     name_kh: str = Form(...),
-    name_en: str = Form(...),
+    name_en: str = Form(""),
     gender: str = Form(...),
     dob: str = Form(...),
     national_id: str = Form(...),
@@ -725,7 +724,7 @@ def create_voter(
         list_no=next_list_no,
         national_id=clean_id,
         name_kh=name_kh.strip(),
-        name_en=name_en.strip().upper(),
+        name_en=name_en.strip().upper() if name_en else "",
         gender=gender.strip(),
         dob=dob.strip(),
         address=address.strip(),
@@ -896,7 +895,7 @@ def upload_voter_photo(
 def update_voter(
     voter_id: int,
     name_kh: str = Form(...),
-    name_en: str = Form(...),
+    name_en: str = Form(""),
     gender: str = Form(...),
     dob: str = Form(...),
     national_id: str = Form(...),
@@ -940,7 +939,7 @@ def update_voter(
         voter.photo_url = photo_preset.strip()
 
     voter.name_kh = name_kh.strip()
-    voter.name_en = name_en.strip().upper()
+    voter.name_en = name_en.strip().upper() if name_en else ""
     voter.gender = gender.strip()
     voter.dob = dob.strip()
     voter.national_id = clean_id

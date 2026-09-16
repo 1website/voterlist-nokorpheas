@@ -336,17 +336,17 @@ def generate_daily_excel_bytes(db: Session, target_date_str: str = None) -> tupl
     )
 
     # Title rows
-    ws.merge_cells("A1:K1")
+    ws.merge_cells("A1:J1")
     ws["A1"] = "ព្រះរាជាណាចក្រកម្ពុជា ជាតិ សាសនា ព្រះមហាក្សត្រ"
     ws["A1"].font = title_font
     ws["A1"].alignment = Alignment(horizontal="center", vertical="center")
 
-    ws.merge_cells("A2:K2")
+    ws.merge_cells("A2:J2")
     ws["A2"] = "រដ្ឋបាលឃុំនគរភាស ស្រុកអង្គរជុំ ខេត្តសៀមរាប"
     ws["A2"].font = sub_font
     ws["A2"].alignment = Alignment(horizontal="center", vertical="center")
 
-    ws.merge_cells("A3:K3")
+    ws.merge_cells("A3:J3")
     ws["A3"] = f"បញ្ជីឈ្មោះអ្នកចុះឈ្មោះបោះឆ្នោតប្រចាំថ្ងៃ៖ {target_date_str} (សរុប {len(voters)} នាក់)"
     ws["A3"].font = Font(name="Khmer OS Siemreap", size=11, bold=True, color="0F766E")
     ws["A3"].alignment = Alignment(horizontal="center", vertical="center")
@@ -354,7 +354,7 @@ def generate_daily_excel_bytes(db: Session, target_date_str: str = None) -> tupl
     # Table Header
     headers = [
         "ល.រ", "ម៉ោង", "កូដអ្នកបោះឆ្នោត", "លេខអត្តសញ្ញាណ",
-        "គោត្តនាម-នាម", "អក្សរឡាតាំង", "ភេទ", "ថ្ងៃខែឆ្នាំកំណើត",
+        "គោត្តនាម-នាម", "ភេទ", "ថ្ងៃខែឆ្នាំកំណើត",
         "ភូមិ", "ការិយាល័យបោះឆ្នោត", "កំណត់សម្គាល់"
     ]
 
@@ -373,14 +373,13 @@ def generate_daily_excel_bytes(db: Session, target_date_str: str = None) -> tupl
         ws.cell(row=row_num, column=3, value=v.voter_code).alignment = Alignment(horizontal="center")
         ws.cell(row=row_num, column=4, value=v.national_id).alignment = Alignment(horizontal="center")
         ws.cell(row=row_num, column=5, value=v.name_kh).alignment = Alignment(horizontal="left")
-        ws.cell(row=row_num, column=6, value=v.name_en).alignment = Alignment(horizontal="left")
-        ws.cell(row=row_num, column=7, value=v.gender).alignment = Alignment(horizontal="center")
-        ws.cell(row=row_num, column=8, value=v.dob).alignment = Alignment(horizontal="center")
-        ws.cell(row=row_num, column=9, value=v.village.name_kh if v.village else "").alignment = Alignment(horizontal="left")
-        ws.cell(row=row_num, column=10, value=f"{v.station.code} - {v.station.name}" if v.station else "").alignment = Alignment(horizontal="left")
-        ws.cell(row=row_num, column=11, value=v.notes or "បានចុះឈ្មោះ").alignment = Alignment(horizontal="left")
+        ws.cell(row=row_num, column=6, value=v.gender).alignment = Alignment(horizontal="center")
+        ws.cell(row=row_num, column=7, value=v.dob).alignment = Alignment(horizontal="center")
+        ws.cell(row=row_num, column=8, value=v.village.name_kh if v.village else "").alignment = Alignment(horizontal="left")
+        ws.cell(row=row_num, column=9, value=f"{v.station.code} - {v.station.name}" if v.station else "").alignment = Alignment(horizontal="left")
+        ws.cell(row=row_num, column=10, value=v.notes or "បានចុះឈ្មោះ").alignment = Alignment(horizontal="left")
 
-        for c in range(1, 12):
+        for c in range(1, 11):
             cell = ws.cell(row=row_num, column=c)
             cell.font = data_font
             cell.border = thin_border

@@ -85,7 +85,7 @@ class Voter(Base):
     list_no = Column(Integer, nullable=False)                                # 1, 2, 3 in station
     national_id = Column(String(50), index=True, nullable=False) # 9 or 10 digit Khmer ID card
     name_kh = Column(String(100), nullable=False)                            # ឈ្មោះខ្មែរ (e.g. ស៊ឹម ចាន់ថន)
-    name_en = Column(String(100), nullable=False)                            # ឈ្មោះឡាតាំង (e.g. SIM CHANTHORN)
+    name_en = Column(String(100), nullable=True, default="")                 # ឈ្មោះឡាតាំង (ជាជម្រើស)
     gender = Column(String(20), nullable=False)                              # ប្រុស / ស្រី
     dob = Column(String(50), nullable=False)                                 # 1990-04-15 or 1990
     address = Column(String(255), nullable=True)                             # ក្រុមទី...

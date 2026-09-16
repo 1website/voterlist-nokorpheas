@@ -278,8 +278,7 @@
                     <th style="width: 95px;">កូដអ្នកបោះឆ្នោត</th>
                     <th style="width: 50px;">លេខរៀង</th>
                     <th style="width: 95px;">អត្តសញ្ញាណប័ណ្ណ</th>
-                    <th style="width: 125px;">គោត្តនាម-នាម</th>
-                    <th style="width: 115px;">អក្សរឡាតាំង</th>
+                    <th style="width: 140px;">គោត្តនាម-នាម</th>
                     <th style="width: 42px;">ភេទ</th>
                     <th style="width: 80px;">ថ្ងៃកំណើត</th>
                     <th>ភូមិទីលំនៅ</th>
@@ -296,7 +295,6 @@
                         <td style="text-align: center; font-weight: bold;">#{{ v.list_no }}</td>
                         <td style="font-family: monospace; text-align: center;">{{ v.national_id }}</td>
                         <td style="font-weight: bold; color: #0f172a;">{{ v.name_kh }}</td>
-                        <td style="text-transform: uppercase; font-size: 10px; color: #475569;">{{ v.name_en }}</td>
                         <td style="text-align: center;">{{ v.gender }}</td>
                         <td style="text-align: center; font-size: 10.5px;">{{ v.dob }}</td>
                         <td>{{ v.village.name_kh if v.village else '' }}</td>
@@ -306,7 +304,7 @@
                     {% endfor %}
                 {% else %}
                     <tr>
-                        <td colspan="11" style="text-align: center; padding: 25px; color: #64748b;">ពុំមានទិន្នន័យអ្នកបោះឆ្នោតឡើយ</td>
+                        <td colspan="10" style="text-align: center; padding: 25px; color: #64748b;">ពុំមានទិន្នន័យអ្នកបោះឆ្នោតឡើយ</td>
                     </tr>
                 {% endif %}
             </tbody>

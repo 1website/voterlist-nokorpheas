@@ -216,7 +216,6 @@
                                 </div>
                                 <div>
                                     <div class="font-bold text-slate-900 voter-name-kh whitespace-nowrap">{{ v.name_kh }}</div>
-                                    <div class="hidden sm:block voter-latin-name text-xs text-slate-400 uppercase tracking-wider font-semibold">{{ v.name_en }}</div>
                                 </div>
                             </div>
                         </td>
@@ -460,18 +459,10 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div class="form-group">
-                        <label class="form-label">គោត្តនាម-នាម (ខ្មែរ) *</label>
-                        <input type="text" name="name_kh" required placeholder="ឧ. ស៊ឹម ចាន់ថន" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label flex items-center justify-between">
-                            <span>ឈ្មោះជាអក្សរឡាតាំង *</span>
-                            <span class="text-[10px] text-blue-600 dark:text-sky-400 font-sans font-semibold">🔤 Auto English</span>
-                        </label>
-                        <input type="text" name="name_en" required placeholder="ឧ. SIM CHANTHORN" autocomplete="off" autocapitalize="characters" lang="en" spellcheck="false" data-latin-input="true" class="form-control uppercase font-mono kh-latin-auto-input">
-                    </div>
+                <div class="form-group">
+                    <label class="form-label">គោត្តនាម-នាម *</label>
+                    <input type="text" name="name_kh" required placeholder="ឧ. ស៊ឹម ចាន់ថន" class="form-control">
+                    <input type="hidden" name="name_en" value="">
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -649,18 +640,10 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div class="form-group">
-                        <label class="form-label">គោត្តនាម-នាម (ខ្មែរ) *</label>
-                        <input type="text" name="name_kh" id="editNameKh" required class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label flex items-center justify-between">
-                            <span>ឈ្មោះជាអក្សរឡាតាំង *</span>
-                            <span class="text-[10px] text-blue-600 dark:text-sky-400 font-sans font-semibold">🔤 Auto English</span>
-                        </label>
-                        <input type="text" name="name_en" id="editNameEn" required autocomplete="off" autocapitalize="characters" lang="en" spellcheck="false" data-latin-input="true" class="form-control uppercase font-mono kh-latin-auto-input">
-                    </div>
+                <div class="form-group">
+                    <label class="form-label">គោត្តនាម-នាម *</label>
+                    <input type="text" name="name_kh" id="editNameKh" required class="form-control">
+                    <input type="hidden" name="name_en" id="editNameEn" value="">
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -987,15 +970,10 @@
 
                     <!-- Editable Fields for Review -->
                     <div class="sm:col-span-2 space-y-2.5">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">គោត្តនាម-នាម (ខ្មែរ) *</label>
-                                <input type="text" id="ocrFieldNameKh" class="form-control text-xs font-bold" placeholder="ឈ្មោះខ្មែរ">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">ឈ្មោះជាអក្សរឡាតាំង *</label>
-                                <input type="text" id="ocrFieldNameEn" class="form-control text-xs font-bold uppercase" placeholder="LATIN NAME">
-                            </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">គោត្តនាម-នាម *</label>
+                            <input type="text" id="ocrFieldNameKh" class="form-control text-xs font-bold" placeholder="ឈ្មោះខ្មែរ">
+                            <input type="hidden" id="ocrFieldNameEn" value="">
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -1487,7 +1465,7 @@
             if (res.ok) {
                 document.getElementById('editVoterId').value = data.id;
                 document.getElementById('editNameKh').value = data.name_kh;
-                document.getElementById('editNameEn').value = data.name_en;
+                if (document.getElementById('editNameEn')) document.getElementById('editNameEn').value = data.name_en || '';
                 document.getElementById('editGender').value = data.gender;
                 document.getElementById('editDob').value = data.dob;
                 const editNatEl = document.getElementById('editNationalId');
