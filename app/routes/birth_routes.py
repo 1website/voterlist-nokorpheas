@@ -20,6 +20,12 @@ from app.models import User, Village, PollingStation, Voter, BirthCertificate
 from app.auth import get_current_user_optional, get_current_user, require_admin, require_admin_or_officer
 from app.audit import log_activity
 from app.timezone_utils import get_cambodia_now, get_cambodia_today, get_cambodia_today_str
+from app.excel_importer import (
+    get_cert_variants,
+    get_book_variants,
+    normalize_cert_no,
+    normalize_book_no
+)
 
 router = APIRouter()
 
@@ -418,22 +424,27 @@ def check_duplicate_birth_certificate(
     if not cert_clean:
         return {"duplicate": False, "message": ""}
 
+    cert_vars = [v.lower() for v in get_cert_variants(cert_clean)]
+    book_vars = [v.lower() for v in get_book_variants(book_clean)] if book_clean else []
+
     query = db.query(BirthCertificate)
     if exclude_id > 0:
         query = query.filter(BirthCertificate.id != exclude_id)
 
     # 1. Match both Certificate No and Book No if Book No provided
     existing = None
-    if book_clean:
+    if book_vars:
         existing = query.filter(
-            func.lower(func.trim(BirthCertificate.certificate_no)) == cert_clean.lower(),
-            func.lower(func.trim(BirthCertificate.book_no)) == book_clean.lower()
+            func.lower(func.trim(BirthCertificate.certificate_no)).in_(cert_vars),
+            or_(
+                func.lower(func.trim(BirthCertificate.book_no)).in_(book_vars),
+                BirthCertificate.book_no == None,
+                func.trim(BirthCertificate.book_no) == ""
+            )
         ).first()
-
-    # 2. Match Certificate No if no exact (cert + book) match or if book_no not provided
-    if not existing:
+    else:
         existing = query.filter(
-            func.lower(func.trim(BirthCertificate.certificate_no)) == cert_clean.lower()
+            func.lower(func.trim(BirthCertificate.certificate_no)).in_(cert_vars)
         ).first()
 
     if existing:
@@ -488,17 +499,23 @@ async def create_birth_certificate(
     cert_clean = certificate_no.strip()
     book_clean = book_no.strip() if book_no else ""
 
+    cert_vars = [v.lower() for v in get_cert_variants(cert_clean)]
+    book_vars = [v.lower() for v in get_book_variants(book_clean)] if book_clean else []
+
     # Check duplicate certificate_no and book_no
     existing = None
-    if book_clean:
+    if book_vars:
         existing = db.query(BirthCertificate).filter(
-            func.lower(func.trim(BirthCertificate.certificate_no)) == cert_clean.lower(),
-            func.lower(func.trim(BirthCertificate.book_no)) == book_clean.lower()
+            func.lower(func.trim(BirthCertificate.certificate_no)).in_(cert_vars),
+            or_(
+                func.lower(func.trim(BirthCertificate.book_no)).in_(book_vars),
+                BirthCertificate.book_no == None,
+                func.trim(BirthCertificate.book_no) == ""
+            )
         ).first()
-
-    if not existing:
+    else:
         existing = db.query(BirthCertificate).filter(
-            func.lower(func.trim(BirthCertificate.certificate_no)) == cert_clean.lower()
+            func.lower(func.trim(BirthCertificate.certificate_no)).in_(cert_vars)
         ).first()
 
     if existing and force_save != "1":
@@ -591,17 +608,23 @@ async def edit_birth_certificate(
     cert_clean = certificate_no.strip()
     book_clean = book_no.strip() if book_no else ""
 
+    cert_vars = [v.lower() for v in get_cert_variants(cert_clean)]
+    book_vars = [v.lower() for v in get_book_variants(book_clean)] if book_clean else []
+
     dup = None
-    if book_clean:
+    if book_vars:
         dup = db.query(BirthCertificate).filter(
-            func.lower(func.trim(BirthCertificate.certificate_no)) == cert_clean.lower(),
-            func.lower(func.trim(BirthCertificate.book_no)) == book_clean.lower(),
+            func.lower(func.trim(BirthCertificate.certificate_no)).in_(cert_vars),
+            or_(
+                func.lower(func.trim(BirthCertificate.book_no)).in_(book_vars),
+                BirthCertificate.book_no == None,
+                func.trim(BirthCertificate.book_no) == ""
+            ),
             BirthCertificate.id != id
         ).first()
-
-    if not dup:
+    else:
         dup = db.query(BirthCertificate).filter(
-            func.lower(func.trim(BirthCertificate.certificate_no)) == cert_clean.lower(),
+            func.lower(func.trim(BirthCertificate.certificate_no)).in_(cert_vars),
             BirthCertificate.id != id
         ).first()
 
@@ -907,17 +930,17 @@ def export_birth_certificates_excel(
     )
 
     # Title Block
-    ws.merge_cells("A1:K1")
+    ws.merge_cells("A1:M1")
     ws["A1"] = "ព្រះរាជាណាចក្រកម្ពុជា • ជាតិ សាសនា ព្រះមហាក្សត្រ"
     ws["A1"].font = Font(name="Khmer OS Muol Light", size=11, bold=True)
     ws["A1"].alignment = Alignment(horizontal="center")
 
-    ws.merge_cells("A2:K2")
+    ws.merge_cells("A2:M2")
     ws["A2"] = "រដ្ឋបាលឃុំនគរភាស ស្រុកអង្គរជុំ ខេត្តសៀមរាប"
     ws["A2"].font = title_font
     ws["A2"].alignment = Alignment(horizontal="center")
 
-    ws.merge_cells("A3:K3")
+    ws.merge_cells("A3:M3")
     ws["A3"] = f"បញ្ជីកត់ត្រាសំបុត្រកំណើត និងតាមដានយុវជនគ្រប់អាយុបោះឆ្នោត (ទាញយកថ្ងៃទី {get_cambodia_today()})"
     ws["A3"].font = subtitle_font
     ws["A3"].alignment = Alignment(horizontal="center")
@@ -926,7 +949,7 @@ def export_birth_certificates_excel(
 
     # Table Headers
     headers = [
-        "ល.រ", "លេខសំបុត្រកំណើត", "កាលបរិច្ឆេទចុះបញ្ជី", "ឈ្មោះខ្មែរ", "ឈ្មោះឡាតាំង", 
+        "ល.រ", "លេខសំបុត្រកំណើត", "លេខសៀវភៅ", "កាលបរិច្ឆេទចុះបញ្ជី", "ឈ្មោះខ្មែរ", "ឈ្មោះឡាតាំង", 
         "ភេទ", "ថ្ងៃខែឆ្នាំកំណើត", "អាយុ", "ស្ថានភាពសិទ្ធិ", 
         "ភូមិ", "ឈ្មោះឪពុក-ម្តាយ", "ស្ថានភាពបោះឆ្នោត"
     ]
@@ -950,6 +973,7 @@ def export_birth_certificates_excel(
         row_data = [
             i,
             b.certificate_no,
+            b.book_no or "",
             reg_date_str,
             b.name_kh,
             b.name_en,
@@ -965,17 +989,17 @@ def export_birth_certificates_excel(
 
         for col_idx in range(1, len(headers) + 1):
             cell = ws.cell(row=row_idx, column=col_idx)
-            cell.font = bold_cell_font if col_idx in [4, 9, 12] else cell_font
+            cell.font = bold_cell_font if col_idx in [5, 10, 13] else cell_font
             cell.border = thin_border
             if row_idx % 2 == 0:
                 cell.fill = even_row_fill
-            if col_idx in [1, 3, 6, 7, 8, 9]:
+            if col_idx in [1, 2, 3, 4, 7, 8, 9, 10]:
                 cell.alignment = Alignment(horizontal="center", vertical="center")
             else:
                 cell.alignment = Alignment(horizontal="left", vertical="center")
 
     # Set Column Widths
-    col_widths = [6, 18, 20, 22, 8, 14, 10, 20, 16, 24, 24]
+    col_widths = [6, 18, 16, 18, 22, 20, 8, 14, 10, 20, 16, 26, 22]
     for idx, width in enumerate(col_widths, start=1):
         ws.column_dimensions[get_column_letter(idx)].width = width
 

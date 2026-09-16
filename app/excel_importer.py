@@ -17,6 +17,7 @@ KHMER_NUMERALS = {
     '០': '0', '១': '1', '២': '2', '៣': '3', '៤': '4',
     '៥': '5', '៦': '6', '៧': '7', '៨': '8', '៩': '9'
 }
+ARABIC_TO_KHMER = {v: k for k, v in KHMER_NUMERALS.items()}
 
 def convert_khmer_numerals(text: str) -> str:
     """Converts Khmer digits ០-៩ to standard digits 0-9."""
@@ -26,6 +27,59 @@ def convert_khmer_numerals(text: str) -> str:
     for kh, ar in KHMER_NUMERALS.items():
         result = result.replace(kh, ar)
     return result
+
+def convert_to_khmer_numerals(text: str) -> str:
+    """Converts standard digits 0-9 to Khmer digits ០-៩."""
+    if not text:
+        return ""
+    result = str(text)
+    for ar, kh in ARABIC_TO_KHMER.items():
+        result = result.replace(ar, kh)
+    return result
+
+def normalize_cert_no(val: Any) -> str:
+    """Normalizes certificate number for duplicate checking (converts Khmer digits to Arabic, strips whitespace, lowercases)."""
+    if val is None:
+        return ""
+    s = convert_khmer_numerals(str(val)).strip().lower()
+    return re.sub(r"\s+", "", s)
+
+def normalize_book_no(val: Any) -> str:
+    """Normalizes book number for duplicate checking (converts Khmer digits to Arabic, removes 'សៀវភៅលេខ', 'សៀវភៅ', etc.)."""
+    if val is None:
+        return ""
+    s = convert_khmer_numerals(str(val)).strip().lower()
+    s = re.sub(r"^(សៀវភៅលេខ|សៀវភៅ|លេខ|book\s*no\.?|book)\s*[:：\s]*", "", s)
+    return re.sub(r"\s+", "", s)
+
+def get_cert_variants(val: str) -> List[str]:
+    """Returns candidate representations of certificate_no in both Arabic and Khmer digits."""
+    if not val:
+        return []
+    s = str(val).strip()
+    arabic = convert_khmer_numerals(s)
+    khmer = convert_to_khmer_numerals(s)
+    norm = normalize_cert_no(s)
+    norm_khmer = convert_to_khmer_numerals(norm)
+    return list(dict.fromkeys([s, s.lower(), arabic, arabic.lower(), khmer, khmer.lower(), norm, norm_khmer]))
+
+def get_book_variants(val: str) -> List[str]:
+    """Returns candidate representations of book_no in both Arabic and Khmer digits and prefixes."""
+    if not val:
+        return []
+    s = str(val).strip()
+    arabic = convert_khmer_numerals(s)
+    khmer = convert_to_khmer_numerals(s)
+    norm = normalize_book_no(s)
+    norm_khmer = convert_to_khmer_numerals(norm)
+    variants = [s, s.lower(), arabic, arabic.lower(), khmer, khmer.lower(), norm, norm_khmer]
+    if norm:
+        variants.extend([
+            f"សៀវភៅលេខ {norm}", f"សៀវភៅលេខ {norm_khmer}",
+            f"សៀវភៅ {norm}", f"សៀវភៅ {norm_khmer}",
+            f"លេខ {norm}", f"លេខ {norm_khmer}"
+        ])
+    return list(dict.fromkeys([v for v in variants if v]))
 
 def clean_date_value(val: Any) -> Optional[str]:
     """Parse various Excel date types into YYYY-MM-DD string."""
@@ -323,11 +377,20 @@ def generate_birth_excel_template(villages: List[Village]) -> io.BytesIO:
 def parse_birth_certificates_excel(file_bytes: bytes, filename: str, db: Session) -> Dict[str, Any]:
     """Parses uploaded Excel workbook, maps columns, and validates every row."""
     villages = db.query(Village).all()
-    existing_db_certs = {
-        row[0].strip().lower(): row[1] 
-        for row in db.query(BirthCertificate.certificate_no, BirthCertificate.name_kh).all()
-        if row[0]
-    }
+    
+    # Pre-cache existing birth certificates from DB for smart duplicate detection
+    db_by_cert_and_book: Dict[tuple, BirthCertificate] = {}
+    db_by_cert: Dict[str, List[BirthCertificate]] = {}
+
+    for bc in db.query(BirthCertificate).all():
+        c_norm = normalize_cert_no(bc.certificate_no)
+        b_norm = normalize_book_no(bc.book_no)
+        if c_norm:
+            if b_norm:
+                db_by_cert_and_book[(c_norm, b_norm)] = bc
+            if c_norm not in db_by_cert:
+                db_by_cert[c_norm] = []
+            db_by_cert[c_norm].append(bc)
     
     # Pre-cache active voters for auto-matching
     voters_cache = {}
@@ -373,7 +436,7 @@ def parse_birth_certificates_excel(file_bytes: bytes, filename: str, db: Session
             v_lower = val.lower()
             if any(k in v_lower for k in ["លេខសំបុត្រ", "cert_no", "certificate"]):
                 candidate_map["certificate_no"] = c
-            elif any(k in v_lower for k in ["សៀវភៅ", "book_no", "book"]):
+            elif any(k in v_lower for k in ["សៀវភៅ", "book_no", "book", "លេខសៀវភៅ", "សៀវភៅលេខ"]):
                 candidate_map["book_no"] = c
             elif any(k in v_lower for k in ["កាលបរិច្ឆេទចុះ", "កាលបរិច្ឆេទ", "registered_date", "reg_date"]):
                 candidate_map["registered_date"] = c
@@ -387,6 +450,8 @@ def parse_birth_certificates_excel(file_bytes: bytes, filename: str, db: Session
                 candidate_map["dob"] = c
             elif any(k in v_lower for k in ["ទីកន្លែងកំណើត", "pob", "place_of_birth"]):
                 candidate_map["pob"] = c
+            elif any(k in v_lower for k in ["ឪពុក-ម្តាយ", "ឪពុក/ម្តាយ", "parents", "parent"]):
+                candidate_map["parents"] = c
             elif any(k in v_lower for k in ["ឪពុក", "father", "father_name"]):
                 candidate_map["father_name"] = c
             elif any(k in v_lower for k in ["ម្តាយ", "mother", "mother_name"]):
@@ -461,10 +526,17 @@ def parse_birth_certificates_excel(file_bytes: bytes, filename: str, db: Session
         status = "valid"
 
         # 1. Certificate Number
-        cert_no = convert_khmer_numerals(str(raw_cert_no or "")).strip()
-        if not cert_no:
+        raw_cert_val = str(raw_cert_no or "").strip()
+        cert_no = raw_cert_val
+        norm_cert = normalize_cert_no(raw_cert_val)
+        if not norm_cert:
             issues.append("ខ្វះលេខសំបុត្រកំណើត")
             status = "error"
+
+        # Book Number
+        raw_book_val = str(get_val("book_no") or "").strip()
+        book_no = raw_book_val
+        norm_book = normalize_book_no(raw_book_val)
 
         # 2. Name Khmer
         name_kh = str(raw_name_kh or "").strip()
@@ -504,22 +576,73 @@ def parse_birth_certificates_excel(file_bytes: bytes, filename: str, db: Session
         if not reg_date_str:
             reg_date_str = get_cambodia_today_str()
 
+        # Parents (support combined column or separate father/mother)
+        raw_parents = str(get_val("parents") or "").strip()
+        raw_father = str(get_val("father_name") or "").strip()
+        raw_mother = str(get_val("mother_name") or "").strip()
+
+        if raw_parents and not raw_father and not raw_mother:
+            if " / " in raw_parents:
+                pts = raw_parents.split(" / ", 1)
+                raw_father, raw_mother = pts[0].strip(), pts[1].strip()
+            elif "/" in raw_parents:
+                pts = raw_parents.split("/", 1)
+                raw_father, raw_mother = pts[0].strip(), pts[1].strip()
+            elif "-" in raw_parents:
+                pts = raw_parents.split("-", 1)
+                raw_father, raw_mother = pts[0].strip(), pts[1].strip()
+            else:
+                raw_father = raw_parents
+        elif " / " in raw_father and not raw_mother:
+            pts = raw_father.split(" / ", 1)
+            raw_father, raw_mother = pts[0].strip(), pts[1].strip()
+        elif "/" in raw_father and not raw_mother:
+            pts = raw_father.split("/", 1)
+            raw_father, raw_mother = pts[0].strip(), pts[1].strip()
+
         # 8. Check Duplicates
         is_dup_db = False
         is_dup_file = False
-        if cert_no:
-            cert_key = cert_no.lower()
-            if cert_key in existing_db_certs:
+        if norm_cert:
+            dup_owner = None
+            dup_detail = ""
+
+            # Check exact match on both cert_no and book_no
+            if norm_book and (norm_cert, norm_book) in db_by_cert_and_book:
+                match_bc = db_by_cert_and_book[(norm_cert, norm_book)]
+                dup_owner = match_bc.name_kh
+                dup_detail = f"សៀវភៅ {match_bc.book_no or ''}".strip()
+            # If no book_no in Excel, match by cert_no
+            elif not norm_book and norm_cert in db_by_cert:
+                match_bc = db_by_cert[norm_cert][0]
+                dup_owner = match_bc.name_kh
+                dup_detail = f"សៀវភៅ {match_bc.book_no}" if match_bc.book_no else ""
+            # If book_no given, check if any DB record matches or has empty book_no
+            elif norm_book and norm_cert in db_by_cert:
+                for match_bc in db_by_cert[norm_cert]:
+                    match_b_norm = normalize_book_no(match_bc.book_no)
+                    if not match_b_norm or match_b_norm == norm_book:
+                        dup_owner = match_bc.name_kh
+                        dup_detail = f"សៀវភៅ {match_bc.book_no}" if match_bc.book_no else ""
+                        break
+
+            if dup_owner:
                 is_dup_db = True
-                dup_owner = existing_db_certs[cert_key]
-                issues.append(f"ស្ទួនលេខក្នុងប្រព័ន្ធរួចហើយ ({dup_owner})")
+                detail_str = f" • {dup_detail}" if dup_detail else ""
+                issues.append(f"ស្ទួនលេខក្នុងប្រព័ន្ធរួចហើយ ({dup_owner}{detail_str})")
                 if status != "error":
                     status = "warning"
-            if cert_key in seen_in_file_certs:
+
+            # Check duplicate within this file
+            file_key = (norm_cert, norm_book) if norm_book else (norm_cert, "")
+            if file_key in seen_in_file_certs:
                 is_dup_file = True
-                issues.append("ស្ទួនលេខជាមួយជួរដេកផ្សេងក្នុងឯកសារនេះ")
+                if norm_book:
+                    issues.append("ស្ទួនលេខសំបុត្រ និងសៀវភៅជាមួយជួរដេកផ្សេងក្នុងឯកសារនេះ")
+                else:
+                    issues.append("ស្ទួនលេខសំបុត្រជាមួយជួរដេកផ្សេងក្នុងឯកសារនេះ")
                 status = "error"
-            seen_in_file_certs.add(cert_key)
+            seen_in_file_certs.add(file_key)
 
         # 9. Auto-check matching with registered voter
         matched_voter = None
@@ -538,7 +661,7 @@ def parse_birth_certificates_excel(file_bytes: bytes, filename: str, db: Session
         rec = {
             "row_idx": r,
             "certificate_no": cert_no,
-            "book_no": str(get_val("book_no") or "").strip(),
+            "book_no": book_no,
             "registered_date": reg_date_str,
             "name_kh": name_kh,
             "name_en": name_en,
@@ -549,8 +672,8 @@ def parse_birth_certificates_excel(file_bytes: bytes, filename: str, db: Session
             "village_id": village_match.id if village_match else None,
             "village_name": village_match.name_kh if village_match else str(get_val("village") or ""),
             "pob": str(get_val("pob") or "").strip(),
-            "father_name": str(get_val("father_name") or "").strip(),
-            "mother_name": str(get_val("mother_name") or "").strip(),
+            "father_name": raw_father,
+            "mother_name": raw_mother,
             "address": str(get_val("address") or "").strip(),
             "notes": str(get_val("notes") or "").strip(),
             "status": status,
@@ -590,21 +713,46 @@ def execute_birth_import(
     skipped_count = 0
     failed_count = 0
 
+    # Pre-cache existing birth certificates from DB for smart duplicate matching
+    all_certs = db.query(BirthCertificate).all()
+    lookup_by_cert_and_book: Dict[tuple, BirthCertificate] = {}
+    lookup_by_cert: Dict[str, List[BirthCertificate]] = {}
+
+    for bc in all_certs:
+        c_norm = normalize_cert_no(bc.certificate_no)
+        b_norm = normalize_book_no(bc.book_no)
+        if c_norm:
+            if b_norm:
+                lookup_by_cert_and_book[(c_norm, b_norm)] = bc
+            if c_norm not in lookup_by_cert:
+                lookup_by_cert[c_norm] = []
+            lookup_by_cert[c_norm].append(bc)
+
     for item in records:
         cert_no = (item.get("certificate_no") or "").strip()
+        book_no = (item.get("book_no") or "").strip()
         name_kh = (item.get("name_kh") or "").strip()
         dob = (item.get("dob") or "").strip()
         village_id = item.get("village_id")
         gender = item.get("gender") or "ប្រុស"
 
+        norm_cert = normalize_cert_no(cert_no)
+        norm_book = normalize_book_no(book_no)
+
         # Basic validity check
-        if not cert_no or not name_kh or not dob or not village_id:
+        if not norm_cert or not name_kh or not dob or not village_id:
             failed_count += 1
             continue
 
-        existing = db.query(BirthCertificate).filter(
-            func.lower(func.trim(BirthCertificate.certificate_no)) == cert_no.lower()
-        ).first()
+        existing = None
+        if norm_book and (norm_cert, norm_book) in lookup_by_cert_and_book:
+            existing = lookup_by_cert_and_book[(norm_cert, norm_book)]
+        elif norm_cert in lookup_by_cert:
+            for ex_bc in lookup_by_cert[norm_cert]:
+                ex_b_norm = normalize_book_no(ex_bc.book_no)
+                if not norm_book or not ex_b_norm or ex_b_norm == norm_book:
+                    existing = ex_bc
+                    break
 
         # Check existing voter to auto-link
         matched_voter = db.query(Voter).filter(
@@ -621,7 +769,8 @@ def execute_birth_import(
                 skipped_count += 1
                 continue
             elif on_duplicate == "overwrite":
-                existing.book_no = item.get("book_no") or existing.book_no
+                if book_no:
+                    existing.book_no = book_no
                 existing.name_kh = name_kh
                 existing.name_en = (item.get("name_en") or existing.name_en).upper()
                 existing.gender = gender
@@ -641,7 +790,7 @@ def execute_birth_import(
         else:
             bc = BirthCertificate(
                 certificate_no=cert_no,
-                book_no=item.get("book_no") or None,
+                book_no=book_no or None,
                 name_kh=name_kh,
                 name_en=(item.get("name_en") or transliterate_khmer_name(name_kh)).upper(),
                 gender=gender,
@@ -658,6 +807,14 @@ def execute_birth_import(
             )
             db.add(bc)
             imported_count += 1
+
+            # Update in-memory cache for subsequent rows in the batch
+            if norm_cert:
+                if norm_book:
+                    lookup_by_cert_and_book[(norm_cert, norm_book)] = bc
+                if norm_cert not in lookup_by_cert:
+                    lookup_by_cert[norm_cert] = []
+                lookup_by_cert[norm_cert].append(bc)
 
     db.commit()
 

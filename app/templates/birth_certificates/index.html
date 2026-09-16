@@ -1635,10 +1635,14 @@ function renderExcelPreview(data) {
         }
 
         const voterLink = r.matched_voter ? `<span class="text-[9px] text-emerald-600 dark:text-emerald-400 block font-semibold">🔗 ភ្ជាប់បោះឆ្នោត (${r.matched_voter.voter_code})</span>` : '';
+        const bookText = r.book_no ? `<div class="text-[10px] text-slate-400 font-mono font-normal">សៀវភៅ៖ ${r.book_no}</div>` : '';
 
         tr.innerHTML = `
             <td class="py-2 px-2.5 text-center text-slate-400 font-mono">${idx + 1}</td>
-            <td class="py-2 px-2.5 font-mono font-bold text-slate-800 dark:text-slate-200 whitespace-nowrap">${r.certificate_no || '---'}</td>
+            <td class="py-2 px-2.5 whitespace-nowrap">
+                <span class="font-mono font-bold text-slate-800 dark:text-slate-200">${r.certificate_no || '---'}</span>
+                ${bookText}
+            </td>
             <td class="py-2 px-2.5 font-bold text-slate-900 dark:text-slate-100 whitespace-nowrap">${r.name_kh || '---'}${voterLink}</td>
             <td class="py-2 px-2.5 font-mono text-slate-600 dark:text-slate-400 text-[10px] whitespace-nowrap">${r.name_en || '---'}</td>
             <td class="py-2 px-2.5 text-center font-medium">${r.gender || '---'}</td>
