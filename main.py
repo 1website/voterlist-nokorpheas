@@ -79,12 +79,12 @@ app.add_middleware(
     same_site="lax"
 )
 
-# Prevent stale HTML caching in client browsers
+# Prevent stale caching in client browsers for HTML, sw.js, and manifest
 @app.middleware("http")
 async def add_no_cache_headers_for_html(request: Request, call_next):
     response = await call_next(request)
     content_type = response.headers.get("content-type", "")
-    if "text/html" in content_type:
+    if "text/html" in content_type or request.url.path in ("/sw.js", "/manifest.json"):
         response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
         response.headers["Pragma"] = "no-cache"
         response.headers["Expires"] = "0"
@@ -97,11 +97,15 @@ app.mount("/static", StaticFiles(directory=static_dir), name="static")
 # Root endpoints for PWA & Browser Icons
 @app.get("/manifest.json", include_in_schema=False)
 async def get_manifest():
-    return FileResponse(os.path.join(static_dir, "manifest.json"), media_type="application/manifest+json")
+    response = FileResponse(os.path.join(static_dir, "manifest.json"), media_type="application/manifest+json")
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
+    return response
 
 @app.get("/sw.js", include_in_schema=False)
 async def get_service_worker():
-    return FileResponse(os.path.join(static_dir, "sw.js"), media_type="application/javascript")
+    response = FileResponse(os.path.join(static_dir, "sw.js"), media_type="application/javascript")
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
+    return response
 
 @app.get("/favicon.ico", include_in_schema=False)
 async def get_favicon():
@@ -237,10 +241,28 @@ if __name__ == "__main__":
     print("     👑 Admin Login: user='admin' | pass='admin123'")
     print("=" * 70)
     
-    # Auto-open browser on startup
-    try:
-        webbrowser.open(f"http://localhost:{port}")
-    except Exception:
-        pass
+    # Auto-open browser on startup only when server is verified ready
+    import threading
+    import socket
+
+    def open_browser_when_ready(target_url, target_port):
+        start_time = time.time()
+        while time.time() - start_time < 15:
+            try:
+                with socket.create_connection(("127.0.0.1", target_port), timeout=0.5):
+                    break
+            except (OSError, ConnectionRefusedError):
+                time.sleep(0.3)
+        time.sleep(0.4)
+        try:
+            webbrowser.open(target_url)
+        except Exception:
+            pass
+
+    threading.Thread(
+        target=open_browser_when_ready,
+        args=(f"http://localhost:{port}", port),
+        daemon=True
+    ).start()
 
     uvicorn.run("main:app", host="127.0.0.1", port=port, reload=False)

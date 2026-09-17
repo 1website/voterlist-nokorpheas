@@ -18,7 +18,7 @@
     <meta name="apple-mobile-web-app-title" content="VoterList">
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/style.css?v=30.0">
 </head>
 <body class="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 min-h-screen flex items-center justify-center p-4">
 
@@ -120,8 +120,29 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
-                    .then((reg) => console.log('PWA Service Worker registered'))
+                    .then((reg) => {
+                        console.log('PWA Service Worker registered');
+                        reg.update();
+                        reg.onupdatefound = () => {
+                            const worker = reg.installing;
+                            if (worker) {
+                                worker.onstatechange = () => {
+                                    if (worker.state === 'installed' && navigator.serviceWorker.controller) {
+                                        worker.postMessage({ type: 'SKIP_WAITING' });
+                                    }
+                                };
+                            }
+                        };
+                    })
                     .catch((err) => console.warn('PWA SW registration failed:', err));
+            });
+
+            let swRefreshing = false;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (!swRefreshing) {
+                    swRefreshing = true;
+                    window.location.reload();
+                }
             });
         }
     </script>

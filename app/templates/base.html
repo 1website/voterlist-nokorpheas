@@ -50,8 +50,8 @@
     <meta name="apple-mobile-web-app-title" content="VoterList">
 
     <!-- Custom Style and Print CSS with Cache-Buster -->
-    <link rel="stylesheet" href="/static/css/style.css?v=29.0">
-    <link rel="stylesheet" href="/static/css/print.css?v=29.0" media="print">
+    <link rel="stylesheet" href="/static/css/style.css?v=30.0">
+    <link rel="stylesheet" href="/static/css/print.css?v=30.0" media="print">
 
     <!-- Chart.js & HTML5-QRCode -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -419,12 +419,12 @@
 
     <!-- Main Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-    <script src="/static/js/app.js?v=3.0"></script>
-    <script src="/static/js/khmer_latin_keyboard.js"></script>
-    <script src="/static/js/qr_scanner.js"></script>
-    <script src="/static/js/khmer_id_ocr.js?v=3.0"></script>
-    <script src="/static/js/pdf_importer.js"></script>
-    <script src="/static/js/charts.js"></script>
+    <script src="/static/js/app.js?v=3.1"></script>
+    <script src="/static/js/khmer_latin_keyboard.js?v=3.1"></script>
+    <script src="/static/js/qr_scanner.js?v=3.1"></script>
+    <script src="/static/js/khmer_id_ocr.js?v=3.1"></script>
+    <script src="/static/js/pdf_importer.js?v=3.1"></script>
+    <script src="/static/js/charts.js?v=3.1"></script>
     <script>
         // Sidebar Toggle
         function toggleSidebar() {
@@ -593,8 +593,30 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
-                    .then((reg) => console.log('PWA Service Worker registered'))
+                    .then((reg) => {
+                        console.log('PWA Service Worker registered');
+                        // Actively check for updates
+                        reg.update();
+                        reg.onupdatefound = () => {
+                            const worker = reg.installing;
+                            if (worker) {
+                                worker.onstatechange = () => {
+                                    if (worker.state === 'installed' && navigator.serviceWorker.controller) {
+                                        worker.postMessage({ type: 'SKIP_WAITING' });
+                                    }
+                                };
+                            }
+                        };
+                    })
                     .catch((err) => console.warn('PWA SW registration failed:', err));
+            });
+
+            let swRefreshing = false;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (!swRefreshing) {
+                    swRefreshing = true;
+                    window.location.reload();
+                }
             });
         }
     </script>

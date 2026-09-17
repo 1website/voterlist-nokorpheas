@@ -159,9 +159,11 @@ def seed_database(db: Session):
         print("Ensured default admin account exists.")
 
     # Check if already seeded
+    seed_birth_certificates(db)
     if db.query(Village).count() > 0:
         print("Database already initialized.")
         return
+
 
     print("Initializing database schema and records for Nokor Pheas Commune (ឃុំនគរភាស)...")
 
